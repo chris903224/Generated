@@ -3,15 +3,18 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   server: {
-    port: 3000,
-    open: true
+    port: 3000
   },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    sourcemap: false
-  },
-  preview: {
-    port: 3000
+    rollupOptions: {
+      input: {
+        main: 'index.html',
+        admin: 'admin.html',
+        'admin-login': 'admin-login.html',
+        'admin-callback': 'admin-callback.html'
+      }
+    }
   }
 });
