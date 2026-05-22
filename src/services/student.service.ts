@@ -1,79 +1,177 @@
-// admin.main.ts (partial - chart initialization)
+// services/student.service.ts
 
-import { StudentService } from './services/student.service';
-import Chart from 'chart.js/auto';
+import type { Student, StudentFormData } from '../types/student.types';
 
-function initMonthlyTrendChart() {
-  const ctx = document.getElementById('trendChart') as HTMLCanvasElement;
-  if (!ctx) return;
-  
-  const trendData = StudentService.getMonthlyTrendData();
-  
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: trendData.map(d => d.month),
-      datasets: [
-        {
-          label: 'Completed',
-          data: trendData.map(d => d.completed),
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
-          borderWidth: 3,
-          tension: 0.4,
-          fill: true,
-          pointRadius: 4,
-          pointBackgroundColor: '#10b981',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2
-        },
-        {
-          label: 'Pending',
-          data: trendData.map(d => d.pending),
-          borderColor: '#f59e0b',
-          backgroundColor: 'rgba(245, 158, 11, 0.05)',
-          borderWidth: 3,
-          tension: 0.4,
-          fill: true,
-          pointRadius: 4,
-          pointBackgroundColor: '#f59e0b',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2
-        },
-        {
-          label: 'Not Completed',
-          data: trendData.map(d => d.notCompleted),
-          borderColor: '#ef4444',
-          backgroundColor: 'rgba(239, 68, 68, 0.05)',
-          borderWidth: 3,
-          tension: 0.4,
-          fill: true,
-          pointRadius: 4,
-          pointBackgroundColor: '#ef4444',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: { usePointStyle: true, boxWidth: 8 }
-        },
-        tooltip: { mode: 'index', intersect: false }
-      },
-      scales: {
-        y: { beginAtZero: true, title: { display: true, text: 'Number of Students' } },
-        x: { grid: { display: false } }
-      }
-    }
-  });
+// In-memory storage (will be replaced by API later)
+let students: Student[] = [];
+
+// Generate unique ID
+function generateId(): string {
+  return 'STU-' + Date.now() + '-' + Math.random().toString(36).substr(2, 8);
 }
 
-// Call this after DOM loads
-document.addEventListener('DOMContentLoaded', () => {
-  initMonthlyTrendChart();
-});
+// Generate PHINMA ID
+function generatePhinmaId(): string {
+  const num = students.length + 2600;
+  return 'PH-' + String(num).padStart(5, '0');
+}
+
+export const StudentService = {
+  // ============================================
+  // GETTERS
+  // ============================================
+  
+  getAllStudents(): Student[] {
+    return [...students];
+  },
+
+  getStudentById(id: string): Student | undefined {
+    return students.find(s => s.id === id);
+  },
+
+  getStudentByPhinmaId(phinmaId: string): Student | undefined {
+    return students.find(s => s.phinmaId === phinmaId);
+  },
+
+  getStudentByControlNumber(controlNumber: string): Student | undefined {
+    // Add this method for compatibility with admin side
+    return students.find(s => s.phinmaId === controlNumber);
+  },
+
+  getStudentByStudentId(studentId: string): Student | undefined {
+    // Add this method for compatibility with admin side
+    return students.find(s => s.id === studentId);
+  },
+
+  getTotalCount(): number {
+    return students.length;
+  },
+
+  getStats(): { total: number; completed: number; pending: number; notCompleted: number; hk: number; continuingOS: number } {
+    const total = students.length;
+    const completed = students.filter(s => s.remarks === 'COMPLETED').length;
+    const pending = students.filter(s => s.remarks === 'PENDING').length;
+    const notCompleted = students.filter(s => s.remarks === 'NOT COMPLETED').length;
+    const hk = students.filter(s => s.endorsement === 'Endorsement for OJT - HK Duty').length;
+    const continuingOS = students.filter(s => s.endorsement === 'Endorsed as Continuing OS').length;
+    
+    return { total, completed, pending, notCompleted, hk, continuingOS };
+  },
+
+  // ============================================
+  // CRUD OPERATIONS
+  // ============================================
+  
+  addStudent(formData: StudentFormData): Student {
+    if (!formData.name || !formData.name.trim()) {
+      throw new Error('Student name is required');
+    }
+    
+    const newStudent: Student = {
+      id: generateId(),
+      phinmaId: generatePhinmaId(),
+      name: formData.name.trim(),
+      course: formData.course || 'BSIT',
+      year: formData.year || 'YEAR 1',
+      supportType: formData.supportType || 'FRESHMEN OS',
+      remarks: formData.remarks || 'PENDING',
+      endorsement: formData.endorsement || 'Not Continuing OS',
+      dataSheet: formData.dataSheet || 'Encoded',
+      duties: formData.duties || 'Regular Duty Assigned'
+    };
+    
+    students.push(newStudent);
+    return newStudent;
+  },
+
+  updateStudent(id: string, formData: Partial<StudentFormData>): Student | null {
+    const index = students.findIndex(s => s.id === id);
+    if (index === -1) return null;
+    
+    const updatedStudent: Student = {
+      ...students[index],
+      name: formData.name?.trim() || students[index].name,
+      course: formData.course || students[index].course,
+      year: formData.year || students[index].year,
+      supportType: formData.supportType || students[index].supportType,
+      remarks: formData.remarks || students[index].remarks,
+      endorsement: formData.endorsement || students[index].endorsement,
+      dataSheet: formData.dataSheet || students[index].dataSheet,
+      duties: formData.duties || students[index].duties
+    };
+    
+    students[index] = updatedStudent;
+    return updatedStudent;
+  },
+
+  deleteStudent(id: string): boolean {
+    const index = students.findIndex(s => s.id === id);
+    if (index === -1) return false;
+    students.splice(index, 1);
+    return true;
+  },
+
+  deleteAllStudents(): void {
+    students = [];
+  },
+
+  // ============================================
+  // SEARCH & FILTER
+  // ============================================
+  
+  searchStudents(query: string): Student[] {
+    if (!query || query.trim() === '') {
+      return [...students];
+    }
+    
+    const lowerQuery = query.toLowerCase().trim();
+    return students.filter(s => 
+      s.name.toLowerCase().includes(lowerQuery) ||
+      s.course.toLowerCase().includes(lowerQuery) ||
+      s.phinmaId.toLowerCase().includes(lowerQuery)
+    );
+  },
+
+  filterByRemarks(remarks: string): Student[] {
+    if (!remarks) return [...students];
+    return students.filter(s => s.remarks === remarks);
+  },
+
+  filterByCourse(course: string): Student[] {
+    if (!course) return [...students];
+    return students.filter(s => s.course === course);
+  },
+
+  getHKStudents(): Student[] {
+    return students.filter(s => s.endorsement === 'Endorsement for OJT - HK Duty');
+  },
+
+  // ============================================
+  // VALIDATION
+  // ============================================
+  
+  validateStudentData(formData: StudentFormData): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    if (!formData.name || !formData.name.trim()) {
+      errors.push('Name is required');
+    }
+    
+    return { isValid: errors.length === 0, errors };
+  },
+
+  // ============================================
+  // RESET
+  // ============================================
+  
+  reset(): void {
+    students = [];
+  },
+
+  count(): number {
+    return students.length;
+  }
+};
+
+// Add default export for compatibility
+export default StudentService;
