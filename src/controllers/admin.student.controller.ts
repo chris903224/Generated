@@ -1,0 +1,304 @@
+// controllers/admin.student.controller.ts
+
+import { StudentService } from '../services/supabase.service';
+import { 
+  escapeHtml, 
+  getRemarksBadge, 
+  getEndorsementTag, 
+  getDutiesTag, 
+  updateStats 
+} from '../utils/admin.formatters';
+import type { Student } from '../services/supabase.service';
+
+export class AdminStudentController {
+  private currentEditId: string | null = null;
+
+  constructor() {
+    this.setupEventListeners();
+  }
+
+  async renderCompletionTable(searchTerm: string = ''): Promise<void> {
+    const students = await StudentService.searchStudents(searchTerm);
+    const tbody = document.getElementById('completionTbody');
+    const rowCount = document.getElementById('rowCount');
+    
+    if (!tbody) return;
+    if (rowCount) rowCount.textContent = `${students.length} entries`;
+    
+    if (students.length === 0) {
+      tbody.innerHTML = `
+        <tr><td colspan="12" style="text-align:center; padding:60px 20px;">
+          <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+          <h3>No Students Yet</h3>
+          <p>Click "Add Student" to get started</p>
+        </td></tr>
+      `;
+      await this.updateStatsDisplay();
+      return;
+    }
+    
+    let html = '';
+    for (const student of students) {
+      html += `
+        <tr data-id="${student.id}">
+          <td><code>${escapeHtml(student.student_id)}</code></td>
+          <td><code>${escapeHtml(student.control_number)}</code></td>
+          <td><strong>${escapeHtml(student.full_name)}</strong></td>
+          <td>${escapeHtml(student.course)}</td>
+          <td>${escapeHtml(student.year_level)}</td>
+          <td>${escapeHtml(student.support_type)}</td>
+          <td>${getRemarksBadge(student.remarks)}</td>
+          <td>${getEndorsementTag(student.endorsement)}</td>
+          <td>${escapeHtml(student.data_sheet)}</td>
+          <td>${getDutiesTag(student.duties)}</td>
+          <td><span class="hours-badge">${escapeHtml(student.hours || '0 hrs')}</span></td>
+          <td class="action-buttons">
+            <button class="action-btn edit-btn" data-id="${student.id}" title="Edit">✏️ Edit</button>
+            <button class="action-btn delete-btn" data-id="${student.id}" data-name="${escapeHtml(student.full_name)}" title="Delete">🗑️ Delete</button>
+          </td>
+        </tr>
+      `;
+    }
+    tbody.innerHTML = html;
+    await this.updateStatsDisplay();
+  }
+
+  async renderHKTable(searchTerm: string = ''): Promise<void> {
+    const hkStudents = await StudentService.getHKStudents();
+    const filtered = hkStudents.filter(s => 
+      s.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      s.course.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    const tbody = document.getElementById('hkTbody');
+    const rowCount = document.getElementById('hkRowCount');
+    const hkTot = document.getElementById('hkTot');
+    const hkOjt = document.getElementById('hkOjt');
+    
+    if (!tbody) return;
+    if (rowCount) rowCount.textContent = `${filtered.length} entries`;
+    if (hkTot) hkTot.textContent = hkStudents.length.toString();
+    if (hkOjt) hkOjt.textContent = hkStudents.length.toString();
+    
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:40px;">No HK Endorsed Students</td></tr>`;
+      return;
+    }
+    
+    let html = '';
+    for (const student of filtered) {
+      html += `
+        <tr data-id="${student.id}">
+          <td><code>${escapeHtml(student.student_id)}</code></td>
+          <td><code>${escapeHtml(student.control_number)}</code></td>
+          <td><strong>${escapeHtml(student.full_name)}</strong></td>
+          <td>${escapeHtml(student.course)}</td>
+          <td>${escapeHtml(student.year_level)}</td>
+          <td>${getEndorsementTag(student.endorsement)}</td>
+          <td>${getDutiesTag(student.duties)}</td>
+          <td><span class="hours-badge">${escapeHtml(student.hours || '0 hrs')}</span></td>
+          <td class="action-buttons">
+            <button class="action-btn edit-btn" data-id="${student.id}">✏️ Edit</button>
+            <button class="action-btn delete-btn" data-id="${student.id}" data-name="${escapeHtml(student.full_name)}">🗑️ Delete</button>
+          </td>
+        </tr>
+      `;
+    }
+    tbody.innerHTML = html;
+  }
+
+  async renderRecentTable(): Promise<void> {
+    const students = await StudentService.getAllStudents();
+    const recent = students.slice(0, 10);
+    const tbody = document.getElementById('recentTbody');
+    
+    if (!tbody) return;
+    
+    if (recent.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px;">No recent records</td></tr>`;
+      return;
+    }
+    
+    let html = '';
+    for (const student of recent) {
+      html += `
+        <tr data-id="${student.id}">
+          <td><strong>${escapeHtml(student.full_name)}</strong></td>
+          <td>${escapeHtml(student.course)}</td>
+          <td>${escapeHtml(student.year_level)}</td>
+          <td>${getRemarksBadge(student.remarks)}</td>
+          <td>${getDutiesTag(student.duties)}</td>
+          <td>${getEndorsementTag(student.endorsement)}</td>
+          <td><span class="hours-badge">${escapeHtml(student.hours || '0 hrs')}</span></td>
+        </tr>
+      `;
+    }
+    tbody.innerHTML = html;
+  }
+
+  async updateStatsDisplay(): Promise<void> {
+    const stats = await StudentService.getStats();
+    updateStats(stats.total, stats.completed, stats.pending, stats.hk);
+  }
+
+  async getNextControlNumber(): Promise<string> {
+    const existingStudents = await StudentService.getAllStudents();
+    let maxNumber = 0;
+    for (const student of existingStudents) {
+      const num = parseInt(student.control_number);
+      if (!isNaN(num) && num > maxNumber) maxNumber = num;
+    }
+    return (maxNumber + 1).toString().padStart(6, '0');
+  }
+
+  async deleteStudent(id: string, name: string): Promise<void> {
+    if (confirm(`Delete "${name}"? This cannot be undone.`)) {
+      const success = await StudentService.deleteStudent(id);
+      if (success) {
+        await this.refreshAllTables();
+        this.showToast(`${name} deleted.`, 'success');
+      } else {
+        this.showToast('Delete failed.', 'error');
+      }
+    }
+  }
+
+  showToast(message: string, type: 'success' | 'error'): void {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;z-index:9999;';
+    toast.style.backgroundColor = type === 'success' ? '#10b981' : '#ef4444';
+    toast.style.color = 'white';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  openAddModal(): void {
+    this.currentEditId = null;
+    this.clearModalForm();
+    this.previewNextControlNumber();
+    const modal = document.getElementById('editModal');
+    const modalTitle = document.querySelector('#editModalTitle');
+    if (modalTitle) modalTitle.innerHTML = `➕ Add New Student`;
+    if (modal) modal.style.display = 'flex';
+  }
+
+  async previewNextControlNumber(): Promise<void> {
+    const nextNumber = await this.getNextControlNumber();
+    const input = document.getElementById('eControlNumber') as HTMLInputElement;
+    if (input) input.value = nextNumber;
+  }
+
+  async openEditModal(id: string): Promise<void> {
+    const student = await StudentService.getStudentById(id);
+    if (!student) return;
+    
+    this.currentEditId = id;
+    
+    (document.getElementById('eStudentId') as HTMLInputElement).value = student.student_id;
+    (document.getElementById('eFullName') as HTMLInputElement).value = student.full_name;
+    (document.getElementById('eCourse') as HTMLInputElement).value = student.course;
+    (document.getElementById('eYearLevel') as HTMLSelectElement).value = student.year_level;
+    (document.getElementById('eSection') as HTMLInputElement).value = student.section || '';
+    (document.getElementById('eSupportType') as HTMLSelectElement).value = student.support_type;
+    (document.getElementById('eRemarks') as HTMLSelectElement).value = student.remarks;
+    (document.getElementById('eEndorsement') as HTMLSelectElement).value = student.endorsement;
+    (document.getElementById('eDataSheet') as HTMLSelectElement).value = student.data_sheet;
+    (document.getElementById('eDuties') as HTMLSelectElement).value = student.duties;
+    (document.getElementById('eHours') as HTMLInputElement).value = student.hours || '0 hrs';
+    (document.getElementById('eControlNumber') as HTMLInputElement).value = student.control_number;
+    
+    const modalTitle = document.querySelector('#editModalTitle');
+    if (modalTitle) modalTitle.innerHTML = `✏️ Edit Student Record`;
+    const modal = document.getElementById('editModal');
+    if (modal) modal.style.display = 'flex';
+  }
+
+  async saveStudent(): Promise<void> {
+    const studentId = (document.getElementById('eStudentId') as HTMLInputElement).value.trim();
+    const fullName = (document.getElementById('eFullName') as HTMLInputElement).value.trim();
+    
+    if (!studentId) { alert('Student ID required'); return; }
+    if (!fullName) { alert('Student name required'); return; }
+    
+    const formData = {
+      student_id: studentId,
+      control_number: this.currentEditId ? '' : await this.getNextControlNumber(),
+      full_name: fullName,
+      course: (document.getElementById('eCourse') as HTMLInputElement).value.trim() || 'BSIT',
+      year_level: (document.getElementById('eYearLevel') as HTMLSelectElement).value,
+      section: (document.getElementById('eSection') as HTMLInputElement).value || '',
+      support_type: (document.getElementById('eSupportType') as HTMLSelectElement).value,
+      remarks: (document.getElementById('eRemarks') as HTMLSelectElement).value,
+      endorsement: (document.getElementById('eEndorsement') as HTMLSelectElement).value,
+      data_sheet: (document.getElementById('eDataSheet') as HTMLSelectElement).value,
+      duties: (document.getElementById('eDuties') as HTMLSelectElement).value,
+      hours: (document.getElementById('eHours') as HTMLInputElement).value || '0 hrs',
+      status: 'Active'
+    };
+    
+    if (this.currentEditId) {
+      await StudentService.updateStudent(this.currentEditId, formData);
+    } else {
+      await StudentService.addStudent(formData);
+    }
+    
+    this.closeModal();
+    await this.refreshAllTables();
+  }
+
+  clearModalForm(): void {
+    (document.getElementById('eStudentId') as HTMLInputElement).value = '';
+    (document.getElementById('eFullName') as HTMLInputElement).value = '';
+    (document.getElementById('eCourse') as HTMLInputElement).value = '';
+    (document.getElementById('eSection') as HTMLInputElement).value = '';
+    (document.getElementById('eHours') as HTMLInputElement).value = '';
+  }
+
+  closeModal(): void {
+    const modal = document.getElementById('editModal');
+    if (modal) modal.style.display = 'none';
+    this.currentEditId = null;
+  }
+
+  async refreshAllTables(): Promise<void> {
+    const searchInput = (document.getElementById('searchInput') as HTMLInputElement)?.value || '';
+    const hkSearch = (document.getElementById('hkSearch') as HTMLInputElement)?.value || '';
+    await this.renderCompletionTable(searchInput);
+    await this.renderHKTable(hkSearch);
+    await this.renderRecentTable();
+  }
+
+  setupEventListeners(): void {
+    const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+    if (searchInput) searchInput.addEventListener('input', (e) => this.renderCompletionTable((e.target as HTMLInputElement).value));
+    
+    const hkSearch = document.getElementById('hkSearch') as HTMLInputElement;
+    if (hkSearch) hkSearch.addEventListener('input', (e) => this.renderHKTable((e.target as HTMLInputElement).value));
+    
+    const saveBtn = document.getElementById('saveEdit');
+    if (saveBtn) saveBtn.addEventListener('click', () => this.saveStudent());
+    
+    const cancelBtn = document.getElementById('cancelEdit');
+    if (cancelBtn) cancelBtn.addEventListener('click', () => this.closeModal());
+    
+    const addBtn = document.getElementById('addStudentBtn');
+    if (addBtn) addBtn.addEventListener('click', () => this.openAddModal());
+    
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const deleteBtn = target.closest('.delete-btn');
+      if (deleteBtn) {
+        const id = deleteBtn.getAttribute('data-id');
+        const name = deleteBtn.getAttribute('data-name');
+        if (id && name) this.deleteStudent(id, name);
+      }
+      const editBtn = target.closest('.edit-btn');
+      if (editBtn) {
+        const id = editBtn.getAttribute('data-id');
+        if (id) this.openEditModal(id);
+      }
+    });
+  }
+}
