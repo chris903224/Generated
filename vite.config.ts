@@ -1,20 +1,24 @@
-// vite.config.ts
 import { defineConfig } from 'vite';
 
 export default defineConfig({
   server: {
-    port: 3000
+    port: 3000,
+    open: true
   },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    sourcemap: false,
     rollupOptions: {
       input: {
         main: 'index.html',
         admin: 'admin.html',
-        'admin-login': 'admin-login.html',
-        'admin-callback': 'admin-callback.html'
+        adminLogin: 'admin-login.html',
+        adminCallback: 'admin-callback.html'
       }
     }
+  },
+  preview: {
+    port: 3000
   }
 });
