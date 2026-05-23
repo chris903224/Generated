@@ -67,10 +67,15 @@ const courseColors = [
 ];
 
 // ============================================
-// SECURITY MEASURES
+// SECURITY MEASURES (TEMPORARILY DISABLED)
 // ============================================
 
 function initSecurity(): void {
+  // TEMPORARILY DISABLED FOR DEBUGGING
+  console.log('⚠️ Security is temporarily disabled for debugging');
+  
+  // TODO: Enable security after fixing Add Student issue
+  /*
   document.addEventListener('contextmenu', (e) => e.preventDefault());
   
   document.addEventListener('keydown', (e) => {
@@ -97,8 +102,7 @@ function initSecurity(): void {
       e.preventDefault();
     }
   });
-  
-  console.log('✅ Security initialized');
+  */
 }
 
 // ============================================
@@ -552,8 +556,12 @@ async function initHkDutyChart(hkStudents: any[]): Promise<void> {
 // ============================================
 
 async function initCharts(): Promise<void> {
+  console.log('📊 Initializing charts...');
+  
   const students = await StudentService.getAllStudents();
   const hkStudents = await StudentService.getHKStudents();
+  
+  console.log(`📊 Found ${students.length} students, ${hkStudents.length} HK students`);
   
   await initStatusChart(students);
   await initCourseChart(students);
@@ -610,6 +618,8 @@ async function initCharts(): Promise<void> {
   if (pendingBar) pendingBar.style.width = `${pendingPct}%`;
   if (notCompletedBar) notCompletedBar.style.width = `${notCompletedPct}%`;
   if (hkBar) hkBar.style.width = `${hkPct}%`;
+  
+  console.log('✅ Charts initialized successfully');
 }
 
 // ============================================
@@ -641,6 +651,8 @@ async function checkAdminAuth(): Promise<boolean> {
 // ============================================
 
 function initAdminDashboard(): void {
+  console.log('🚀 Initializing Admin Dashboard...');
+  
   const studentController = new AdminStudentController();
   const uiController = new AdminUIController();
   
@@ -684,6 +696,8 @@ function initAdminDashboard(): void {
   studentController.renderHKTable();
   studentController.renderRecentTable();
   initCharts();
+  
+  console.log('✅ Admin Dashboard initialized');
 }
 
 // ============================================
@@ -691,14 +705,19 @@ function initAdminDashboard(): void {
 // ============================================
 
 async function startApp(): Promise<void> {
+  console.log('🔐 Checking authentication...');
   const isAuth = await checkAdminAuth();
+  
   if (isAuth) {
+    console.log('✅ Authenticated, starting dashboard...');
     initSecurity();
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initAdminDashboard);
     } else {
       initAdminDashboard();
     }
+  } else {
+    console.log('❌ Not authenticated, redirecting to login...');
   }
 }
 
