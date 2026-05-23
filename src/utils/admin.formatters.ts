@@ -1,3 +1,5 @@
+// utils/admin.formatters.ts
+
 // ============================================
 // HTML ESCAPE
 // ============================================
@@ -28,7 +30,6 @@ export function getRemarksBadge(remarks: string): string {
   if (badge) {
     return `<span class="badge ${badge.class}">${badge.icon} ${badge.text}</span>`;
   }
-  
   return `<span class="badge">${escapeHtml(remarks)}</span>`;
 }
 
@@ -44,7 +45,6 @@ export function getEndorsementTag(endorsement: string): string {
   if (tag) {
     return `<span class="etag ${tag.class}">${tag.icon} ${tag.text}</span>`;
   }
-  
   return `<span class="etag">${escapeHtml(endorsement)}</span>`;
 }
 
@@ -60,7 +60,6 @@ export function getDutiesTag(duties: string): string {
   if (tag) {
     return `<span class="dtag ${tag.class}">${tag.icon} ${tag.text}</span>`;
   }
-  
   return `<span class="dtag">${escapeHtml(duties)}</span>`;
 }
 
@@ -97,7 +96,7 @@ export function getYearLevelForSelect(year: string): string {
 }
 
 // ============================================
-// STATS UPDATE
+// STATS UPDATE - CORRECTED FOR admin.html
 // ============================================
 
 export function updateStats(
@@ -106,45 +105,45 @@ export function updateStats(
   pending: number, 
   hk: number
 ): void {
-  // Update stat numbers
-  const s0 = document.getElementById('s0');
-  const s1 = document.getElementById('s1');
-  const s2 = document.getElementById('s2');
-  const s3 = document.getElementById('s3');
-  const s4 = document.getElementById('s4');
+  const notCompleted = total - completed - pending;
   
-  if (s0) s0.textContent = total.toString();
-  if (s1) s1.textContent = completed.toString();
-  if (s2) s2.textContent = pending.toString();
-  if (s3) {
-    const notCompleted = total - completed - pending;
-    s3.textContent = notCompleted.toString();
-  }
-  if (s4) s4.textContent = hk.toString();
+  // Update stat numbers - using correct IDs from admin.html
+  const totalEl = document.getElementById('totalStudents');
+  const completedEl = document.getElementById('completedCount');
+  const pendingEl = document.getElementById('pendingCount');
+  const notCompletedEl = document.getElementById('notCompletedCount');
+  const hkEl = document.getElementById('hkEndorsedCount');
+  
+  if (totalEl) totalEl.textContent = total.toString();
+  if (completedEl) completedEl.textContent = completed.toString();
+  if (pendingEl) pendingEl.textContent = pending.toString();
+  if (notCompletedEl) notCompletedEl.textContent = notCompleted.toString();
+  if (hkEl) hkEl.textContent = hk.toString();
   
   // Update percentages
-  const compPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const pendPercent = total > 0 ? Math.round((pending / total) * 100) : 0;
-  const notPercent = total > 0 ? Math.round(((total - completed - pending) / total) * 100) : 0;
+  const completedPct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const pendingPct = total > 0 ? Math.round((pending / total) * 100) : 0;
+  const notCompletedPct = total > 0 ? Math.round((notCompleted / total) * 100) : 0;
+  const hkPct = total > 0 ? Math.round((hk / total) * 100) : 0;
   
-  const d1 = document.getElementById('d1');
-  const d2 = document.getElementById('d2');
-  const d3 = document.getElementById('d3');
+  const completedPctEl = document.getElementById('completedPct');
+  const pendingPctEl = document.getElementById('pendingPct');
+  const notCompletedPctEl = document.getElementById('notCompletedPct');
   
-  if (d1) d1.textContent = `${compPercent}%`;
-  if (d2) d2.textContent = `${pendPercent}%`;
-  if (d3) d3.textContent = `${notPercent}%`;
+  if (completedPctEl) completedPctEl.innerHTML = `${completedPct}% <span class="trend-arrow up">↑</span>`;
+  if (pendingPctEl) pendingPctEl.textContent = `${pendingPct}%`;
+  if (notCompletedPctEl) notCompletedPctEl.innerHTML = `${notCompletedPct}% <span class="trend-arrow down">↓</span>`;
   
   // Update progress bars
-  const sb1 = document.getElementById('sb1');
-  const sb2 = document.getElementById('sb2');
-  const sb3 = document.getElementById('sb3');
-  const sb4 = document.getElementById('sb4');
+  const completedBar = document.getElementById('completedBar');
+  const pendingBar = document.getElementById('pendingBar');
+  const notCompletedBar = document.getElementById('notCompletedBar');
+  const hkBar = document.getElementById('hkBar');
   
-  if (sb1) sb1.style.width = `${compPercent}%`;
-  if (sb2) sb2.style.width = `${pendPercent}%`;
-  if (sb3) sb3.style.width = `${notPercent}%`;
-  if (sb4 && total > 0) sb4.style.width = `${(hk / total) * 100}%`;
+  if (completedBar) completedBar.style.width = `${completedPct}%`;
+  if (pendingBar) pendingBar.style.width = `${pendingPct}%`;
+  if (notCompletedBar) notCompletedBar.style.width = `${notCompletedPct}%`;
+  if (hkBar && total > 0) hkBar.style.width = `${hkPct}%`;
   
   // Update live badge
   const liveBadge = document.getElementById('liveBadgeText');
@@ -152,11 +151,17 @@ export function updateStats(
   
   // Update completion percentage chip
   const compPct = document.getElementById('compPct');
-  if (compPct) compPct.textContent = `${compPercent}% Done`;
+  if (compPct) compPct.textContent = `${completedPct}% Done`;
   
   // Update donut center
   const donutNum = document.getElementById('donutNum');
   if (donutNum) donutNum.textContent = total.toString();
+  
+  // Update HK stats
+  const hkTot = document.getElementById('hkTot');
+  const hkOjt = document.getElementById('hkOjt');
+  if (hkTot) hkTot.textContent = hk.toString();
+  if (hkOjt) hkOjt.textContent = hk.toString();
 }
 
 // ============================================
@@ -166,6 +171,7 @@ export function updateStats(
 export function generateCompletionRow(student: any): string {
   return `
     <tr data-id="${student.id}">
+      <td><code class="student-id">${escapeHtml(student.student_id || student.control_number || student.id)}</code></td>
       <td><code class="student-id">${escapeHtml(student.control_number || student.phinmaId || student.id)}</code></td>
       <td><strong>${escapeHtml(student.full_name || student.name)}</strong></td>
       <td>${escapeHtml(student.course)}</td>
@@ -175,6 +181,11 @@ export function generateCompletionRow(student: any): string {
       <td>${getEndorsementTag(student.endorsement)}</td>
       <td>${escapeHtml(student.data_sheet || student.dataSheet)}</td>
       <td>${getDutiesTag(student.duties)}</td>
+      <td><span class="hours-badge">${escapeHtml(student.hours || '0 hrs')}</span></td>
+      <td>
+        <button class="action-btn edit-btn" data-id="${student.id}" title="Edit">✏️ Edit</button>
+        <button class="action-btn delete-btn" data-id="${student.id}" data-name="${escapeHtml(student.full_name || student.name)}" title="Delete">🗑️ Delete</button>
+      </td>
     </tr>
   `;
 }
@@ -182,13 +193,18 @@ export function generateCompletionRow(student: any): string {
 export function generateHKRow(student: any): string {
   return `
     <tr data-id="${student.id}">
-      <td><code class="student-id">${escapeHtml(student.control_number || student.phinmaId || student.id)}</code></td>
-      <td><strong>${escapeHtml(student.full_name || student.name)}</strong></td>
+      <td><code>${escapeHtml(student.student_id || student.control_number)}</code></td>
+      <td><code>${escapeHtml(student.control_number)}</code></td>
+      <td><strong>${escapeHtml(student.full_name)}</strong></td>
       <td>${escapeHtml(student.course)}</td>
-      <td>${escapeHtml(formatYearLevel(student.year_level || student.year))}</td>
+      <td>${escapeHtml(formatYearLevel(student.year_level))}</td>
       <td>${getEndorsementTag(student.endorsement)}</td>
       <td>${getDutiesTag(student.duties)}</td>
-      <td><button class="act-btn edit-btn" data-id="${student.id}">Edit</button></td>
+      <td><span class="hours-badge">${escapeHtml(student.hours || '0 hrs')}</span></td>
+      <td>
+        <button class="action-btn edit-btn" data-id="${student.id}">✏️ Edit</button>
+        <button class="action-btn delete-btn" data-id="${student.id}" data-name="${escapeHtml(student.full_name)}">🗑️ Delete</button>
+      </td>
     </tr>
   `;
 }
@@ -202,6 +218,7 @@ export function generateRecentRow(student: any): string {
       <td>${getRemarksBadge(student.remarks)}</td>
       <td>${getDutiesTag(student.duties)}</td>
       <td>${getEndorsementTag(student.endorsement)}</td>
+      <td><span class="hours-badge">${escapeHtml(student.hours || '0 hrs')}</span></td>
     </tr>
   `;
 }
