@@ -64,11 +64,8 @@
   </div>
 
   <script type="module">
-    // Direct import without .ts extension
-    import { AdminAuthService } from '/src/services/supabase.service.js';
-    
-    // Also handle if .ts is needed
-    // import { AdminAuthService } from './services/supabase.service';
+    // ✅ TAMA: .ts extension
+    import { AdminAuthService } from '/src/services/supabase.service.ts';
 
     async function handleCallback() {
       const titleEl = document.getElementById('title');
@@ -84,9 +81,8 @@
           messageEl.innerHTML = 'Redirecting you to the admin dashboard...';
           spinner.style.display = 'none';
           
-          // Redirect to admin page after 2 seconds
           setTimeout(() => {
-            window.location.href = '/admin.html';
+            window.location.href = '/admin';
           }, 2000);
         } else {
           titleEl.innerHTML = '❌ Authentication Failed';
@@ -94,9 +90,8 @@
           messageEl.innerHTML = result.message;
           spinner.style.display = 'none';
           
-          // Add a button to go back to login
           const btn = document.createElement('a');
-          btn.href = '/admin-login.html';
+          btn.href = '/admin-login';
           btn.className = 'btn';
           btn.innerHTML = 'Back to Login';
           document.querySelector('.card').appendChild(btn);
@@ -109,7 +104,7 @@
         spinner.style.display = 'none';
         
         const btn = document.createElement('a');
-        btn.href = '/admin-login.html';
+        btn.href = '/admin-login';
         btn.className = 'btn';
         btn.innerHTML = 'Back to Login';
         document.querySelector('.card').appendChild(btn);
