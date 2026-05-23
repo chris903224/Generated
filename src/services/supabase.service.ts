@@ -74,56 +74,37 @@ const USED_LINKS_KEY = 'used_magic_links';
 const LINK_EXPIRY_KEY = 'magic_link_expires_at';
 
 const MagicLinkManager = {
-  /**
-   * Get all used links
-   */
   getUsedLinks(): string[] {
     const used = localStorage.getItem(USED_LINKS_KEY);
     return used ? JSON.parse(used) : [];
   },
 
-  /**
-   * Add link token to used list
-   */
   addUsedLink(token: string): void {
     const usedLinks = this.getUsedLinks();
     usedLinks.push(token);
-    // Keep only last 100 entries to prevent storage bloat
     if (usedLinks.length > 100) {
       usedLinks.shift();
     }
     localStorage.setItem(USED_LINKS_KEY, JSON.stringify(usedLinks));
   },
 
-  /**
-   * Check if link has been used before
-   */
   isLinkUsed(token: string): boolean {
     const usedLinks = this.getUsedLinks();
     return usedLinks.includes(token);
   },
 
-  /**
-   * Check if link is expired
-   */
   isLinkExpired(): boolean {
     const expiresAt = localStorage.getItem(LINK_EXPIRY_KEY);
     if (!expiresAt) return true;
     return new Date() > new Date(expiresAt);
   },
 
-  /**
-   * Store link expiration (24 hours from now)
-   */
   storeLinkExpiration(): void {
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 24);
     localStorage.setItem(LINK_EXPIRY_KEY, expiresAt.toISOString());
   },
 
-  /**
-   * Clear expired links periodically
-   */
   clearExpiredLinks(): void {
     if (this.isLinkExpired()) {
       localStorage.removeItem(USED_LINKS_KEY);
@@ -131,11 +112,25 @@ const MagicLinkManager = {
     }
   },
 
-  /**
-   * Generate a unique token for magic link
-   */
   generateToken(): string {
     return crypto.randomUUID() + '-' + Date.now();
+  }
+};
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+const getRedirectUrl = (token: string): string => {
+  const isProduction = window.location.hostname !== 'localhost' && 
+                       window.location.hostname !== '127.0.0.1';
+  
+  if (isProduction) {
+    // Force production URL
+    return `https://generatedcontrolnumbers.vercel.app/admin-callback.html?token=${token}`;
+  } else {
+    // Local development
+    return `${window.location.origin}/admin-callback.html?token=${token}`;
   }
 };
 
@@ -535,11 +530,17 @@ export const AdminAuthService = {
       // Generate unique token for this magic link
       const token = MagicLinkManager.generateToken();
       
-      // Store that this link has been sent (optional: track in localStorage)
+      // Get the correct redirect URL based on environment
+      const redirectUrl = getRedirectUrl(token);
+      
+      console.log('Sending magic link to:', email);
+      console.log('Redirect URL:', redirectUrl);
+      
+      // Send magic link with forced redirect URL
       const { error } = await supabase.auth.signInWithOtp({
         email: email,
         options: {
-          emailRedirectTo: `${window.location.origin}/admin-callback.html?token=${token}`,
+          emailRedirectTo: redirectUrl,
           data: {
             magic_link_token: token,
             sent_at: new Date().toISOString()
@@ -560,6 +561,7 @@ export const AdminAuthService = {
         message: '🔐 One-time magic link sent! Check your email. This link can only be used once and expires in 24 hours.' 
       };
     } catch (error: any) {
+      console.error('Send magic link exception:', error);
       return { success: false, message: error.message || 'Failed to send magic link' };
     }
   },
@@ -572,6 +574,8 @@ export const AdminAuthService = {
       // Get the URL parameters
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
+      
+      console.log('Handling callback with token:', token);
       
       // Check if link is expired
       if (MagicLinkManager.isLinkExpired()) {
@@ -607,6 +611,8 @@ export const AdminAuthService = {
       localStorage.setItem('admin_email', session.user.email || '');
       localStorage.setItem('admin_user_id', session.user.id);
       localStorage.setItem('admin_login_time', new Date().toISOString());
+      
+      console.log('Admin logged in:', session.user.email);
       
       return { success: true, message: '✅ Successfully logged in!' };
     } catch (error: any) {
