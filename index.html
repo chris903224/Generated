@@ -3,16 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>VeriStud | Student Identity Portal</title>
+  <title>Hawak Kamay | Online Support System</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body class="white-theme">
 
-  <!-- Animated background orbs -->
+  <!-- Mesh background -->
+  <div class="bg-mesh"></div>
   <div class="bg-orb orb-1"></div>
   <div class="bg-orb orb-2"></div>
   <div class="bg-orb orb-3"></div>
+  <div class="bg-grain"></div>
 
   <!-- ============================================
        GUIDELINES MODAL
@@ -21,10 +23,15 @@
     <div class="modal-box">
       <div class="modal-header">
         <div class="modal-header-left">
-          <img src="hk.jpg" alt="VeriStud Logo" class="modal-logo-img">
+          <div class="modal-logo-icon">
+            <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 3C16 3 8 7 8 14V21L16 25L24 21V14C24 7 16 3 16 3Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+              <path d="M12 16l3 3 5-5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <div>
-            <h2 class="modal-title">Student Portal Guidelines</h2>
-            <p class="modal-sub">Please read before proceeding</p>
+            <h2 class="modal-title">Online Support Guidelines</h2>
+            <p class="modal-sub">Hawak Kamay Support System</p>
           </div>
         </div>
         <button class="modal-close-btn" id="closeModalBtn" aria-label="Close">✕</button>
@@ -35,7 +42,7 @@
             <span class="g-icon">🔐</span>
             <div>
               <p class="g-title">Credential Entry</p>
-              <p class="g-desc">Enter your <strong>Control Number</strong> and <strong>Student ID</strong> to access your profile.</p>
+              <p class="g-desc">Enter your <strong>Control Number</strong> and <strong>Student ID</strong> to access your support profile and records.</p>
             </div>
           </div>
           <div class="guideline-item">
@@ -48,19 +55,25 @@
           <div class="guideline-item">
             <span class="g-icon">✅</span>
             <div>
-              <p class="g-title">What You'll See</p>
-              <p class="g-desc">After verification, your full student record will be revealed — name, course, year, section, and IDs.</p>
+              <p class="g-title">What You'll Access</p>
+              <p class="g-desc">After verification, your full support record is revealed — name, course, year, section, hours completed, and status.</p>
+            </div>
+          </div>
+          <div class="guideline-item">
+            <span class="g-icon">💬</span>
+            <div>
+              <p class="g-title">Support Services</p>
+              <p class="g-desc">Track your online support hours, endorsement status, duties rendered, and completion progress.</p>
             </div>
           </div>
           <div class="guideline-item">
             <span class="g-icon">🔄</span>
             <div>
               <p class="g-title">Verify Another</p>
-              <p class="g-desc">Use <em>"Verify Another Account"</em> to reset and check a different account.</p>
+              <p class="g-desc">Use <em>"Verify Another Account"</em> to reset and check a different support account.</p>
             </div>
           </div>
         </div>
-        <div class="modal-note">✨ Secure verification · Glassmorphism UI</div>
       </div>
       <div class="modal-footer">
         <button class="modal-proceed-btn" id="proceedBtn">Got it, Proceed →</button>
@@ -74,22 +87,22 @@
   <div class="portal">
     <div class="glass-card" id="mainCard">
 
-      <!-- PNG-based Logo -->
+      <!-- Logo area -->
       <div class="logo-wrap">
         <div class="logo-ring">
-          <img src="hk.jpg" alt="VeriStud Logo" class="portal-logo-img">
+          <img src="hk.jpg" alt="Hawak Kamay Logo" class="portal-logo-img">
           <div class="logo-pulse"></div>
         </div>
         <div class="logo-text-wrap">
-          <span class="logo-brand">VeriStud</span>
-          <span class="logo-tagline">Secure Identity System</span>
+          <span class="logo-brand">Hawak Kamay</span>
+          <span class="logo-tagline">Online Support System</span>
         </div>
       </div>
 
       <!-- Card Title -->
       <div class="card-header">
-        <h1 class="title">Student Identity<br><span class="title-accent">Access Portal</span></h1>
-        <p class="subtitle">Enter your credentials to verify</p>
+        <h1 class="title">Online Support<br><span class="title-accent">Identity Portal</span></h1>
+        <p class="subtitle">Enter your credentials to verify your support record</p>
       </div>
 
       <!-- ===== STEP 1: LOGIN FORM ===== -->
@@ -116,15 +129,9 @@
             <path d="M5 12H19M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <div class="demo-pill">
-          <span class="demo-label">Demo</span>
-          <span class="demo-val">CN: <strong>0011111</strong></span>
-          <span class="demo-sep">·</span>
-          <span class="demo-val">ID: <strong>06-2526-123456</strong></span>
-        </div>
       </div>
 
-      <!-- ===== STEP 2: PROFILE ONLY (NO COMPLETION TABLE) ===== -->
+      <!-- ===== STEP 2: PROFILE ===== -->
       <div class="step-panel hidden" id="stepProfile">
 
         <!-- Profile Header -->
@@ -149,7 +156,7 @@
           </div>
         </div>
 
-        <!-- Info Table (FIELD | DETAILS) - Only Profile Info -->
+        <!-- Info Table -->
         <div class="info-table">
           <div class="info-table-head">
             <span>Field</span>
@@ -189,7 +196,6 @@
           </div>
         </div>
 
-        <!-- Verify Another Account Button -->
         <button class="reset-btn" id="resetBtn">
           <svg viewBox="0 0 24 24" fill="none" style="width:15px;height:15px">
             <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

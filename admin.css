@@ -1716,3 +1716,49 @@ body.dark .hours-badge {
   overflow: hidden;
   border-radius: 16px;
 }
+/* User Avatar with Initials */
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 8px 16px;
+  border-radius: 60px;
+  backdrop-filter: blur(4px);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e5c3a, #2b7049);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar-initials {
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-info strong {
+  font-size: 14px;
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+.user-info span {
+  font-size: 11px;
+  color: var(--text-muted);
+}

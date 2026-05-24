@@ -1,5 +1,7 @@
 // src/admin-login.ts
-// Magic Link: phinmaed.com email only
+// Improved: top-toast notification system with dual login (Credentials + Magic Link)
+// Includes 5 hardcoded admin accounts
+// Magic Link: @phinmaed.com only
 
 import { AdminAuthService } from './services/supabase.service';
 
@@ -143,7 +145,15 @@ function clearToasts(): void {
 async function checkExistingSession(): Promise<void> {
   const isAuthenticated = await AdminAuthService.isAuthenticated();
   const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+  const loginMethod = localStorage.getItem('login_method');
   
+  // If already logged in via credentials, redirect to admin
+  if (loginMethod === 'credentials' && isLoggedIn) {
+    window.location.href = '/admin';
+    return;
+  }
+  
+  // If logged in via magic link, redirect to admin
   if (isAuthenticated || isLoggedIn) {
     window.location.href = '/admin';
   }
@@ -208,6 +218,7 @@ async function loginWithCredentials(): Promise<void> {
   loginAttempts++;
   const remaining = MAX_ATTEMPTS - loginAttempts;
 
+  // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 800));
 
   const foundAdmin = ADMIN_ACCOUNTS.find(
@@ -215,11 +226,15 @@ async function loginWithCredentials(): Promise<void> {
   );
 
   if (foundAdmin) {
+    // Clear any previous auth data
     localStorage.clear();
+    
+    // Store credentials login data with timestamp for session expiry
     localStorage.setItem('admin_logged_in', 'true');
     localStorage.setItem('admin_username', foundAdmin.username);
     localStorage.setItem('admin_name', foundAdmin.name);
     localStorage.setItem('login_method', 'credentials');
+    localStorage.setItem('admin_login_time', Date.now().toString());
     
     showToast('success', { 
       title: `Welcome, ${foundAdmin.name}!`, 

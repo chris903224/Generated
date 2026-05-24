@@ -156,10 +156,10 @@
           </div>
           <div class="user-pill">
             <div class="user-avatar">
-              <img src="/hk.jpg" alt="Admin" class="avatar-img" onerror="this.style.display='none';this.parentElement.innerHTML='AU'">
+              <div class="avatar-initials" id="adminInitials">AD</div>
             </div>
             <div class="user-info">
-              <strong>Admin User</strong>
+              <strong id="adminNameDisplay">Admin User</strong>
               <span>Head, Online Support</span>
             </div>
           </div>
@@ -731,7 +731,7 @@
     </div>
   </div>
 
-  <!-- Main Admin Script (TypeScript will be compiled and linked) -->
+  <!-- Main Admin Script -->
   <script type="module" src="/src/admin.main.ts"></script>
 </body>
 </html>

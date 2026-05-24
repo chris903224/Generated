@@ -66,18 +66,135 @@ const courseColors = [
   '#a855f7', '#eab308', '#ef4444', '#6b7280', '#94a3b8'
 ];
 
+// Valid admin usernames for credentials login
+const VALID_ADMIN_USERNAMES = ['AdminAnthony', 'AdminRonan', 'AdminJay', 'AdminLeimark', 'AdminAllain'];
+
 // ============================================
-// SECURITY MEASURES (TEMPORARILY DISABLED)
+// ADMIN DISPLAY NAME
+// ============================================
+
+function getAdminName(): string {
+  const loginMethod = localStorage.getItem('login_method');
+  const adminName = localStorage.getItem('admin_name');
+  const adminEmail = localStorage.getItem('admin_email');
+  
+  // Credentials login (Username/Password)
+  if (loginMethod === 'credentials' && adminName) {
+    return adminName;
+  }
+  
+  // Magic link login
+  if (loginMethod === 'magiclink' && adminEmail) {
+    const emailName = adminEmail.split('@')[0];
+    return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+  }
+  
+  return 'Admin User';
+}
+
+function getAdminInitials(): string {
+  const name = getAdminName();
+  return name.charAt(0).toUpperCase();
+}
+
+function updateAdminDisplay(): void {
+  const nameSpan = document.getElementById('adminNameDisplay');
+  const initialsSpan = document.getElementById('adminInitials');
+  const userName = getAdminName();
+  const userInitials = getAdminInitials();
+  
+  if (nameSpan) {
+    nameSpan.textContent = userName;
+  }
+  
+  if (initialsSpan) {
+    initialsSpan.textContent = userInitials;
+  }
+}
+
+// ============================================
+// AUTHENTICATION HELPER FUNCTIONS
+// ============================================
+
+function clearAuthData(): void {
+  localStorage.removeItem('admin_logged_in');
+  localStorage.removeItem('admin_user');
+  localStorage.removeItem('admin_email');
+  localStorage.removeItem('admin_user_id');
+  localStorage.removeItem('admin_login_time');
+  localStorage.removeItem('login_method');
+  localStorage.removeItem('admin_name');
+  localStorage.removeItem('admin_username');
+}
+
+function redirectToLogin(): void {
+  if (!window.location.pathname.includes('admin-login.html') && 
+      !window.location.pathname.includes('admin-callback.html')) {
+    window.location.replace('/admin-login.html');
+  }
+}
+
+// ============================================
+// AUTHENTICATION CHECK WITH SECURITY
+// ============================================
+
+async function checkAdminAuth(): Promise<boolean> {
+  const loginMethod = localStorage.getItem('login_method');
+  const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+  const loginTime = localStorage.getItem('admin_login_time');
+  const adminUsername = localStorage.getItem('admin_username');
+  
+  // Check session expiry (8 hours)
+  if (loginTime) {
+    const elapsed = Date.now() - parseInt(loginTime);
+    const eightHours = 8 * 60 * 60 * 1000;
+    if (elapsed > eightHours) {
+      console.log('⏰ Session expired');
+      clearAuthData();
+      redirectToLogin();
+      return false;
+    }
+  }
+  
+  // Credentials login - validate stored data
+  if (loginMethod === 'credentials' && isLoggedIn && adminUsername) {
+    // Verify the username is still valid
+    if (VALID_ADMIN_USERNAMES.includes(adminUsername)) {
+      console.log(`✅ Credentials login verified: ${adminUsername}`);
+      // Refresh login time
+      localStorage.setItem('admin_login_time', Date.now().toString());
+      return true;
+    } else {
+      console.log('❌ Invalid credentials stored');
+      clearAuthData();
+      redirectToLogin();
+      return false;
+    }
+  }
+  
+  // Magic link login - check Supabase session
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!isLoggedIn || !session) {
+    clearAuthData();
+    redirectToLogin();
+    return false;
+  }
+  
+  // Refresh login time for magic link
+  localStorage.setItem('admin_login_time', Date.now().toString());
+  return true;
+}
+
+// ============================================
+// SECURITY MEASURES
 // ============================================
 
 function initSecurity(): void {
-  // TEMPORARILY DISABLED FOR DEBUGGING
-  console.log('⚠️ Security is temporarily disabled for debugging');
-  
-  // TODO: Enable security after fixing Add Student issue
-  /*
+  // Disable right click
   document.addEventListener('contextmenu', (e) => e.preventDefault());
   
+  // Disable keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     const key = e.key;
     const ctrl = e.ctrlKey;
@@ -95,14 +212,17 @@ function initSecurity(): void {
     }
   });
   
+  // Disable drag and drop
   window.addEventListener('dragstart', (e) => e.preventDefault());
   
+  // Disable text selection on non-input elements
   document.addEventListener('selectstart', (e) => {
     if (!(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
       e.preventDefault();
     }
   });
-  */
+  
+  console.log('✅ Security initialized');
 }
 
 // ============================================
@@ -623,35 +743,14 @@ async function initCharts(): Promise<void> {
 }
 
 // ============================================
-// AUTHENTICATION CHECK
-// ============================================
-
-async function checkAdminAuth(): Promise<boolean> {
-  const isLoggedIn = localStorage.getItem('admin_logged_in');
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!isLoggedIn || !session) {
-    localStorage.removeItem('admin_logged_in');
-    localStorage.removeItem('admin_user');
-    localStorage.removeItem('admin_email');
-    localStorage.removeItem('admin_user_id');
-    localStorage.removeItem('admin_login_time');
-    
-    if (!window.location.pathname.includes('admin-login.html') && 
-        !window.location.pathname.includes('admin-callback.html')) {
-      window.location.replace('/admin-login.html');
-    }
-    return false;
-  }
-  return true;
-}
-
-// ============================================
 // DASHBOARD INITIALIZATION
 // ============================================
 
 function initAdminDashboard(): void {
   console.log('🚀 Initializing Admin Dashboard...');
+  
+  // Update admin name display FIRST
+  updateAdminDisplay();
   
   const studentController = new AdminStudentController();
   const uiController = new AdminUIController();
@@ -706,6 +805,27 @@ function initAdminDashboard(): void {
 
 async function startApp(): Promise<void> {
   console.log('🔐 Checking authentication...');
+  
+  const loginMethod = localStorage.getItem('login_method');
+  const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+  
+  // Credentials login - bypass Supabase but with security
+  if (loginMethod === 'credentials' && isLoggedIn) {
+    console.log('✅ Credentials login detected, validating session...');
+    const isValid = await checkAdminAuth();
+    if (isValid) {
+      console.log('✅ Session valid, starting dashboard...');
+      initSecurity();
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAdminDashboard);
+      } else {
+        initAdminDashboard();
+      }
+    }
+    return;
+  }
+  
+  // Magic link login - check Supabase
   const isAuth = await checkAdminAuth();
   
   if (isAuth) {
