@@ -9,32 +9,21 @@
 </head>
 <body>
 
-  <!-- ── TOP TOAST REGION ── -->
-  <!-- JS inserts .toast elements here; they slide in from the top -->
-  <div id="toastRegion" class="toast-region" aria-live="polite" aria-atomic="true"></div>
-
-  <!-- ── BACKGROUND BLOBS ── -->
+  <!-- Background Blobs -->
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
   <div class="blob blob-3"></div>
-  <div class="noise-overlay"></div>
 
-  <!-- ── LOGIN CARD ── -->
   <div class="login-container">
     <div class="glass-card">
+      
+      <!-- Toast Region -->
+      <div id="toastRegion" class="toast-region"></div>
 
-      <!-- Shine layer (purely decorative) -->
-      <div class="card-shine"></div>
-
-      <!-- Header -->
+      <!-- Header Section -->
       <div class="login-header">
         <div class="logo-area">
-          <img
-            src="hk.jpg"
-            alt="OS Head Logo"
-            class="logo-img"
-            onerror="this.src='https://via.placeholder.com/52x52/2b6e47/ffffff?text=OS'"
-          >
+          <img src="hk.jpg" alt="OS Head Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/56x56?text=OS'">
           <div class="logo-text">
             <h1 class="logo-title">OS Head Portal</h1>
             <p class="logo-subtitle">PHINMA SIS · Online Support</p>
@@ -46,77 +35,109 @@
         </div>
       </div>
 
-      <!-- Welcome -->
-      <div class="welcome-section">
-        <h2>Welcome Back</h2>
-        <p>Enter your email address to receive a secure magic link</p>
+      <!-- Tab Navigation -->
+      <div class="login-tabs">
+        <button class="tab-btn active" data-tab="credentials">🔐 Username & Password</button>
+        <button class="tab-btn" data-tab="magic">✉️ Magic Link</button>
       </div>
 
-      <!-- Form -->
-      <div class="login-form">
-        <div class="input-group">
-          <label for="adminEmail">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
-            </svg>
-            Email Address
-          </label>
-          <div class="input-wrap">
-            <input
-              type="email"
-              id="adminEmail"
-              placeholder="admin@phinma.edu.ph"
-              autocomplete="off"
-              spellcheck="false"
-            >
-          </div>
+      <!-- Tab 1: Username & Password Login -->
+      <div id="credentialsTab" class="tab-content active">
+        <div class="welcome-section">
+          <h2>Admin Login</h2>
+          <p>Enter your credentials to access the dashboard</p>
         </div>
 
-        <button class="login-btn" id="sendMagicLinkBtn" type="button">
-          <span>Send Magic Link</span>
-          <svg class="btn-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-          </svg>
-        </button>
+        <div class="login-form">
+          <div class="input-group">
+            <label>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              Username
+            </label>
+            <input type="text" id="adminUsername" placeholder="Enter username" autocomplete="off">
+          </div>
+
+          <div class="input-group">
+            <label>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Password
+            </label>
+            <input type="password" id="adminPassword" placeholder="Enter password">
+          </div>
+
+          <button class="login-btn" id="loginWithCredentialsBtn">
+            <span>Login</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <!-- Demo hint -->
-      <div class="demo-hint">
-        <span class="demo-label">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          Demo Email:
-        </span>
-        <code>admin@phinma.edu.ph</code>
-        <span class="demo-note">One-time use · magic link will be sent</span>
+      <!-- Tab 2: Magic Link Login -->
+      <div id="magicTab" class="tab-content">
+        <div class="welcome-section">
+          <h2>Magic Link Login</h2>
+          <p>Receive a secure one-time link via email</p>
+        </div>
+
+        <div class="login-form">
+          <div class="input-group">
+            <label>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              Email Address
+            </label>
+            <input type="email" id="adminEmail" placeholder="admin@phinmaed.com" autocomplete="off">
+          </div>
+
+          <!-- Email Domain Hint -->
+          <div class="email-domain-hint">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            <span>Only <strong>@phinmaed.com</strong> emails are allowed</span>
+          </div>
+
+          <button class="login-btn" id="sendMagicLinkBtn">
+            <span>Send Magic Link</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <!-- Security strip -->
+      <!-- Security Info -->
       <div class="security-info">
         <div class="security-item">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
-          End-to-end encrypted
+          <span>Secure & Encrypted</span>
         </div>
-        <div class="security-divider"></div>
         <div class="security-item">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
             <path d="M12 8v4l3 3"/>
           </svg>
-          Expires in 24 hours
+          <span>Session Expires</span>
         </div>
-        <div class="security-divider"></div>
         <div class="security-item">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
-          One-time use only
+          <span>One-Time Use Link</span>
         </div>
       </div>
 
@@ -125,8 +146,8 @@
         <p>Secure access for OS Head personnel only</p>
       </div>
 
-    </div><!-- /glass-card -->
-  </div><!-- /login-container -->
+    </div>
+  </div>
 
   <script type="module" src="src/admin-login.ts"></script>
 </body>

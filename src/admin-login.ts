@@ -1,21 +1,64 @@
 // src/admin-login.ts
-// Improved: top-toast notification system, same auth logic retained
+// Magic Link: phinmaed.com email only
 
 import { AdminAuthService } from './services/supabase.service';
 
 // ── DOM Elements ──────────────────────────────────────────────
-const emailInput  = document.getElementById('adminEmail')      as HTMLInputElement;
-const sendBtn     = document.getElementById('sendMagicLinkBtn') as HTMLButtonElement;
-const toastRegion = document.getElementById('toastRegion')     as HTMLDivElement;
+const usernameInput = document.getElementById('adminUsername') as HTMLInputElement;
+const passwordInput = document.getElementById('adminPassword') as HTMLInputElement;
+const emailInput = document.getElementById('adminEmail') as HTMLInputElement;
+const credentialsBtn = document.getElementById('loginWithCredentialsBtn') as HTMLButtonElement;
+const magicBtn = document.getElementById('sendMagicLinkBtn') as HTMLButtonElement;
+const toastRegion = document.getElementById('toastRegion') as HTMLDivElement;
 
-// ── Rate limiting (attempts only, no lockout timer) ───────────
+// Tab elements
+const tabBtns = document.querySelectorAll('.tab-btn');
+const credentialsTab = document.getElementById('credentialsTab');
+const magicTab = document.getElementById('magicTab');
+
+// ── 5 ADMIN ACCOUNTS ──────────────────────────────────────────
+const ADMIN_ACCOUNTS = [
+  { username: 'AdminAnthony', password: 'anthony123', name: 'Anthony' },
+  { username: 'AdminRonan', password: 'ronan123', name: 'Ronan' },
+  { username: 'AdminJay', password: 'jay123', name: 'Jay' },
+  { username: 'AdminLeimark', password: 'leimark123', name: 'Leimark' },
+  { username: 'AdminAllain', password: 'allain123', name: 'Allain' }
+];
+
+// ── PHINMAED EMAIL DOMAIN ────────────────────────────────────────
+const ALLOWED_EMAIL_DOMAIN = '@phinmaed.com';
+
+// ── Rate limiting ───────────────────────────────────────────
 let loginAttempts = 0;
 const MAX_ATTEMPTS = 5;
 
-// ── Toast auto-dismiss duration (ms) ─────────────────────────
-const TOAST_SUCCESS_TTL = 8_000;
-const TOAST_ERROR_TTL   = 6_000;
-const TOAST_INFO_TTL    = 6_000;
+// ── Toast durations ─────────────────────────────────────────
+const TOAST_SUCCESS_TTL = 8000;
+const TOAST_ERROR_TTL = 6000;
+const TOAST_INFO_TTL = 6000;
+
+// ════════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ════════════════════════════════════════════════════════════
+
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.getAttribute('data-tab');
+    
+    tabBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    if (tab === 'credentials') {
+      credentialsTab?.classList.add('active');
+      magicTab?.classList.remove('active');
+    } else {
+      magicTab?.classList.add('active');
+      credentialsTab?.classList.remove('active');
+    }
+    
+    clearToasts();
+  });
+});
 
 // ════════════════════════════════════════════════════════════
 //  TOAST NOTIFICATION SYSTEM
@@ -24,54 +67,48 @@ const TOAST_INFO_TTL    = 6_000;
 type ToastType = 'success' | 'error' | 'info';
 
 interface ToastOptions {
-  title:       string;
+  title: string;
   description?: string;
-  attempts?:   string;   // small chip, e.g. "4 attempts remaining"
-  ttl?:        number;   // auto-dismiss ms; pass 0 to disable
+  attempts?: string;
+  ttl?: number;
 }
 
 const TOAST_ICONS: Record<ToastType, string> = {
-  success: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  success: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
     <polyline points="22 4 12 14.01 9 11.01"/>
   </svg>`,
-  error: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  error: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
     <circle cx="12" cy="12" r="10"/>
     <line x1="12" y1="8" x2="12" y2="12"/>
     <line x1="12" y1="16" x2="12.01" y2="16"/>
   </svg>`,
-  info: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  info: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
     <circle cx="12" cy="12" r="10"/>
     <line x1="12" y1="16" x2="12" y2="12"/>
     <line x1="12" y1="8" x2="12.01" y2="8"/>
   </svg>`,
 };
 
-/**
- * Show a toast at the top of the viewport.
- * Returns the toast element so callers can reference/dismiss it.
- */
 function showToast(type: ToastType, opts: ToastOptions): HTMLElement {
-  const ttl = opts.ttl !== undefined
-    ? opts.ttl
+  const ttl = opts.ttl !== undefined ? opts.ttl
     : type === 'success' ? TOAST_SUCCESS_TTL
-    : type === 'error'   ? TOAST_ERROR_TTL
+    : type === 'error' ? TOAST_ERROR_TTL
     : TOAST_INFO_TTL;
 
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.setAttribute('role', 'status');
-  toast.setAttribute('aria-live', 'polite');
 
   toast.innerHTML = `
     <div class="toast-icon">${TOAST_ICONS[type]}</div>
     <div class="toast-body">
       <p class="toast-title">${opts.title}</p>
       ${opts.description ? `<p class="toast-desc">${opts.description}</p>` : ''}
-      ${opts.attempts    ? `<span class="toast-attempts">${opts.attempts}</span>` : ''}
+      ${opts.attempts ? `<span class="toast-attempts">${opts.attempts}</span>` : ''}
     </div>
-    <button class="toast-close" aria-label="Dismiss notification">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+    <button class="toast-close" aria-label="Dismiss">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="18" y1="6" x2="6" y2="18"/>
         <line x1="6" y1="6" x2="18" y2="18"/>
       </svg>
@@ -80,16 +117,11 @@ function showToast(type: ToastType, opts: ToastOptions): HTMLElement {
 
   toastRegion.prepend(toast);
 
-  // Dismiss on close button click
-  toast.querySelector<HTMLButtonElement>('.toast-close')!.addEventListener('click', () => {
-    dismissToast(toast);
-  });
+  toast.querySelector('.toast-close')!.addEventListener('click', () => dismissToast(toast));
 
-  // Auto-dismiss
   if (ttl > 0) {
     setTimeout(() => dismissToast(toast), ttl);
   }
-
   return toast;
 }
 
@@ -99,109 +131,189 @@ function dismissToast(toast: HTMLElement): void {
   toast.addEventListener('animationend', () => toast.remove(), { once: true });
 }
 
+function clearToasts(): void {
+  const toasts = toastRegion.querySelectorAll('.toast');
+  toasts.forEach(toast => dismissToast(toast as HTMLElement));
+}
+
 // ════════════════════════════════════════════════════════════
 //  HELPER FUNCTIONS
 // ════════════════════════════════════════════════════════════
 
 async function checkExistingSession(): Promise<void> {
   const isAuthenticated = await AdminAuthService.isAuthenticated();
-  if (isAuthenticated) {
-    window.location.href = '/admin.html';
+  const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+  
+  if (isAuthenticated || isLoggedIn) {
+    window.location.href = '/admin';
   }
 }
 
-function setLoading(loading: boolean): void {
+function setLoading(btn: HTMLButtonElement, loading: boolean): void {
   if (loading) {
-    sendBtn.classList.add('loading');
-    sendBtn.disabled = true;
+    btn.classList.add('loading');
+    btn.disabled = true;
   } else {
-    sendBtn.classList.remove('loading');
-    sendBtn.disabled = false;
+    btn.classList.remove('loading');
+    btn.disabled = false;
   }
 }
 
-function shakeInput(): void {
-  emailInput.classList.remove('shake');
-  void emailInput.offsetWidth; // reflow to restart animation
-  emailInput.classList.add('shake');
-  emailInput.addEventListener('animationend', () => {
-    emailInput.classList.remove('shake');
+function shakeInput(input: HTMLInputElement): void {
+  input.classList.remove('shake');
+  void input.offsetWidth;
+  input.classList.add('shake');
+  input.addEventListener('animationend', () => {
+    input.classList.remove('shake');
   }, { once: true });
 }
 
+// Check if email is allowed domain
+function isAllowedEmail(email: string): boolean {
+  return email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN);
+}
+
 // ════════════════════════════════════════════════════════════
-//  MAIN FUNCTION: Send Magic Link
+//  CREDENTIALS LOGIN
+// ════════════════════════════════════════════════════════════
+
+async function loginWithCredentials(): Promise<void> {
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (loginAttempts >= MAX_ATTEMPTS) {
+    showToast('error', {
+      title: 'Too many attempts',
+      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please contact administrator.`,
+    });
+    credentialsBtn.disabled = true;
+    return;
+  }
+
+  if (!username) {
+    shakeInput(usernameInput);
+    showToast('error', { title: 'Username required', description: 'Please enter your username.' });
+    usernameInput.focus();
+    return;
+  }
+
+  if (!password) {
+    shakeInput(passwordInput);
+    showToast('error', { title: 'Password required', description: 'Please enter your password.' });
+    passwordInput.focus();
+    return;
+  }
+
+  setLoading(credentialsBtn, true);
+  loginAttempts++;
+  const remaining = MAX_ATTEMPTS - loginAttempts;
+
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  const foundAdmin = ADMIN_ACCOUNTS.find(
+    admin => admin.username === username && admin.password === password
+  );
+
+  if (foundAdmin) {
+    localStorage.clear();
+    localStorage.setItem('admin_logged_in', 'true');
+    localStorage.setItem('admin_username', foundAdmin.username);
+    localStorage.setItem('admin_name', foundAdmin.name);
+    localStorage.setItem('login_method', 'credentials');
+    
+    showToast('success', { 
+      title: `Welcome, ${foundAdmin.name}!`, 
+      description: 'Redirecting to dashboard...' 
+    });
+    
+    setTimeout(() => {
+      window.location.href = '/admin';
+    }, 1000);
+  } else {
+    shakeInput(usernameInput);
+    showToast('error', {
+      title: 'Invalid credentials',
+      description: 'Username or password is incorrect.',
+      attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
+    });
+    setLoading(credentialsBtn, false);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  MAGIC LINK LOGIN (@phinmaed.com ONLY)
 // ════════════════════════════════════════════════════════════
 
 async function sendMagicLink(): Promise<void> {
   const email = emailInput.value.trim();
 
-  // Max attempts guard
   if (loginAttempts >= MAX_ATTEMPTS) {
     showToast('error', {
-      title:       'Too many attempts',
-      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please contact your administrator.`,
+      title: 'Too many attempts',
+      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please contact administrator.`,
     });
-    sendBtn.disabled = true;
+    magicBtn.disabled = true;
     return;
   }
 
-  // Empty validation
   if (!email) {
-    shakeInput();
-    showToast('error', {
-      title:       'Email required',
-      description: 'Please enter your email address before continuing.',
+    shakeInput(emailInput);
+    showToast('error', { title: 'Email required', description: 'Please enter your email address.' });
+    emailInput.focus();
+    return;
+  }
+
+  // Email domain validation - ONLY @phinmaed.com
+  if (!isAllowedEmail(email)) {
+    shakeInput(emailInput);
+    showToast('error', { 
+      title: 'Invalid Email Domain', 
+      description: `Only ${ALLOWED_EMAIL_DOMAIN} emails are allowed for magic link login.` 
     });
     emailInput.focus();
     return;
   }
 
-  // Format validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    shakeInput();
-    showToast('error', {
-      title:       'Invalid email',
-      description: 'Please enter a valid email address.',
-    });
+    shakeInput(emailInput);
+    showToast('error', { title: 'Invalid email', description: 'Please enter a valid email address.' });
     emailInput.focus();
     return;
   }
 
-  setLoading(true);
+  setLoading(magicBtn, true);
   loginAttempts++;
   const remaining = MAX_ATTEMPTS - loginAttempts;
-  console.log(`Login attempts used: ${loginAttempts}/${MAX_ATTEMPTS}`);
 
   try {
     const result = await AdminAuthService.sendMagicLink(email);
 
     if (result.success) {
       showToast('success', {
-        title:       'Magic link sent!',
+        title: 'Magic link sent!',
         description: result.message,
-        attempts:    remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
+        attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
       });
       emailInput.value = '';
     } else {
-      shakeInput();
+      shakeInput(emailInput);
       showToast('error', {
-        title:       'Failed to send link',
+        title: 'Failed to send link',
         description: result.message,
-        attempts:    remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
+        attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
       });
     }
   } catch (error) {
     console.error('Send magic link error:', error);
-    shakeInput();
+    shakeInput(emailInput);
     showToast('error', {
-      title:       'Something went wrong',
+      title: 'Something went wrong',
       description: 'An unexpected error occurred. Please try again.',
-      attempts:    remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
+      attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
     });
   } finally {
-    setLoading(false);
+    setLoading(magicBtn, false);
   }
 }
 
@@ -209,18 +321,26 @@ async function sendMagicLink(): Promise<void> {
 setInterval(() => {
   if (loginAttempts > 0) {
     loginAttempts = 0;
-    sendBtn.disabled = false;
+    credentialsBtn.disabled = false;
+    magicBtn.disabled = false;
     console.log('Login attempts reset after 1 hour');
   }
-}, 60 * 60 * 1_000);
+}, 60 * 60 * 1000);
 
 // ════════════════════════════════════════════════════════════
 //  EVENT LISTENERS
 // ════════════════════════════════════════════════════════════
 
-sendBtn.addEventListener('click', sendMagicLink);
+credentialsBtn.addEventListener('click', loginWithCredentials);
+magicBtn.addEventListener('click', sendMagicLink);
 
-emailInput.addEventListener('keydown', (e: KeyboardEvent) => {
+usernameInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') loginWithCredentials();
+});
+passwordInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') loginWithCredentials();
+});
+emailInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') sendMagicLink();
 });
 
