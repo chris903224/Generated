@@ -524,3 +524,31 @@ body.dark .hours-badge { background:rgba(52,211,153,0.15); color:#6ee7b7; }
   display:none; opacity:0; transition:opacity 0.3s ease;
 }
 .sidebar-overlay.active { display:block; opacity:1; }
+/* ============================================
+   FORCE MOBILE OVERRIDES
+============================================ */
+
+/* Force sidebar to be hidden on mobile */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    left: -280px !important;
+    top: 0 !important;
+    width: 280px !important;
+    height: 100% !important;
+    transition: left 0.3s ease !important;
+    z-index: 1150 !important;
+  }
+  
+  .sidebar.open {
+    left: 0 !important;
+  }
+  
+  .sidebar-toggle {
+    display: flex !important;
+  }
+  
+  .main-area {
+    margin-left: 0 !important;
+  }
+}
