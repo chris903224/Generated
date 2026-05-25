@@ -16,492 +16,506 @@
   <!-- Styles -->
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/admin.css">
+  
+  <style>
+    /* Loading Screen Styles */
+    #loadingScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0f172a, #1e1b4b);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 0.5s ease;
+    }
+    
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 4px solid rgba(255,255,255,0.1);
+      border-top: 4px solid #10b981;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .loading-text {
+      color: white;
+      margin-top: 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      letter-spacing: 2px;
+    }
+    
+    /* Hidden content initially */
+    #adminContent {
+      visibility: hidden;
+      opacity: 0;
+    }
+    
+    #adminContent.visible {
+      visibility: visible;
+      opacity: 1;
+    }
+    
+    /* Spinner dots animation */
+    .loading-dots::after {
+      content: '...';
+      animation: dots 1.5s steps(4, end) infinite;
+      display: inline-block;
+      width: 24px;
+      text-align: left;
+    }
+    
+    @keyframes dots {
+      0%, 20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Background Elements -->
-  <div class="blob blob-1"></div>
-  <div class="blob blob-2"></div>
-  <div class="blob blob-3"></div>
-  <div class="noise-overlay"></div>
+  <!-- Loading Screen -->
+  <div id="loadingScreen">
+    <div class="spinner"></div>
+    <div class="loading-text">Verifying access<span class="loading-dots"></span></div>
+  </div>
 
-  <!-- App Container -->
-  <div class="shell" id="appShell">
+  <!-- Main Admin Content (Hidden initially) -->
+  <div id="adminContent">
 
-    <!-- ==================== SIDEBAR ==================== -->
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-inner">
-        
-        <!-- Logo Section -->
-        <div class="sidebar-logo">
-          <div class="logo-mark">
-            <img src="/sjc.jpg" alt="SJC Logo" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-            <div class="logo-fallback" style="display: none;">OS</div>
-          </div>
-          <div class="logo-text">
-            <span class="logo-name">PHINMA SIS</span>
-            <span class="logo-role">OS Head Portal</span>
-          </div>
-        </div>
+    <!-- Background Elements -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="noise-overlay"></div>
 
-        <div class="nav-divider"></div>
+    <!-- App Container -->
+    <div class="shell" id="appShell">
 
-        <!-- Navigation Links -->
-        <nav class="nav-links">
-          <a href="#" class="nav-item active" data-page="dashboard">
-            <div class="nav-icon-wrap">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-                <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-                <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-                <rect x="14" y="14" width="7" height="7" rx="1.5"/>
-              </svg>
-            </div>
-            <span class="nav-label">Dashboard</span>
-            <div class="nav-tooltip">Dashboard</div>
-          </a>
-
-          <a href="#" class="nav-item" data-page="completion">
-            <div class="nav-icon-wrap">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 11l3 3L22 4"/>
-                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-              </svg>
-            </div>
-            <span class="nav-label">Completion</span>
-            <div class="nav-tooltip">Completion</div>
-          </a>
-
-          <a href="#" class="nav-item" data-page="hkdatabase">
-            <div class="nav-icon-wrap">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <ellipse cx="12" cy="5" rx="9" ry="3"/>
-                <path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/>
-                <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
-              </svg>
-            </div>
-            <span class="nav-label">HK Database</span>
-            <div class="nav-tooltip">HK Database</div>
-          </a>
-
-          <div class="nav-section-divider"></div>
-
-          <a href="#" class="nav-item" data-page="analytics">
-            <div class="nav-icon-wrap">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="20" x2="18" y2="10"/>
-                <line x1="12" y1="20" x2="12" y2="4"/>
-                <line x1="6" y1="20" x2="6" y2="14"/>
-              </svg>
-            </div>
-            <span class="nav-label">Analytics</span>
-            <div class="nav-tooltip">Analytics</div>
-          </a>
-        </nav>
-
-        <div class="nav-spacer"></div>
-        <div class="nav-divider"></div>
-
-        <!-- Bottom Actions -->
-        <div class="nav-bottom">
-          <button class="nav-item theme-btn" id="themeBtn">
-            <div class="nav-icon-wrap">
-              <svg class="nav-icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"/>
-              </svg>
-              <svg class="nav-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            </div>
-            <span class="nav-label">Dark Mode</span>
-            <div class="nav-tooltip">Toggle Theme</div>
-          </button>
-
-          <a href="#" class="nav-item nav-logout" id="logoutBtn">
-            <div class="nav-icon-wrap">
-              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-                <polyline points="16 17 21 12 16 7"/>
-                <line x1="21" y1="12" x2="9" y2="12"/>
-              </svg>
-            </div>
-            <span class="nav-label">Logout</span>
-            <div class="nav-tooltip">Logout</div>
-          </a>
-        </div>
-      </div>
-    </aside>
-
-    <!-- ==================== MAIN CONTENT ==================== -->
-    <div class="main-area">
-
-      <!-- Top Bar -->
-      <header class="topbar glass" id="topbar">
-        <div class="topbar-left">
-          <h1 class="page-title" id="pageTitle">Dashboard</h1>
-          <p class="page-subtitle" id="pageSubtitle">Overview of student support completion</p>
-        </div>
-        <div class="topbar-right">
-          <div class="live-chip">
-            <span class="live-dot"></span>
-            <span id="liveBadgeText">0 Students</span>
-          </div>
-          <div class="user-pill">
-            <div class="user-avatar">
-              <div class="avatar-initials" id="adminInitials">AD</div>
-            </div>
-            <div class="user-info">
-              <strong id="adminNameDisplay">Admin User</strong>
-              <span>Head, Online Support</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <!-- Page Content -->
-      <main class="content" id="mainContent">
-
-        <!-- ==================== DASHBOARD PAGE ==================== -->
-        <section id="dashboardPage" class="page active">
+      <!-- ==================== SIDEBAR ==================== -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-inner">
           
-          <!-- Stats Cards -->
-          <div class="stats-grid">
-            <div class="stat-card glass">
-              <div class="stat-header">
-                <div class="stat-icon-wrap green">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 8v4l3 3"/>
-                  </svg>
-                </div>
-                <span class="stat-tag flat">SY 26-27</span>
-              </div>
-              <div class="stat-number" id="totalStudents">0</div>
-              <div class="stat-label">Total Students</div>
-              <div class="stat-bar-track">
-                <div class="stat-bar green" id="totalBar" style="width:100%"></div>
-              </div>
+          <!-- Logo Section -->
+          <div class="sidebar-logo">
+            <div class="logo-mark">
+              <img src="/sjc.jpg" alt="SJC Logo" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <div class="logo-fallback" style="display: none;">OS</div>
             </div>
-
-            <div class="stat-card glass">
-              <div class="stat-header">
-                <div class="stat-icon-wrap lime">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 6L9 17l-5-5"/>
-                  </svg>
-                </div>
-                <span class="stat-tag up" id="completedPct">0%</span>
-              </div>
-              <div class="stat-number" id="completedCount">0</div>
-              <div class="stat-label">Completed</div>
-              <div class="stat-bar-track">
-                <div class="stat-bar lime" id="completedBar"></div>
-              </div>
-            </div>
-
-            <div class="stat-card glass">
-              <div class="stat-header">
-                <div class="stat-icon-wrap amber">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="12" y1="8" x2="12" y2="12"/>
-                    <line x1="12" y1="16" x2="12.01" y2="16"/>
-                  </svg>
-                </div>
-                <span class="stat-tag flat" id="pendingPct">0%</span>
-              </div>
-              <div class="stat-number" id="pendingCount">0</div>
-              <div class="stat-label">Pending</div>
-              <div class="stat-bar-track">
-                <div class="stat-bar amber" id="pendingBar"></div>
-              </div>
-            </div>
-
-            <div class="stat-card glass">
-              <div class="stat-header">
-                <div class="stat-icon-wrap rose">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="15" y1="9" x2="9" y2="15"/>
-                    <line x1="9" y1="9" x2="15" y2="15"/>
-                  </svg>
-                </div>
-                <span class="stat-tag down" id="notCompletedPct">0%</span>
-              </div>
-              <div class="stat-number" id="notCompletedCount">0</div>
-              <div class="stat-label">Not Completed</div>
-              <div class="stat-bar-track">
-                <div class="stat-bar rose" id="notCompletedBar"></div>
-              </div>
-            </div>
-
-            <div class="stat-card glass">
-              <div class="stat-header">
-                <div class="stat-icon-wrap blue">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 2L11 13"/>
-                    <path d="M22 2L15 22l-4-9-9-4 20-7z"/>
-                  </svg>
-                </div>
-                <span class="stat-tag up">✈️</span>
-              </div>
-              <div class="stat-number" id="hkEndorsedCount">0</div>
-              <div class="stat-label">HK Endorsed</div>
-              <div class="stat-bar-track">
-                <div class="stat-bar blue" id="hkBar"></div>
-              </div>
+            <div class="logo-text">
+              <span class="logo-name">PHINMA SIS</span>
+              <span class="logo-role">OS Head Portal</span>
             </div>
           </div>
 
-          <!-- Charts Row 1 -->
-          <div class="charts-row-3">
-            <div class="chart-card glass">
-              <div class="chart-card-head">
-                <div>
-                  <div class="chart-title">Completion Status</div>
-                  <div class="chart-sub">Remarks distribution</div>
-                </div>
-                <span class="chip" id="compPct">0% Done</span>
+          <div class="nav-divider"></div>
+
+          <!-- Navigation Links -->
+          <nav class="nav-links">
+            <a href="#" class="nav-item active" data-page="dashboard">
+              <div class="nav-icon-wrap">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+                  <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                </svg>
               </div>
-              <div class="donut-wrap">
-                <canvas id="statusChart" height="240"></canvas>
-                <div class="donut-center">
-                  <span class="donut-num" id="donutNum">0</span>
-                  <span class="donut-sub">Total</span>
+              <span class="nav-label">Dashboard</span>
+              <div class="nav-tooltip">Dashboard</div>
+            </a>
+
+            <a href="#" class="nav-item" data-page="completion">
+              <div class="nav-icon-wrap">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 11l3 3L22 4"/>
+                  <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                </svg>
+              </div>
+              <span class="nav-label">Completion</span>
+              <div class="nav-tooltip">Completion</div>
+            </a>
+
+            <a href="#" class="nav-item" data-page="hkdatabase">
+              <div class="nav-icon-wrap">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                  <path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/>
+                  <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                </svg>
+              </div>
+              <span class="nav-label">HK Database</span>
+              <div class="nav-tooltip">HK Database</div>
+            </a>
+
+            <div class="nav-section-divider"></div>
+
+            <a href="#" class="nav-item" data-page="analytics">
+              <div class="nav-icon-wrap">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="20" x2="18" y2="10"/>
+                  <line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+              </div>
+              <span class="nav-label">Analytics</span>
+              <div class="nav-tooltip">Analytics</div>
+            </a>
+          </nav>
+
+          <div class="nav-spacer"></div>
+          <div class="nav-divider"></div>
+
+          <!-- Bottom Actions -->
+          <div class="nav-bottom">
+            <button class="nav-item theme-btn" id="themeBtn">
+              <div class="nav-icon-wrap">
+                <svg class="nav-icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"/>
+                </svg>
+                <svg class="nav-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="5"/>
+                  <line x1="12" y1="1" x2="12" y2="3"/>
+                  <line x1="12" y1="21" x2="12" y2="23"/>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                  <line x1="1" y1="12" x2="3" y2="12"/>
+                  <line x1="21" y1="12" x2="23" y2="12"/>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                </svg>
+              </div>
+              <span class="nav-label">Dark Mode</span>
+              <div class="nav-tooltip">Toggle Theme</div>
+            </button>
+
+            <a href="#" class="nav-item nav-logout" id="logoutBtn">
+              <div class="nav-icon-wrap">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
+                  <polyline points="16 17 21 12 16 7"/>
+                  <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+              </div>
+              <span class="nav-label">Logout</span>
+              <div class="nav-tooltip">Logout</div>
+            </a>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ==================== MAIN CONTENT ==================== -->
+      <div class="main-area">
+
+        <!-- Top Bar -->
+        <header class="topbar glass" id="topbar">
+          <div class="topbar-left">
+            <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            <p class="page-subtitle" id="pageSubtitle">Overview of student support completion</p>
+          </div>
+          <div class="topbar-right">
+            <div class="live-chip">
+              <span class="live-dot"></span>
+              <span id="liveBadgeText">0 Students</span>
+            </div>
+            <div class="user-pill">
+              <div class="user-avatar">
+                <div class="avatar-initials" id="adminInitials">AD</div>
+              </div>
+              <div class="user-info">
+                <strong id="adminNameDisplay">Admin User</strong>
+                <span>Head, Online Support</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="content" id="mainContent">
+
+          <!-- ==================== DASHBOARD PAGE ==================== -->
+          <section id="dashboardPage" class="page active">
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+              <div class="stat-card glass">
+                <div class="stat-header">
+                  <div class="stat-icon-wrap green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M12 8v4l3 3"/>
+                    </svg>
+                  </div>
+                  <span class="stat-tag flat">SY 26-27</span>
+                </div>
+                <div class="stat-number" id="totalStudents">0</div>
+                <div class="stat-label">Total Students</div>
+                <div class="stat-bar-track">
+                  <div class="stat-bar green" id="totalBar" style="width:100%"></div>
                 </div>
               </div>
-              <div class="chart-legend" id="statusLegend"></div>
+
+              <div class="stat-card glass">
+                <div class="stat-header">
+                  <div class="stat-icon-wrap lime">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                  </div>
+                  <span class="stat-tag up" id="completedPct">0%</span>
+                </div>
+                <div class="stat-number" id="completedCount">0</div>
+                <div class="stat-label">Completed</div>
+                <div class="stat-bar-track">
+                  <div class="stat-bar lime" id="completedBar"></div>
+                </div>
+              </div>
+
+              <div class="stat-card glass">
+                <div class="stat-header">
+                  <div class="stat-icon-wrap amber">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="8" x2="12" y2="12"/>
+                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                  </div>
+                  <span class="stat-tag flat" id="pendingPct">0%</span>
+                </div>
+                <div class="stat-number" id="pendingCount">0</div>
+                <div class="stat-label">Pending</div>
+                <div class="stat-bar-track">
+                  <div class="stat-bar amber" id="pendingBar"></div>
+                </div>
+              </div>
+
+              <div class="stat-card glass">
+                <div class="stat-header">
+                  <div class="stat-icon-wrap rose">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="15" y1="9" x2="9" y2="15"/>
+                      <line x1="9" y1="9" x2="15" y2="15"/>
+                    </svg>
+                  </div>
+                  <span class="stat-tag down" id="notCompletedPct">0%</span>
+                </div>
+                <div class="stat-number" id="notCompletedCount">0</div>
+                <div class="stat-label">Not Completed</div>
+                <div class="stat-bar-track">
+                  <div class="stat-bar rose" id="notCompletedBar"></div>
+                </div>
+              </div>
+
+              <div class="stat-card glass">
+                <div class="stat-header">
+                  <div class="stat-icon-wrap blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 2L11 13"/>
+                      <path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+                    </svg>
+                  </div>
+                  <span class="stat-tag up">✈️</span>
+                </div>
+                <div class="stat-number" id="hkEndorsedCount">0</div>
+                <div class="stat-label">HK Endorsed</div>
+                <div class="stat-bar-track">
+                  <div class="stat-bar blue" id="hkBar"></div>
+                </div>
+              </div>
             </div>
 
-            <div class="chart-card glass">
+            <!-- Charts Row 1 -->
+            <div class="charts-row-3">
+              <div class="chart-card glass">
+                <div class="chart-card-head">
+                  <div>
+                    <div class="chart-title">Completion Status</div>
+                    <div class="chart-sub">Remarks distribution</div>
+                  </div>
+                  <span class="chip" id="compPct">0% Done</span>
+                </div>
+                <div class="donut-wrap">
+                  <canvas id="statusChart" height="240"></canvas>
+                  <div class="donut-center">
+                    <span class="donut-num" id="donutNum">0</span>
+                    <span class="donut-sub">Total</span>
+                  </div>
+                </div>
+                <div class="chart-legend" id="statusLegend"></div>
+              </div>
+
+              <div class="chart-card glass">
+                <div class="chart-card-head">
+                  <div>
+                    <div class="chart-title">Course Distribution</div>
+                    <div class="chart-sub">Students per program</div>
+                  </div>
+                </div>
+                <div class="chart-wrap">
+                  <canvas id="courseChart" height="220"></canvas>
+                </div>
+                <div class="chart-legend" id="courseLegend"></div>
+              </div>
+
+              <div class="chart-card glass">
+                <div class="chart-card-head">
+                  <div>
+                    <div class="chart-title">Year Level</div>
+                    <div class="chart-sub">Enrollment breakdown</div>
+                  </div>
+                </div>
+                <div class="chart-wrap">
+                  <canvas id="yearChart" height="220"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Charts Row 2 -->
+            <div class="charts-row-2">
+              <div class="chart-card glass">
+                <div class="chart-card-head">
+                  <div>
+                    <div class="chart-title">Monthly Completion Trend</div>
+                    <div class="chart-sub">SY 26-27 cumulative progress</div>
+                  </div>
+                  <span class="chip live">● Live</span>
+                </div>
+                <div class="chart-wrap">
+                  <canvas id="trendChart" height="160"></canvas>
+                </div>
+              </div>
+
+              <div class="chart-card glass">
+                <div class="chart-card-head">
+                  <div>
+                    <div class="chart-title">Endorsement Types</div>
+                    <div class="chart-sub">Student routing breakdown</div>
+                  </div>
+                </div>
+                <div class="chart-wrap">
+                  <canvas id="endorseChart" height="160"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <!-- Full Width Charts -->
+            <div class="chart-card glass chart-full">
               <div class="chart-card-head">
                 <div>
-                  <div class="chart-title">Course Distribution</div>
-                  <div class="chart-sub">Students per program</div>
+                  <div class="chart-title">Duty Assignment Breakdown</div>
+                  <div class="chart-sub">SY 26-27 allocation</div>
+                </div>
+                <span class="chip">SY 26-27</span>
+              </div>
+              <div class="chart-wrap">
+                <canvas id="dutyChart" height="110"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card glass chart-full">
+              <div class="chart-card-head">
+                <div>
+                  <div class="chart-title">Support Type Breakdown</div>
+                  <div class="chart-sub">Classification of enrolled OS students</div>
                 </div>
               </div>
               <div class="chart-wrap">
-                <canvas id="courseChart" height="220"></canvas>
+                <canvas id="supportChart" height="110"></canvas>
               </div>
-              <div class="chart-legend" id="courseLegend"></div>
             </div>
 
-            <div class="chart-card glass">
-              <div class="chart-card-head">
+            <!-- Recent Records -->
+            <div class="table-card glass">
+              <div class="table-card-head">
                 <div>
-                  <div class="chart-title">Year Level</div>
-                  <div class="chart-sub">Enrollment breakdown</div>
+                  <div class="chart-title">Recent Records</div>
+                  <div class="chart-sub">Latest 10 student entries</div>
                 </div>
+                <button class="btn-outline" id="viewAllBtn">View All →</button>
               </div>
-              <div class="chart-wrap">
-                <canvas id="yearChart" height="220"></canvas>
+              <div class="table-scroll">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Course</th>
+                      <th>Year</th>
+                      <th>Status</th>
+                      <th>Duties</th>
+                      <th>Endorsement</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recentTbody"></tbody>
+                </table>
               </div>
             </div>
-          </div>
+          </section>
 
-          <!-- Charts Row 2 -->
-          <div class="charts-row-2">
-            <div class="chart-card glass">
-              <div class="chart-card-head">
-                <div>
-                  <div class="chart-title">Monthly Completion Trend</div>
-                  <div class="chart-sub">SY 26-27 cumulative progress</div>
-                </div>
-                <span class="chip live">● Live</span>
-              </div>
-              <div class="chart-wrap">
-                <canvas id="trendChart" height="160"></canvas>
-              </div>
-            </div>
-
-            <div class="chart-card glass">
-              <div class="chart-card-head">
-                <div>
-                  <div class="chart-title">Endorsement Types</div>
-                  <div class="chart-sub">Student routing breakdown</div>
-                </div>
-              </div>
-              <div class="chart-wrap">
-                <canvas id="endorseChart" height="160"></canvas>
-              </div>
-            </div>
-          </div>
-
-          <!-- Full Width Charts -->
-          <div class="chart-card glass chart-full">
-            <div class="chart-card-head">
-              <div>
-                <div class="chart-title">Duty Assignment Breakdown</div>
-                <div class="chart-sub">SY 26-27 allocation</div>
-              </div>
-              <span class="chip">SY 26-27</span>
-            </div>
-            <div class="chart-wrap">
-              <canvas id="dutyChart" height="110"></canvas>
-            </div>
-          </div>
-
-          <div class="chart-card glass chart-full">
-            <div class="chart-card-head">
-              <div>
-                <div class="chart-title">Support Type Breakdown</div>
-                <div class="chart-sub">Classification of enrolled OS students</div>
-              </div>
-            </div>
-            <div class="chart-wrap">
-              <canvas id="supportChart" height="110"></canvas>
-            </div>
-          </div>
-
-          <!-- Recent Records -->
-          <div class="table-card glass">
-            <div class="table-card-head">
-              <div>
-                <div class="chart-title">Recent Records</div>
-                <div class="chart-sub">Latest 10 student entries</div>
-              </div>
-              <button class="btn-outline" id="viewAllBtn">View All →</button>
-            </div>
-            <div class="table-scroll">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Course</th>
-                    <th>Year</th>
-                    <th>Status</th>
-                    <th>Duties</th>
-                    <th>Endorsement</th>
-                  </tr>
-                </thead>
-                <tbody id="recentTbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <!-- ==================== COMPLETION PAGE ==================== -->
-        <section id="completionPage" class="page">
-          <div class="page-panel glass">
-            <div class="panel-head">
-              <div>
-                <h2 class="panel-title">Online Support Completion <span class="tag-pill">SY 26-27</span></h2>
-                <div class="panel-sub" id="rowCount">0 entries</div>
-              </div>
-              <div class="controls-bar">
-                <button class="btn-primary" id="addStudentBtn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 5v14M5 12h14"/>
-                  </svg>
-                  Add Student
-                </button>
-                <div class="search-field">
-                  <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"/>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                  </svg>
-                  <input type="text" id="searchInput" class="search-input" placeholder="Search name, course, ID…">
-                </div>
-                <select id="filterRemarks" class="filter-select">
-                  <option value="">All Status</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="NOT COMPLETED">Not Completed</option>
-                  <option value="CONTINUOUS TRAINING">Continuous Training</option>
-                </select>
-                <select id="filterCourse" class="filter-select">
-                  <option value="">All Courses</option>
-                  <option value="BSN">BS Nursing (BSN)</option>
-                  <option value="BSMLS">BS Medical Laboratory Sciences (MedTech)</option>
-                  <option value="BSPSY">BS Psychology</option>
-                  <option value="BSRADTECH">BS Radiologic Technology (RadTech)</option>
-                  <option value="BSRESPT">BS Respiratory Therapy</option>
-                  <option value="BSPHARM">BS Pharmacy</option>
-                  <option value="BSPT">BS Physical Therapy</option>
-                  <option value="BSIT">BS Information Technology (BSIT)</option>
-                  <option value="BSA">BS Accountancy (BSA)</option>
-                  <option value="BSBA">BS Business Administration (BSBA)</option>
-                  <option value="BSBA-MM">BSBA Marketing Management (BSBA-MM)</option>
-                  <option value="BSBA-FM">BSBA Financial Management (BSBA-FM)</option>
-                  <option value="BSHM">BS Hospitality Management (BSHM)</option>
-                  <option value="BSTM">BS Tourism Management (BSTM)</option>
-                  <option value="BSCRIM">BS Criminology (BSCrim)</option>
-                  <option value="BEED">Bachelor of Elementary Education (BEEd)</option>
-                  <option value="BSED">Bachelor of Secondary Education (BSEd)</option>
-                </select>
-              </div>
-            </div>
-            <div class="table-scroll completion-scroll">
-              <table class="completion-table">
-                <thead>
-                  <tr>
-                    <th>Student ID</th>
-                    <th>Control Number</th>
-                    <th>Complete Name</th>
-                    <th>Course</th>
-                    <th>Year Level</th>
-                    <th>Support Type</th>
-                    <th>Remarks</th>
-                    <th>Endorsement</th>
-                    <th>Data Sheet</th>
-                    <th>Duties</th>
-                    <th>Hours</th>
-                  </tr>
-                </thead>
-                <tbody id="completionTbody"></tbody>
-              </table>
-            </div>
-            <div class="panel-foot">
-              <div class="legend-row">
-                <span class="leg-item">
-                  <span class="leg-dot" style="background:#10b981"></span>Continuing OS
-                </span>
-                <span class="leg-item">
-                  <span class="leg-dot" style="background:#fbbf24"></span>OJT-HK Duty
-                </span>
-                <span class="leg-item">
-                  <span class="leg-dot" style="background:#60a5fa"></span>Advance Duties
-                </span>
-                <span class="leg-item">
-                  <span class="leg-dot" style="background:#9ca3af"></span>No Longer w/ OS
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ==================== HK DATABASE PAGE ==================== -->
-        <section id="hkDatabasePage" class="page">
-          <div class="hk-stats-row">
-            <div class="hk-chip glass">🗄️ &nbsp;<strong id="hkTot">0</strong>&nbsp; total HK entries</div>
-            <div class="hk-chip glass amber">✈️ &nbsp;<strong id="hkOjt">0</strong>&nbsp; OJT endorsed</div>
-          </div>
-          <div class="hk-layout">
+          <!-- ==================== COMPLETION PAGE ==================== -->
+          <section id="completionPage" class="page">
             <div class="page-panel glass">
               <div class="panel-head">
                 <div>
-                  <h2 class="panel-title">HK Database <span class="tag-pill">Endorsed Students</span></h2>
-                  <div class="panel-sub" id="hkRowCount">0 entries</div>
+                  <h2 class="panel-title">Online Support Completion <span class="tag-pill">SY 26-27</span></h2>
+                  <div class="panel-sub" id="rowCount">0 entries</div>
                 </div>
                 <div class="controls-bar">
+                  <button class="btn-primary" id="addStudentBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add Student
+                  </button>
                   <div class="search-field">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <circle cx="11" cy="11" r="8"/>
                       <line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
-                    <input type="text" id="hkSearch" class="search-input" placeholder="Search HK records…">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search name, course, ID…">
                   </div>
+                  <select id="filterRemarks" class="filter-select">
+                    <option value="">All Status</option>
+                    <option value="COMPLETED">Completed</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="NOT COMPLETED">Not Completed</option>
+                    <option value="CONTINUOUS TRAINING">Continuous Training</option>
+                  </select>
+                  <select id="filterCourse" class="filter-select">
+                    <option value="">All Courses</option>
+                    <option value="BSN">BS Nursing (BSN)</option>
+                    <option value="BSMLS">BS Medical Laboratory Sciences (MedTech)</option>
+                    <option value="BSPSY">BS Psychology</option>
+                    <option value="BSRADTECH">BS Radiologic Technology (RadTech)</option>
+                    <option value="BSRESPT">BS Respiratory Therapy</option>
+                    <option value="BSPHARM">BS Pharmacy</option>
+                    <option value="BSPT">BS Physical Therapy</option>
+                    <option value="BSIT">BS Information Technology (BSIT)</option>
+                    <option value="BSA">BS Accountancy (BSA)</option>
+                    <option value="BSBA">BS Business Administration (BSBA)</option>
+                    <option value="BSBA-MM">BSBA Marketing Management (BSBA-MM)</option>
+                    <option value="BSBA-FM">BSBA Financial Management (BSBA-FM)</option>
+                    <option value="BSHM">BS Hospitality Management (BSHM)</option>
+                    <option value="BSTM">BS Tourism Management (BSTM)</option>
+                    <option value="BSCRIM">BS Criminology (BSCrim)</option>
+                    <option value="BEED">Bachelor of Elementary Education (BEEd)</option>
+                    <option value="BSED">Bachelor of Secondary Education (BSEd)</option>
+                  </select>
                 </div>
               </div>
-              <div class="table-scroll" style="max-height:520px">
+              <div class="table-scroll completion-scroll">
                 <table class="completion-table">
                   <thead>
                     <tr>
@@ -510,229 +524,293 @@
                       <th>Complete Name</th>
                       <th>Course</th>
                       <th>Year Level</th>
+                      <th>Support Type</th>
+                      <th>Remarks</th>
                       <th>Endorsement</th>
+                      <th>Data Sheet</th>
                       <th>Duties</th>
                       <th>Hours</th>
-                      <th>Action</th>
                     </tr>
                   </thead>
-                  <tbody id="hkTbody"></tbody>
+                  <tbody id="completionTbody"></tbody>
                 </table>
               </div>
-            </div>
-            <div class="hk-side-charts">
-              <div class="chart-card glass">
-                <div class="chart-card-head">
-                  <div>
-                    <div class="chart-title">HK by Course</div>
-                    <div class="chart-sub">Distribution</div>
-                  </div>
-                </div>
-                <div class="chart-wrap">
-                  <canvas id="hkCourseChart" height="180"></canvas>
-                </div>
-              </div>
-              <div class="chart-card glass">
-                <div class="chart-card-head">
-                  <div>
-                    <div class="chart-title">Duty Status</div>
-                    <div class="chart-sub">HK students only</div>
-                  </div>
-                </div>
-                <div class="chart-wrap">
-                  <canvas id="hkDutyChart" height="180"></canvas>
+              <div class="panel-foot">
+                <div class="legend-row">
+                  <span class="leg-item">
+                    <span class="leg-dot" style="background:#10b981"></span>Continuing OS
+                  </span>
+                  <span class="leg-item">
+                    <span class="leg-dot" style="background:#fbbf24"></span>OJT-HK Duty
+                  </span>
+                  <span class="leg-item">
+                    <span class="leg-dot" style="background:#60a5fa"></span>Advance Duties
+                  </span>
+                  <span class="leg-item">
+                    <span class="leg-dot" style="background:#9ca3af"></span>No Longer w/ OS
+                  </span>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <!-- ==================== ANALYTICS PAGE ==================== -->
-        <section id="analyticsPage" class="page">
-          <div class="empty-state glass">
-            <div class="empty-icon">📊</div>
-            <h3>Advanced Analytics</h3>
-            <p>Detailed reports and insights coming soon.</p>
-          </div>
-        </section>
+          <!-- ==================== HK DATABASE PAGE ==================== -->
+          <section id="hkDatabasePage" class="page">
+            <div class="hk-stats-row">
+              <div class="hk-chip glass">🗄️ &nbsp;<strong id="hkTot">0</strong>&nbsp; total HK entries</div>
+              <div class="hk-chip glass amber">✈️ &nbsp;<strong id="hkOjt">0</strong>&nbsp; OJT endorsed</div>
+            </div>
+            <div class="hk-layout">
+              <div class="page-panel glass">
+                <div class="panel-head">
+                  <div>
+                    <h2 class="panel-title">HK Database <span class="tag-pill">Endorsed Students</span></h2>
+                    <div class="panel-sub" id="hkRowCount">0 entries</div>
+                  </div>
+                  <div class="controls-bar">
+                    <div class="search-field">
+                      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                      </svg>
+                      <input type="text" id="hkSearch" class="search-input" placeholder="Search HK records…">
+                    </div>
+                  </div>
+                </div>
+                <div class="table-scroll" style="max-height:520px">
+                  <table class="completion-table">
+                    <thead>
+                      <tr>
+                        <th>Student ID</th>
+                        <th>Control Number</th>
+                        <th>Complete Name</th>
+                        <th>Course</th>
+                        <th>Year Level</th>
+                        <th>Endorsement</th>
+                        <th>Duties</th>
+                        <th>Hours</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="hkTbody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="hk-side-charts">
+                <div class="chart-card glass">
+                  <div class="chart-card-head">
+                    <div>
+                      <div class="chart-title">HK by Course</div>
+                      <div class="chart-sub">Distribution</div>
+                    </div>
+                  </div>
+                  <div class="chart-wrap">
+                    <canvas id="hkCourseChart" height="180"></canvas>
+                  </div>
+                </div>
+                <div class="chart-card glass">
+                  <div class="chart-card-head">
+                    <div>
+                      <div class="chart-title">Duty Status</div>
+                      <div class="chart-sub">HK students only</div>
+                    </div>
+                  </div>
+                  <div class="chart-wrap">
+                    <canvas id="hkDutyChart" height="180"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
-      </main>
-    </div>
-  </div>
+          <!-- ==================== ANALYTICS PAGE ==================== -->
+          <section id="analyticsPage" class="page">
+            <div class="empty-state glass">
+              <div class="empty-icon">📊</div>
+              <h3>Advanced Analytics</h3>
+              <p>Detailed reports and insights coming soon.</p>
+            </div>
+          </section>
 
-  <!-- ==================== MODALS ==================== -->
-
-  <!-- Edit/Add Student Modal -->
-  <div class="modal-backdrop" id="editModal" style="display:none">
-    <div class="modal">
-      <div class="modal-head">
-        <div class="modal-title" id="editModalTitle">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 5v14M5 12h14"/>
-          </svg>
-          Add New Student
-        </div>
-        <button class="modal-close" id="closeEdit">✕</button>
-      </div>
-      <div class="modal-body">
-        <!-- Row 1: Student ID & Control Number -->
-        <div class="form-row">
-          <div class="form-field">
-            <label for="eStudentId">Student ID *</label>
-            <input type="text" id="eStudentId" class="form-input" placeholder="e.g. 2025-12345 or 06-2526-123456">
-          </div>
-          <div class="form-field">
-            <label for="eControlNumber">Control Number (Auto)</label>
-            <input type="text" id="eControlNumber" class="form-input" readonly placeholder="Auto 6-digit" style="background:#f0f0f0">
-          </div>
-        </div>
-        
-        <!-- Row 2: Name & Course (Dropdown) -->
-        <div class="form-row">
-          <div class="form-field">
-            <label for="eFullName">Complete Name *</label>
-            <input type="text" id="eFullName" class="form-input" placeholder="e.g. Juan Dela Cruz">
-          </div>
-          <div class="form-field">
-            <label for="eCourse">Course *</label>
-            <select id="eCourse" class="form-select" required>
-              <option value="">Select Course...</option>
-              <optgroup label="ALLIED HEALTH & SCIENCES">
-                <option value="BSN">BS Nursing (BSN)</option>
-                <option value="BSMLS">BS Medical Laboratory Sciences (Medical Technology)</option>
-                <option value="BSPSY">BS Psychology</option>
-                <option value="BSRADTECH">BS Radiologic Technology (RadTech)</option>
-                <option value="BSRESPT">BS Respiratory Therapy</option>
-                <option value="BSPHARM">BS Pharmacy</option>
-                <option value="BSPT">BS Physical Therapy</option>
-              </optgroup>
-              <optgroup label="INFORMATION TECHNOLOGY">
-                <option value="BSIT">BS Information Technology (BSIT)</option>
-              </optgroup>
-              <optgroup label="BUSINESS & MANAGEMENT">
-                <option value="BSA">BS Accountancy (BSA)</option>
-                <option value="BSBA">BS Business Administration (BSBA)</option>
-                <option value="BSBA-MM">BSBA Marketing Management (BSBA-MM)</option>
-                <option value="BSBA-FM">BSBA Financial Management (BSBA-FM)</option>
-                <option value="BSHM">BS Hospitality Management (BSHM)</option>
-                <option value="BSTM">BS Tourism Management (BSTM)</option>
-              </optgroup>
-              <optgroup label="CRIMINOLOGY & LAW">
-                <option value="BSCRIM">BS Criminology (BSCrim)</option>
-              </optgroup>
-              <optgroup label="TEACHER EDUCATION">
-                <option value="BEED">Bachelor of Elementary Education (BEEd)</option>
-                <option value="BSED">Bachelor of Secondary Education (BSEd)</option>
-              </optgroup>
-            </select>
-          </div>
-        </div>
-        
-        <!-- Row 3: Year Level & Section -->
-        <div class="form-row">
-          <div class="form-field">
-            <label for="eYearLevel">Year Level</label>
-            <select id="eYearLevel" class="form-select">
-              <option value="YEAR 1">1st Year</option>
-              <option value="YEAR 2">2nd Year</option>
-              <option value="YEAR 3">3rd Year</option>
-              <option value="YEAR 4">4th Year</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="eSection">Section</label>
-            <input type="text" id="eSection" class="form-input" placeholder="e.g. A, B, 1A, etc.">
-          </div>
-        </div>
-        
-        <!-- Row 4: Support Type & Remarks -->
-        <div class="form-row">
-          <div class="form-field">
-            <label for="eSupportType">Support Type</label>
-            <select id="eSupportType" class="form-select">
-              <option value="FRESHMEN OS">Freshmen OS</option>
-              <option value="UPPERCLASSMEN OS">Upperclassmen OS</option>
-              <option value="TRANSFEREE">Transferee</option>
-              <option value="RETURNING">Returning</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="eRemarks">Remarks</label>
-            <select id="eRemarks" class="form-select">
-              <option value="COMPLETED">✅ Completed</option>
-              <option value="NOT COMPLETED">❌ Not Completed</option>
-              <option value="PENDING">⏳ Pending</option>
-              <option value="CONTINUOUS TRAINING">🔄 Continuous Training</option>
-            </select>
-          </div>
-        </div>
-        
-        <!-- Row 5: Endorsement & Data Sheet -->
-        <div class="form-row">
-          <div class="form-field">
-            <label for="eEndorsement">Endorsement</label>
-            <select id="eEndorsement" class="form-select">
-              <option value="Endorsement for OJT - HK Duty">✈️ OJT – HK Duty</option>
-              <option value="Endorsed as Continuing OS">🔄 Continuing OS</option>
-              <option value="Not Continuing OS">❌ Not Continuing OS</option>
-              <option value="Graduate of 25-26">🎓 Graduate 25-26</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label for="eDataSheet">Data Sheet</label>
-            <select id="eDataSheet" class="form-select">
-              <option value="Encoded">📝 Encoded</option>
-              <option value="No Credit">⚠️ No Credit</option>
-            </select>
-          </div>
-        </div>
-        
-        <!-- Row 6: Hours Completed -->
-        <div class="form-row">
-          <div class="form-field">
-            <label for="eHours">Hours Completed</label>
-            <input type="text" id="eHours" class="form-input" placeholder="e.g. 55 hrs or 120">
-          </div>
-        </div>
-        
-        <!-- Row 7: Duties (Full Width) -->
-        <div class="form-field full-width">
-          <label for="eDuties">Duties SY 26-27</label>
-          <select id="eDuties" class="form-select">
-            <option value="Regular Duty Assigned">📋 Regular Duty Assigned</option>
-            <option value="NO GC Assignment">📵 No GC Assignment</option>
-            <option value="No Longer with OS">🚫 No Longer with OS</option>
-            <option value="Advance Duties">⭐ Advance Duties</option>
-          </select>
-        </div>
-      </div>
-      <div class="modal-foot">
-        <button class="btn-ghost" id="cancelEdit">Cancel</button>
-        <button class="btn-primary" id="saveEdit">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M20 6L9 17l-5-5"/>
-          </svg>
-          Save Changes
-        </button>
+        </main>
       </div>
     </div>
-  </div>
 
-  <!-- Logout Confirmation Modal -->
-  <div class="modal-backdrop" id="logoutModal" style="display:none">
-    <div class="modal modal-sm">
-      <div class="modal-head">
-        <div class="modal-title">Confirm Logout</div>
-        <button class="modal-close" id="closeLogout">✕</button>
-      </div>
-      <div class="modal-body">
-        <p>You are about to log out of the PHINMA SIS Dashboard. Any unsaved changes will be lost.</p>
-      </div>
-      <div class="modal-foot">
-        <button class="btn-ghost" id="stayBtn">Stay</button>
-        <button class="btn-danger" id="doLogout">Logout</button>
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Edit/Add Student Modal -->
+    <div class="modal-backdrop" id="editModal" style="display:none">
+      <div class="modal">
+        <div class="modal-head">
+          <div class="modal-title" id="editModalTitle">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add New Student
+          </div>
+          <button class="modal-close" id="closeEdit">✕</button>
+        </div>
+        <div class="modal-body">
+          <!-- Row 1: Student ID & Control Number -->
+          <div class="form-row">
+            <div class="form-field">
+              <label for="eStudentId">Student ID *</label>
+              <input type="text" id="eStudentId" class="form-input" placeholder="e.g. 2025-12345 or 06-2526-123456">
+            </div>
+            <div class="form-field">
+              <label for="eControlNumber">Control Number (Auto)</label>
+              <input type="text" id="eControlNumber" class="form-input" readonly placeholder="Auto 6-digit" style="background:#f0f0f0">
+            </div>
+          </div>
+          
+          <!-- Row 2: Name & Course (Dropdown) -->
+          <div class="form-row">
+            <div class="form-field">
+              <label for="eFullName">Complete Name *</label>
+              <input type="text" id="eFullName" class="form-input" placeholder="e.g. Juan Dela Cruz">
+            </div>
+            <div class="form-field">
+              <label for="eCourse">Course *</label>
+              <select id="eCourse" class="form-select" required>
+                <option value="">Select Course...</option>
+                <optgroup label="ALLIED HEALTH & SCIENCES">
+                  <option value="BSN">BS Nursing (BSN)</option>
+                  <option value="BSMLS">BS Medical Laboratory Sciences (Medical Technology)</option>
+                  <option value="BSPSY">BS Psychology</option>
+                  <option value="BSRADTECH">BS Radiologic Technology (RadTech)</option>
+                  <option value="BSRESPT">BS Respiratory Therapy</option>
+                  <option value="BSPHARM">BS Pharmacy</option>
+                  <option value="BSPT">BS Physical Therapy</option>
+                </optgroup>
+                <optgroup label="INFORMATION TECHNOLOGY">
+                  <option value="BSIT">BS Information Technology (BSIT)</option>
+                </optgroup>
+                <optgroup label="BUSINESS & MANAGEMENT">
+                  <option value="BSA">BS Accountancy (BSA)</option>
+                  <option value="BSBA">BS Business Administration (BSBA)</option>
+                  <option value="BSBA-MM">BSBA Marketing Management (BSBA-MM)</option>
+                  <option value="BSBA-FM">BSBA Financial Management (BSBA-FM)</option>
+                  <option value="BSHM">BS Hospitality Management (BSHM)</option>
+                  <option value="BSTM">BS Tourism Management (BSTM)</option>
+                </optgroup>
+                <optgroup label="CRIMINOLOGY & LAW">
+                  <option value="BSCRIM">BS Criminology (BSCrim)</option>
+                </optgroup>
+                <optgroup label="TEACHER EDUCATION">
+                  <option value="BEED">Bachelor of Elementary Education (BEEd)</option>
+                  <option value="BSED">Bachelor of Secondary Education (BSEd)</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Row 3: Year Level & Section -->
+          <div class="form-row">
+            <div class="form-field">
+              <label for="eYearLevel">Year Level</label>
+              <select id="eYearLevel" class="form-select">
+                <option value="YEAR 1">1st Year</option>
+                <option value="YEAR 2">2nd Year</option>
+                <option value="YEAR 3">3rd Year</option>
+                <option value="YEAR 4">4th Year</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="eSection">Section</label>
+              <input type="text" id="eSection" class="form-input" placeholder="e.g. A, B, 1A, etc.">
+            </div>
+          </div>
+          
+          <!-- Row 4: Support Type & Remarks -->
+          <div class="form-row">
+            <div class="form-field">
+              <label for="eSupportType">Support Type</label>
+              <select id="eSupportType" class="form-select">
+                <option value="FRESHMEN OS">Freshmen OS</option>
+                <option value="UPPERCLASSMEN OS">Upperclassmen OS</option>
+                <option value="TRANSFEREE">Transferee</option>
+                <option value="RETURNING">Returning</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="eRemarks">Remarks</label>
+              <select id="eRemarks" class="form-select">
+                <option value="COMPLETED">✅ Completed</option>
+                <option value="NOT COMPLETED">❌ Not Completed</option>
+                <option value="PENDING">⏳ Pending</option>
+                <option value="CONTINUOUS TRAINING">🔄 Continuous Training</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Row 5: Endorsement & Data Sheet -->
+          <div class="form-row">
+            <div class="form-field">
+              <label for="eEndorsement">Endorsement</label>
+              <select id="eEndorsement" class="form-select">
+                <option value="Endorsement for OJT - HK Duty">✈️ OJT – HK Duty</option>
+                <option value="Endorsed as Continuing OS">🔄 Continuing OS</option>
+                <option value="Not Continuing OS">❌ Not Continuing OS</option>
+                <option value="Graduate of 25-26">🎓 Graduate 25-26</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="eDataSheet">Data Sheet</label>
+              <select id="eDataSheet" class="form-select">
+                <option value="Encoded">📝 Encoded</option>
+                <option value="No Credit">⚠️ No Credit</option>
+              </select>
+            </div>
+          </div>
+          
+          <!-- Row 6: Hours Completed -->
+          <div class="form-row">
+            <div class="form-field">
+              <label for="eHours">Hours Completed</label>
+              <input type="text" id="eHours" class="form-input" placeholder="e.g. 55 hrs or 120">
+            </div>
+          </div>
+          
+          <!-- Row 7: Duties (Full Width) -->
+          <div class="form-field full-width">
+            <label for="eDuties">Duties SY 26-27</label>
+            <select id="eDuties" class="form-select">
+              <option value="Regular Duty Assigned">📋 Regular Duty Assigned</option>
+              <option value="NO GC Assignment">📵 No GC Assignment</option>
+              <option value="No Longer with OS">🚫 No Longer with OS</option>
+              <option value="Advance Duties">⭐ Advance Duties</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn-ghost" id="cancelEdit">Cancel</button>
+          <button class="btn-primary" id="saveEdit">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            Save Changes
+          </button>
+        </div>
       </div>
     </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div class="modal-backdrop" id="logoutModal" style="display:none">
+      <div class="modal modal-sm">
+        <div class="modal-head">
+          <div class="modal-title">Confirm Logout</div>
+          <button class="modal-close" id="closeLogout">✕</button>
+        </div>
+        <div class="modal-body">
+          <p>You are about to log out of the PHINMA SIS Dashboard. Any unsaved changes will be lost.</p>
+        </div>
+        <div class="modal-foot">
+          <button class="btn-ghost" id="stayBtn">Stay</button>
+          <button class="btn-danger" id="doLogout">Logout</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Main Admin Script -->
