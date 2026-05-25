@@ -105,7 +105,9 @@
         <div class="form-group">
           <label for="controlNum"><span class="label-icon">🔢</span> Control Number</label>
           <div class="input-wrap">
-            <input type="text" id="controlNum" placeholder="e.g. 000001" autocomplete="off" maxlength="20" spellcheck="false">
+            <input type="text" id="controlNum" placeholder="e.g. 000001" autocomplete="off" maxlength="20" spellcheck="false"
+                   onkeypress="return event.charCode >= 48 && event.charCode <= 57 || event.charCode == 45"
+                   oninput="this.value = this.value.replace(/[^0-9-]/g, '')">
             <span class="input-status" id="ctrlStatus"></span>
           </div>
           <span class="error-msg" id="controlError"></span>
@@ -113,7 +115,9 @@
         <div class="form-group">
           <label for="studentId"><span class="label-icon">🎓</span> Student ID</label>
           <div class="input-wrap">
-            <input type="text" id="studentId" placeholder="e.g. 06-2526-123456" autocomplete="off" maxlength="20" spellcheck="false">
+            <input type="text" id="studentId" placeholder="e.g. 06-2526-123456" autocomplete="off" maxlength="20" spellcheck="false"
+                   onkeypress="return event.charCode >= 48 && event.charCode <= 57 || event.charCode == 45"
+                   oninput="this.value = this.value.replace(/[^0-9-]/g, '')">
             <span class="input-status" id="idStatus"></span>
           </div>
           <span class="error-msg" id="idError"></span>
