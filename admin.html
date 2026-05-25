@@ -13,9 +13,10 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   
-  <!-- Styles -->
+  <!-- Styles: base → admin → mobile overrides -->
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/admin.css">
+  <link rel="stylesheet" href="/mobile.css">
 </head>
 <body>
 
@@ -25,16 +26,25 @@
     <div class="loading-text">Verifying access<span class="loading-dots"></span></div>
   </div>
 
-  <!-- Sidebar Toggle Button for Mobile -->
-  <button class="sidebar-toggle" id="sidebarToggle">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <!-- =============================================
+       MOBILE: Sidebar Toggle Button
+       Two SVGs: hamburger (default) + X (when open)
+  ============================================== -->
+  <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation">
+    <!-- Hamburger icon -->
+    <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <line x1="3" y1="6"  x2="21" y2="6"/>
       <line x1="3" y1="12" x2="21" y2="12"/>
-      <line x1="3" y1="6" x2="21" y2="6"/>
       <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+    <!-- Close / X icon -->
+    <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+      <line x1="18" y1="6"  x2="6"  y2="18"/>
+      <line x1="6"  y1="6"  x2="18" y2="18"/>
     </svg>
   </button>
 
-  <!-- Sidebar Overlay -->
+  <!-- Sidebar Overlay (tap to close on mobile) -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <!-- Main Admin Content -->
@@ -758,7 +768,10 @@
 
   </div>
 
-  <!-- Main Admin Script -->
+  <!-- Mobile Controller (sidebar toggle) -->
+  <script type="module" src="/src/controllers/mobile.controller.ts"></script>
+
+  <!-- Main Admin Script (unchanged) -->
   <script type="module" src="/src/admin.main.ts"></script>
 </body>
 </html>
