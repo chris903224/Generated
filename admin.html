@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
   <title>PHINMA SIS · OS Head Dashboard</title>
   
   <!-- Fonts -->
@@ -16,73 +16,6 @@
   <!-- Styles -->
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/admin.css">
-  
-  <style>
-    /* Loading Screen Styles */
-    #loadingScreen {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #0f172a, #1e1b4b);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      transition: opacity 0.5s ease;
-    }
-    
-    .spinner {
-      width: 60px;
-      height: 60px;
-      border: 4px solid rgba(255,255,255,0.1);
-      border-top: 4px solid #10b981;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    
-    .loading-text {
-      color: white;
-      margin-top: 20px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px;
-      letter-spacing: 2px;
-    }
-    
-    /* Hidden content initially */
-    #adminContent {
-      visibility: hidden;
-      opacity: 0;
-    }
-    
-    #adminContent.visible {
-      visibility: visible;
-      opacity: 1;
-    }
-    
-    /* Spinner dots animation */
-    .loading-dots::after {
-      content: '...';
-      animation: dots 1.5s steps(4, end) infinite;
-      display: inline-block;
-      width: 24px;
-      text-align: left;
-    }
-    
-    @keyframes dots {
-      0%, 20% { content: ''; }
-      40% { content: '.'; }
-      60% { content: '..'; }
-      80%, 100% { content: '...'; }
-    }
-  </style>
 </head>
 <body>
 
@@ -92,7 +25,19 @@
     <div class="loading-text">Verifying access<span class="loading-dots"></span></div>
   </div>
 
-  <!-- Main Admin Content (Hidden initially) -->
+  <!-- Sidebar Toggle Button for Mobile -->
+  <button class="sidebar-toggle" id="sidebarToggle">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <line x1="3" y1="12" x2="21" y2="12"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+  </button>
+
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Main Admin Content -->
   <div id="adminContent">
 
     <!-- Background Elements -->
