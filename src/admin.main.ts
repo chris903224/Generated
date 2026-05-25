@@ -40,8 +40,9 @@ const colors = {
   slate: '#94a3b8'
 };
 
-// All 15 Courses with display names
+// All 17 Courses with display names (UPDATED)
 const ALL_COURSES = [
+  // Allied Health & Sciences
   { code: 'BSN', name: 'BS Nursing', short: 'Nursing' },
   { code: 'BSMLS', name: 'BS Medical Lab Sciences', short: 'MedTech' },
   { code: 'BSPSY', name: 'BS Psychology', short: 'Psych' },
@@ -49,21 +50,31 @@ const ALL_COURSES = [
   { code: 'BSRESPT', name: 'BS Respiratory Therapy', short: 'Respiratory' },
   { code: 'BSPHARM', name: 'BS Pharmacy', short: 'Pharmacy' },
   { code: 'BSPT', name: 'BS Physical Therapy', short: 'PT' },
+  
+  // Information Technology
   { code: 'BSIT', name: 'BS Information Technology', short: 'IT' },
+  
+  // Business & Management
   { code: 'BSA', name: 'BS Accountancy', short: 'Accountancy' },
-  { code: 'BSBA', name: 'BS Business Administration', short: 'Bus Admin' },
+  { code: 'BSBA-MM', name: 'BSBA Marketing Management', short: 'BSBA-MM' },
+  { code: 'BSBA-FM', name: 'BSBA Financial Management', short: 'BSBA-FM' },
   { code: 'BSHM', name: 'BS Hospitality Management', short: 'HM' },
   { code: 'BSTM', name: 'BS Tourism Management', short: 'Tourism' },
+  
+  // Criminology & Law
   { code: 'BSCRIM', name: 'BS Criminology', short: 'Crim' },
+  
+  // Teacher Education
   { code: 'BEED', name: 'Bachelor of Elementary Education', short: 'BEEd' },
   { code: 'BSED', name: 'Bachelor of Secondary Education', short: 'BSEd' }
 ];
 
-// Color palette for 15 courses
+// Color palette for 17 courses
 const courseColors = [
   '#10b981', '#3b82f6', '#fbbf24', '#f43f5e', '#8b5cf6',
   '#14b8a6', '#f97316', '#ec4899', '#06b6d4', '#84cc16',
-  '#a855f7', '#eab308', '#ef4444', '#6b7280', '#94a3b8'
+  '#a855f7', '#eab308', '#ef4444', '#6b7280', '#94a3b8',
+  '#1e3a5f', '#2ecc71'
 ];
 
 // Valid admin usernames for credentials login
@@ -78,12 +89,10 @@ function getAdminName(): string {
   const adminName = localStorage.getItem('admin_name');
   const adminEmail = localStorage.getItem('admin_email');
   
-  // Credentials login (Username/Password)
   if (loginMethod === 'credentials' && adminName) {
     return adminName;
   }
   
-  // Magic link login
   if (loginMethod === 'magiclink' && adminEmail) {
     const emailName = adminEmail.split('@')[0];
     return emailName.charAt(0).toUpperCase() + emailName.slice(1);
@@ -103,13 +112,8 @@ function updateAdminDisplay(): void {
   const userName = getAdminName();
   const userInitials = getAdminInitials();
   
-  if (nameSpan) {
-    nameSpan.textContent = userName;
-  }
-  
-  if (initialsSpan) {
-    initialsSpan.textContent = userInitials;
-  }
+  if (nameSpan) nameSpan.textContent = userName;
+  if (initialsSpan) initialsSpan.textContent = userInitials;
 }
 
 // ============================================
@@ -130,21 +134,22 @@ function clearAuthData(): void {
 function redirectToLogin(): void {
   if (!window.location.pathname.includes('admin-login.html') && 
       !window.location.pathname.includes('admin-callback.html')) {
-    window.location.replace('/admin-login.html');
+    window.location.replace('/admin-login');
   }
 }
 
 // ============================================
-// AUTHENTICATION CHECK WITH SECURITY
+// AUTHENTICATION CHECK
 // ============================================
 
 async function checkAdminAuth(): Promise<boolean> {
-  const loginMethod = localStorage.getItem('login_method');
   const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+  const adminName = localStorage.getItem('admin_name');
+  const loginMethod = localStorage.getItem('login_method');
   const loginTime = localStorage.getItem('admin_login_time');
-  const adminUsername = localStorage.getItem('admin_username');
   
-  // Check session expiry (8 hours)
+  console.log('🔐 Auth check:', { isLoggedIn, adminName, loginMethod });
+  
   if (loginTime) {
     const elapsed = Date.now() - parseInt(loginTime);
     const eightHours = 8 * 60 * 60 * 1000;
@@ -156,34 +161,23 @@ async function checkAdminAuth(): Promise<boolean> {
     }
   }
   
-  // Credentials login - validate stored data
-  if (loginMethod === 'credentials' && isLoggedIn && adminUsername) {
-    // Verify the username is still valid
-    if (VALID_ADMIN_USERNAMES.includes(adminUsername)) {
-      console.log(`✅ Credentials login verified: ${adminUsername}`);
-      // Refresh login time
-      localStorage.setItem('admin_login_time', Date.now().toString());
-      return true;
-    } else {
-      console.log('❌ Invalid credentials stored');
-      clearAuthData();
-      redirectToLogin();
-      return false;
-    }
+  if (isLoggedIn && adminName && loginMethod === 'credentials') {
+    console.log(`✅ Credentials login verified: ${adminName}`);
+    localStorage.setItem('admin_login_time', Date.now().toString());
+    return true;
   }
   
-  // Magic link login - check Supabase session
   const { data: { session } } = await supabase.auth.getSession();
-  
-  if (!isLoggedIn || !session) {
-    clearAuthData();
-    redirectToLogin();
-    return false;
+  if (session) {
+    console.log('✅ Magic link session valid');
+    localStorage.setItem('admin_login_time', Date.now().toString());
+    return true;
   }
   
-  // Refresh login time for magic link
-  localStorage.setItem('admin_login_time', Date.now().toString());
-  return true;
+  console.log('❌ No valid session found');
+  clearAuthData();
+  redirectToLogin();
+  return false;
 }
 
 // ============================================
@@ -191,10 +185,8 @@ async function checkAdminAuth(): Promise<boolean> {
 // ============================================
 
 function initSecurity(): void {
-  // Disable right click
   document.addEventListener('contextmenu', (e) => e.preventDefault());
   
-  // Disable keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     const key = e.key;
     const ctrl = e.ctrlKey;
@@ -212,10 +204,8 @@ function initSecurity(): void {
     }
   });
   
-  // Disable drag and drop
   window.addEventListener('dragstart', (e) => e.preventDefault());
   
-  // Disable text selection on non-input elements
   document.addEventListener('selectstart', (e) => {
     if (!(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
       e.preventDefault();
@@ -348,7 +338,7 @@ async function initMonthlyTrendChart(): Promise<void> {
 }
 
 // ============================================
-// COURSE CHART
+// COURSE CHART (UPDATED for 17 courses)
 // ============================================
 
 async function initCourseChart(students: any[]): Promise<void> {
@@ -598,7 +588,7 @@ async function initSupportChart(students: any[]): Promise<void> {
 }
 
 // ============================================
-// HK COURSE CHART
+// HK COURSE CHART (UPDATED for 17 courses)
 // ============================================
 
 async function initHkCourseChart(hkStudents: any[]): Promise<void> {
@@ -693,7 +683,6 @@ async function initCharts(): Promise<void> {
   await initHkDutyChart(hkStudents);
   await initMonthlyTrendChart();
   
-  // Update UI elements
   const completed = students.filter((s: any) => s.remarks === 'COMPLETED').length;
   const pending = students.filter((s: any) => s.remarks === 'PENDING').length;
   const notCompleted = students.filter((s: any) => s.remarks === 'NOT COMPLETED').length;
@@ -717,7 +706,6 @@ async function initCharts(): Promise<void> {
   if (hkSpan) hkSpan.textContent = hkStudents.length.toString();
   if (liveBadge) liveBadge.textContent = `${total} Students`;
   
-  // Update percentages and bars
   const completedPct = total > 0 ? Math.round((completed / total) * 100) : 0;
   const pendingPct = total > 0 ? Math.round((pending / total) * 100) : 0;
   const notCompletedPct = total > 0 ? Math.round((notCompleted / total) * 100) : 0;
@@ -749,7 +737,6 @@ async function initCharts(): Promise<void> {
 function initAdminDashboard(): void {
   console.log('🚀 Initializing Admin Dashboard...');
   
-  // Update admin name display FIRST
   updateAdminDisplay();
   
   const studentController = new AdminStudentController();
@@ -806,26 +793,20 @@ function initAdminDashboard(): void {
 async function startApp(): Promise<void> {
   console.log('🔐 Checking authentication...');
   
-  const loginMethod = localStorage.getItem('login_method');
   const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+  const adminName = localStorage.getItem('admin_name');
   
-  // Credentials login - bypass Supabase but with security
-  if (loginMethod === 'credentials' && isLoggedIn) {
-    console.log('✅ Credentials login detected, validating session...');
-    const isValid = await checkAdminAuth();
-    if (isValid) {
-      console.log('✅ Session valid, starting dashboard...');
-      initSecurity();
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initAdminDashboard);
-      } else {
-        initAdminDashboard();
-      }
+  if (isLoggedIn && adminName) {
+    console.log(`✅ Already logged in as: ${adminName}`);
+    initSecurity();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initAdminDashboard);
+    } else {
+      initAdminDashboard();
     }
     return;
   }
   
-  // Magic link login - check Supabase
   const isAuth = await checkAdminAuth();
   
   if (isAuth) {
