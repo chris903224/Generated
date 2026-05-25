@@ -3,8 +3,12 @@
 // Improved: top-toast notification system with dual login (Credentials + Magic Link)
 // Includes 5 hardcoded admin accounts
 // Magic Link: ONLY specific @phinmaed.com emails allowed
+// Persistent login attempts (saved in localStorage)
 
 import { AdminAuthService } from './services/supabase.service';
+
+// App version - must match admin.main.ts
+const APP_VERSION = "v2.1.0";
 
 // ── DOM Elements ──────────────────────────────────────────────
 const usernameInput = document.getElementById('adminUsername') as HTMLInputElement;
@@ -28,7 +32,7 @@ const ADMIN_ACCOUNTS = [
   { username: 'AdminAllain', password: 'allain123', name: 'Allain' }
 ];
 
-// ── ALLOWED EMAILS FOR MAGIC LINK (ONLY THESE 4) ────────────────
+// ── ALLOWED EMAILS FOR MAGIC LINK ────────────────────────────────
 const ALLOWED_MAGIC_LINK_EMAILS = [
   'leda.lutrania.sjc@phinmaed.com',
   'anma.saguid.sjc@phinmaed.com', 
@@ -47,6 +51,20 @@ const RESET_TIME = 60 * 60 * 1000; // 1 hour
 const TOAST_SUCCESS_TTL = 8000;
 const TOAST_ERROR_TTL = 6000;
 const TOAST_INFO_TTL = 6000;
+
+// ============================================
+// VERSION CHECK - CLEAR OLD SESSIONS
+// ============================================
+
+function checkAndClearOldSession(): void {
+  const storedVersion = localStorage.getItem('app_version');
+  if (storedVersion !== APP_VERSION) {
+    console.log(`🔄 App version changed. Clearing old session...`);
+    localStorage.clear();
+    sessionStorage.clear();
+    localStorage.setItem('app_version', APP_VERSION);
+  }
+}
 
 // ============================================
 // SECURITY MEASURES
@@ -365,7 +383,6 @@ function shakeInput(input: HTMLInputElement): void {
   }, { once: true });
 }
 
-// Check if email is allowed for magic link
 function isAllowedMagicLinkEmail(email: string): boolean {
   return ALLOWED_MAGIC_LINK_EMAILS.includes(email.toLowerCase());
 }
@@ -413,7 +430,11 @@ async function loginWithCredentials(): Promise<void> {
   if (foundAdmin) {
     resetAttempts();
     
+    // Clear any previous auth data and set new session
     localStorage.clear();
+    sessionStorage.clear();
+    
+    localStorage.setItem('app_version', APP_VERSION);
     localStorage.setItem('admin_logged_in', 'true');
     localStorage.setItem('admin_username', foundAdmin.username);
     localStorage.setItem('admin_name', foundAdmin.name);
@@ -578,6 +599,9 @@ emailInput.addEventListener('keypress', (e) => {
 // ============================================
 // INITIALIZATION
 // ============================================
+
+// Check and clear old session first
+checkAndClearOldSession();
 
 // Initialize security first
 initSecurity();

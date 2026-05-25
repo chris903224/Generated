@@ -19,6 +19,9 @@ let supportChart: any = null;
 let hkCourseChart: any = null;
 let hkDutyChart: any = null;
 
+// App version - CHANGE THIS ON EVERY DEPLOYMENT
+const APP_VERSION = "v2.1.0";
+
 // Colors
 const colors = {
   green: '#10b981',
@@ -68,6 +71,14 @@ const courseColors = [
   '#1e3a5f', '#2ecc71'
 ];
 
+// Allowed admin emails for magic link
+const ALLOWED_ADMIN_EMAILS = [
+  'leda.lutrania.sjc@phinmaed.com',
+  'anma.saguid.sjc@phinmaed.com',
+  'juba.libao.sjc@phinmaed.com',
+  'chpe.villanueva.sjc@phinmaed.com'
+];
+
 // Valid admin usernames for credentials login
 const VALID_ADMIN_USERNAMES = ['AdminAnthony', 'AdminRonan', 'AdminJay', 'AdminLeimark', 'AdminAllain'];
 
@@ -89,6 +100,81 @@ function hideLoadingScreen(): void {
 }
 
 // ============================================
+// VERSION CHECK - FORCES LOGOUT ON DEPLOY
+// ============================================
+
+function checkAppVersion(): void {
+  const storedVersion = localStorage.getItem('app_version');
+  if (storedVersion !== APP_VERSION) {
+    console.log(`🔄 App version changed from ${storedVersion} to ${APP_VERSION}. Clearing session...`);
+    forceLogout();
+  }
+}
+
+// ============================================
+// FORCE LOGOUT - CLEARS ALL SESSION DATA
+// ============================================
+
+async function forceLogout(): Promise<void> {
+  console.log('🚪 Force logout initiated...');
+  
+  // Clear all local storage
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  // Sign out from Supabase
+  await supabase.auth.signOut();
+  
+  // Redirect to login page
+  window.location.replace('/admin-login');
+}
+
+// ============================================
+// SESSION VALIDATION WITH SUPABASE
+// ============================================
+
+async function validateSessionWithSupabase(): Promise<boolean> {
+  try {
+    // Get session from Supabase
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error || !session) {
+      console.log('❌ No active Supabase session found');
+      await forceLogout();
+      return false;
+    }
+    
+    // Verify user email is allowed
+    const userEmail = session.user.email;
+    if (!userEmail || !ALLOWED_ADMIN_EMAILS.includes(userEmail.toLowerCase())) {
+      console.log(`❌ Unauthorized email (${userEmail}) attempting to access`);
+      await forceLogout();
+      return false;
+    }
+    
+    // Check if session is expired (8 hours)
+    const loginTime = localStorage.getItem('admin_login_time');
+    if (loginTime) {
+      const elapsed = Date.now() - parseInt(loginTime);
+      const eightHours = 8 * 60 * 60 * 1000;
+      if (elapsed > eightHours) {
+        console.log('⏰ Session expired (8 hours)');
+        await forceLogout();
+        return false;
+      }
+    }
+    
+    console.log('✅ Supabase session is valid');
+    return true;
+    
+  } catch (error) {
+    console.error('Session validation error:', error);
+    await forceLogout();
+    return false;
+  }
+}
+
+// ============================================
 // MOBILE SIDEBAR TOGGLE
 // ============================================
 
@@ -102,12 +188,14 @@ function initMobileSidebar(): void {
       e.stopPropagation();
       sidebar.classList.toggle('open');
       overlay.classList.toggle('active');
+      toggleBtn.classList.toggle('open');
       document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
     });
     
     overlay.addEventListener('click', () => {
       sidebar.classList.remove('open');
       overlay.classList.remove('active');
+      toggleBtn.classList.remove('open');
       document.body.style.overflow = '';
     });
     
@@ -117,6 +205,7 @@ function initMobileSidebar(): void {
         if (window.innerWidth <= 768) {
           sidebar.classList.remove('open');
           overlay.classList.remove('active');
+          toggleBtn.classList.remove('open');
           document.body.style.overflow = '';
         }
       });
@@ -126,6 +215,7 @@ function initMobileSidebar(): void {
       if (window.innerWidth > 768) {
         sidebar.classList.remove('open');
         overlay.classList.remove('active');
+        toggleBtn.classList.remove('open');
         document.body.style.overflow = '';
       }
     });
@@ -133,78 +223,26 @@ function initMobileSidebar(): void {
 }
 
 // ============================================
-// SECURITY MEASURES (FULL)
+// LOGOUT HANDLER
+// ============================================
+
+function initLogoutHandler(): void {
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await forceLogout();
+    });
+  }
+}
+
+// ============================================
+// SECURITY MEASURES (DISABLED FOR DEBUGGING)
 // ============================================
 
 function initSecurity(): void {
-  document.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    return false;
-  });
-
-  document.addEventListener('keydown', (e) => {
-    const key = e.key;
-    const ctrl = e.ctrlKey;
-    const shift = e.shiftKey;
-    
-    if (key === 'F12' || 
-        (ctrl && shift && key === 'I') ||
-        (ctrl && shift && key === 'J') ||
-        (ctrl && shift && key === 'C') ||
-        (ctrl && shift && key === 'K') ||
-        (ctrl && key === 'u') ||
-        (ctrl && key === 's') ||
-        (ctrl && key === 'p') ||
-        key === 'PrintScreen') {
-      e.preventDefault();
-      return false;
-    }
-  });
-
-  window.addEventListener('dragstart', (e) => {
-    e.preventDefault();
-    return false;
-  });
-
-  document.addEventListener('selectstart', (e) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return true;
-    }
-    e.preventDefault();
-    return false;
-  });
-
-  document.addEventListener('copy', (e) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return true;
-    }
-    e.preventDefault();
-    return false;
-  });
-
-  document.addEventListener('cut', (e) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return true;
-    }
-    e.preventDefault();
-    return false;
-  });
-
-  document.addEventListener('paste', (e) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return true;
-    }
-    e.preventDefault();
-    return false;
-  });
-
-  if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
-    console.log = function() {};
-    console.info = function() {};
-    console.warn = function() {};
-    console.error = function() {};
-  }
-
+  console.log('⚠️ Security features disabled for debugging');
+  
   const metaNoCache = document.createElement('meta');
   metaNoCache.httpEquiv = 'Cache-Control';
   metaNoCache.content = 'no-cache, no-store, must-revalidate';
@@ -219,8 +257,6 @@ function initSecurity(): void {
   metaExpires.httpEquiv = 'Expires';
   metaExpires.content = '0';
   document.head.appendChild(metaExpires);
-
-  console.log('✅ Security fully initialized');
 }
 
 // ============================================
@@ -257,70 +293,6 @@ function updateAdminDisplay(): void {
   
   if (nameSpan) nameSpan.textContent = userName;
   if (initialsSpan) initialsSpan.textContent = userInitials;
-}
-
-// ============================================
-// AUTHENTICATION HELPER FUNCTIONS
-// ============================================
-
-function clearAuthData(): void {
-  localStorage.removeItem('admin_logged_in');
-  localStorage.removeItem('admin_user');
-  localStorage.removeItem('admin_email');
-  localStorage.removeItem('admin_user_id');
-  localStorage.removeItem('admin_login_time');
-  localStorage.removeItem('login_method');
-  localStorage.removeItem('admin_name');
-  localStorage.removeItem('admin_username');
-}
-
-function redirectToLogin(): void {
-  if (!window.location.pathname.includes('admin-login') && 
-      !window.location.pathname.includes('admin-callback')) {
-    window.location.replace('/admin-login');
-  }
-}
-
-// ============================================
-// AUTHENTICATION CHECK
-// ============================================
-
-async function checkAdminAuth(): Promise<boolean> {
-  const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
-  const adminName = localStorage.getItem('admin_name');
-  const loginMethod = localStorage.getItem('login_method');
-  const loginTime = localStorage.getItem('admin_login_time');
-  
-  console.log('🔐 Auth check:', { isLoggedIn, adminName, loginMethod });
-  
-  if (loginTime) {
-    const elapsed = Date.now() - parseInt(loginTime);
-    const eightHours = 8 * 60 * 60 * 1000;
-    if (elapsed > eightHours) {
-      console.log('⏰ Session expired');
-      clearAuthData();
-      redirectToLogin();
-      return false;
-    }
-  }
-  
-  if (isLoggedIn && adminName && loginMethod === 'credentials') {
-    console.log(`✅ Credentials login verified: ${adminName}`);
-    localStorage.setItem('admin_login_time', Date.now().toString());
-    return true;
-  }
-  
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    console.log('✅ Magic link session valid');
-    localStorage.setItem('admin_login_time', Date.now().toString());
-    return true;
-  }
-  
-  console.log('❌ No valid session found');
-  clearAuthData();
-  redirectToLogin();
-  return false;
 }
 
 // ============================================
@@ -853,6 +825,7 @@ function initAdminDashboard(): void {
   
   updateAdminDisplay();
   initMobileSidebar();
+  initLogoutHandler();
   
   const studentController = new AdminStudentController();
   const uiController = new AdminUIController();
@@ -903,54 +876,53 @@ function initAdminDashboard(): void {
 }
 
 // ============================================
-// START APPLICATION
+// START APPLICATION (UPDATED WITH SECURITY)
 // ============================================
 
 async function startApp(): Promise<void> {
-  console.log('🔐 Checking authentication...');
+  console.log('🔐 Starting application...');
+  
+  // Check version first - forces logout on new deployment
+  checkAppVersion();
+  
+  // Validate session with Supabase
+  const isValid = await validateSessionWithSupabase();
+  
+  if (!isValid) {
+    console.log('❌ Invalid session, redirecting to login');
+    return;
+  }
   
   const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
   const adminName = localStorage.getItem('admin_name');
   const loginMethod = localStorage.getItem('login_method');
   
-  console.log('🔐 Auth data:', { isLoggedIn, adminName, loginMethod });
+  console.log('📋 Auth data:', { isLoggedIn, adminName, loginMethod });
   
-  // CREDENTIALS LOGIN
-  if (isLoggedIn && adminName && loginMethod === 'credentials') {
-    console.log(`✅ Credentials login detected for: ${adminName}`);
+  if (isLoggedIn && adminName) {
+    console.log(`✅ User already logged in as: ${adminName}`);
     hideLoadingScreen();
     updateAdminDisplay();
     initSecurity();
-    
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(initAdminDashboard, 10);
-      });
-    } else {
-      setTimeout(initAdminDashboard, 10);
-    }
+    initMobileSidebar();
+    initLogoutHandler();
+    initAdminDashboard();
     return;
   }
   
-  // MAGIC LINK LOGIN
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
     console.log('✅ Magic link session valid');
     hideLoadingScreen();
     updateAdminDisplay();
     initSecurity();
-    
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => {
-        setTimeout(initAdminDashboard, 10);
-      });
-    } else {
-      setTimeout(initAdminDashboard, 10);
-    }
+    initMobileSidebar();
+    initLogoutHandler();
+    initAdminDashboard();
     return;
   }
   
-  console.log('❌ No valid session found, redirecting to login');
+  console.log('❌ No valid session, redirecting to login');
   window.location.replace('/admin-login');
 }
 
