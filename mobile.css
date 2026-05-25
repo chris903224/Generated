@@ -1,214 +1,412 @@
 /* ============================================
-   MOBILE.CSS - PHINMA SIS Admin Dashboard
-   Import AFTER admin.css
+   MOBILE.CSS - FULL MOBILE TOGGLE SUPPORT
+   PHINMA SIS Admin Dashboard
    ============================================ */
 
-.sidebar-toggle {
-  position: fixed;
-  top: 14px;
-  left: 14px;
-  z-index: 1200;
-  width: 42px;
-  height: 42px;
-  background: var(--accent);
-  border: none;
-  border-radius: 12px;
-  padding: 0;
-  cursor: pointer;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 16px var(--accent-glow), 0 2px 8px rgba(0,0,0,0.2);
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s, filter 0.15s;
-}
-
-.sidebar-toggle:active { transform: scale(0.92); filter: brightness(0.88); }
-.sidebar-toggle svg { width: 20px; height: 20px; stroke: white; flex-shrink: 0; }
-.sidebar-toggle .icon-menu  { display: block; }
-.sidebar-toggle .icon-close { display: none;  }
-.sidebar-toggle.open .icon-menu  { display: none;  }
-.sidebar-toggle.open .icon-close { display: block; }
-
-.sidebar-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1100;
-  background: rgba(0,0,0,0.52);
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-  display: none;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.sidebar-overlay.active { display: block; opacity: 1; }
-
-/* ============ MOBILE ≤768px (FIXED) ============ */
+/* Reset for mobile */
 @media (max-width: 768px) {
-
-  /* Show toggle button */
-  .sidebar-toggle { 
-    display: flex; 
+  
+  /* Force body to allow sidebar toggle */
+  body {
+    overflow-x: hidden;
+    position: relative;
   }
-
-  /* CRITICAL: Sidebar - hidden off-canvas */
+  
+  /* ===== SIDEBAR TOGGLE BUTTON ===== */
+  .sidebar-toggle {
+    display: flex !important;
+    position: fixed !important;
+    top: 12px !important;
+    left: 12px !important;
+    width: 44px !important;
+    height: 44px !important;
+    background: #10b981 !important;
+    border: none !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    z-index: 10001 !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+  }
+  
+  .sidebar-toggle svg {
+    width: 22px !important;
+    height: 22px !important;
+    stroke: white !important;
+  }
+  
+  .sidebar-toggle .icon-menu { display: block !important; }
+  .sidebar-toggle .icon-close { display: none !important; }
+  .sidebar-toggle.open .icon-menu { display: none !important; }
+  .sidebar-toggle.open .icon-close { display: block !important; }
+  
+  /* ===== SIDEBAR OVERLAY ===== */
+  .sidebar-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0,0,0,0.6) !important;
+    backdrop-filter: blur(4px) !important;
+    z-index: 9999 !important;
+    display: none !important;
+  }
+  
+  .sidebar-overlay.active {
+    display: block !important;
+  }
+  
+  /* ===== SIDEBAR ===== */
   .sidebar {
     position: fixed !important;
     top: 0 !important;
-    left: -280px !important;  /* ← HIDDEN OFF-SCREEN */
-    bottom: 0 !important;
+    left: -300px !important;
     width: 280px !important;
-    transform: none !important;
+    height: 100% !important;
+    background: #0f172a !important;
+    z-index: 10000 !important;
     transition: left 0.3s ease !important;
-    z-index: 1150 !important;
-    border-radius: 0 var(--r-xl) var(--r-xl) 0 !important;
-    background: var(--glass-nav) !important;
-    backdrop-filter: blur(32px) !important;
+    overflow-y: auto !important;
+    border-radius: 0 !important;
   }
   
-  /* Sidebar when open */
-  .sidebar.open { 
-    left: 0 !important;  /* ← SLIDE IN */
+  .sidebar.open {
+    left: 0 !important;
   }
   
-  .sidebar-inner { 
-    width: 280px !important; 
+  .sidebar-inner {
+    width: 280px !important;
+    padding: 20px 16px !important;
   }
   
-  /* Main area - full width */
+  /* Sidebar logo - always visible */
+  .sidebar-logo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-bottom: 20px !important;
+    padding-bottom: 16px !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+  }
+  
+  .logo-text {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .nav-label {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .nav-tooltip {
+    display: none !important;
+  }
+  
+  /* ===== MAIN AREA ===== */
   .main-area {
     margin-left: 0 !important;
     width: 100% !important;
+    padding-top: 60px !important;
   }
   
-  /* Topbar adjustments */
+  /* ===== TOPBAR ===== */
   .topbar {
-    margin-top: 60px !important;
-    margin-left: 10px !important;
-    margin-right: 10px !important;
+    margin: 0 10px 10px 10px !important;
+    padding: 12px !important;
     flex-direction: column !important;
     align-items: stretch !important;
+    gap: 10px !important;
   }
   
-  .topbar-left { text-align: center; }
-  .topbar-right { justify-content: space-between; }
-  
-  .page-title { font-size: 1.1rem !important; }
-  
-  /* Stats grid - 2 columns */
-  .stats-grid { 
-    grid-template-columns: repeat(2, 1fr) !important; 
-    gap: 10px !important; 
+  .topbar-left {
+    text-align: center !important;
   }
   
-  /* Charts - single column */
-  .charts-row-3, .charts-row-2 { 
-    grid-template-columns: 1fr !important; 
+  .page-title {
+    font-size: 1.2rem !important;
+    text-align: center !important;
   }
   
-  /* Controls stacked */
-  .controls-bar { 
-    flex-direction: column !important; 
-    align-items: stretch !important; 
+  .page-subtitle {
+    font-size: 0.7rem !important;
+    text-align: center !important;
   }
   
-  .search-field, .filter-select, .btn-primary { 
-    width: 100% !important; 
+  .topbar-right {
+    justify-content: space-between !important;
   }
   
-  /* Form single column */
-  .form-row { 
-    grid-template-columns: 1fr !important; 
+  .live-chip {
+    padding: 5px 10px !important;
+    font-size: 0.7rem !important;
   }
   
-  .form-field.full-width { 
-    grid-column: span 1 !important; 
+  .user-pill {
+    padding: 3px 10px 3px 3px !important;
   }
   
-  /* User pill smaller */
-  .user-pill { 
-    padding: 3px 10px 3px 3px !important; 
+  .user-avatar {
+    width: 32px !important;
+    height: 32px !important;
   }
   
-  .user-avatar { 
-    width: 28px !important; 
-    height: 28px !important; 
+  .avatar-initials {
+    font-size: 12px !important;
   }
   
-  .user-info span { 
-    display: none !important; 
+  .user-info strong {
+    font-size: 0.75rem !important;
   }
   
-  /* Tables horizontal scroll */
-  .table-scroll { 
-    overflow-x: auto !important; 
+  .user-info span {
+    font-size: 0.6rem !important;
   }
   
-  table { 
-    min-width: 700px !important; 
+  /* ===== STATS CARDS ===== */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 0 10px !important;
   }
   
-  /* Modal full width on mobile */
-  .modal { 
-    width: 95% !important; 
+  .stat-card {
+    padding: 12px !important;
+  }
+  
+  .stat-number {
+    font-size: 1.4rem !important;
+  }
+  
+  .stat-label {
+    font-size: 0.6rem !important;
+  }
+  
+  .stat-icon-wrap {
+    width: 32px !important;
+    height: 32px !important;
+  }
+  
+  .stat-icon-wrap svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+  
+  /* ===== CHARTS ===== */
+  .charts-row-3, .charts-row-2 {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    padding: 0 10px !important;
+  }
+  
+  .chart-card {
+    padding: 12px !important;
+  }
+  
+  .chart-title {
+    font-size: 0.85rem !important;
+  }
+  
+  .chart-sub {
+    font-size: 0.6rem !important;
+  }
+  
+  .donut-wrap {
+    max-width: 150px !important;
+  }
+  
+  .donut-num {
+    font-size: 1.3rem !important;
+  }
+  
+  /* ===== TABLES ===== */
+  .table-card {
+    margin: 0 10px 14px 10px !important;
+  }
+  
+  .table-card-head {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  
+  .table-scroll {
+    overflow-x: auto !important;
+  }
+  
+  table {
+    min-width: 680px !important;
+  }
+  
+  th, td {
+    padding: 8px 10px !important;
+    font-size: 0.7rem !important;
+  }
+  
+  /* ===== CONTROLS ===== */
+  .controls-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+  }
+  
+  .search-field {
+    width: 100% !important;
+  }
+  
+  .search-input {
+    width: 100% !important;
+  }
+  
+  .filter-select {
+    width: 100% !important;
+  }
+  
+  .btn-primary {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  
+  .btn-outline {
+    width: 100% !important;
+    text-align: center !important;
+  }
+  
+  /* ===== PANEL ===== */
+  .panel-head {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  
+  .panel-title {
+    font-size: 1rem !important;
+  }
+  
+  /* ===== FORM ===== */
+  .form-row {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .form-field.full-width {
+    grid-column: span 1 !important;
+  }
+  
+  /* ===== MODALS ===== */
+  .modal {
+    width: 95% !important;
     margin: 0 auto !important;
   }
   
-  .hk-layout { 
-    grid-template-columns: 1fr !important; 
+  .modal-body {
+    padding: 12px !important;
   }
   
-  .hk-stats-row { 
-    flex-direction: column !important; 
+  /* ===== HK PAGE ===== */
+  .hk-stats-row {
+    flex-direction: column !important;
+    padding: 0 10px !important;
+  }
+  
+  .hk-layout {
+    grid-template-columns: 1fr !important;
+    padding: 0 10px !important;
+  }
+  
+  .hk-side-charts {
+    flex-direction: column !important;
+  }
+  
+  /* ===== ACTION BUTTONS ===== */
+  .action-buttons {
+    flex-direction: column !important;
+    gap: 5px !important;
+  }
+  
+  .action-btn {
+    justify-content: center !important;
+  }
+  
+  /* ===== BADGES ===== */
+  .badge, .etag, .dtag {
+    font-size: 0.6rem !important;
+    padding: 2px 6px !important;
+  }
+  
+  .hours-badge {
+    font-size: 0.6rem !important;
+    padding: 2px 6px !important;
+  }
+  
+  /* ===== COMPLETION SCROLL ===== */
+  .completion-scroll {
+    max-height: 400px !important;
+  }
+  
+  .completion-table {
+    min-width: 900px !important;
   }
 }
 
-/* ============ SMALL PHONES ≤480px ============ */
+/* Small phones */
 @media (max-width: 480px) {
-  .stats-grid { 
-    grid-template-columns: 1fr !important; 
+  .stats-grid {
+    grid-template-columns: 1fr !important;
   }
   
-  .topbar { 
-    margin-top: 56px !important; 
+  .page-title {
+    font-size: 1rem !important;
   }
   
-  .page-title { 
-    font-size: 0.95rem !important; 
+  .stat-number {
+    font-size: 1.2rem !important;
   }
   
-  .stat-number { 
-    font-size: 1.2rem !important; 
+  .topbar {
+    margin-top: 55px !important;
   }
   
-  .sidebar-toggle { 
-    top: 10px; 
-    left: 10px; 
-    width: 36px; 
-    height: 36px; 
+  .sidebar-toggle {
+    top: 10px !important;
+    left: 10px !important;
+    width: 40px !important;
+    height: 40px !important;
   }
   
-  .sidebar-toggle svg { 
-    width: 18px; 
-    height: 18px; 
+  .sidebar-toggle svg {
+    width: 20px !important;
+    height: 20px !important;
   }
 }
 
-/* ============ TABLET (768px - 1024px) ============ */
+/* Tablets */
 @media (min-width: 769px) and (max-width: 1024px) {
-  .stats-grid { 
-    grid-template-columns: repeat(3, 1fr) !important; 
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
   }
   
-  .charts-row-3 { 
-    grid-template-columns: repeat(2, 1fr) !important; 
+  .charts-row-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
   }
   
-  .charts-row-2 { 
-    grid-template-columns: 1fr !important; 
+  .charts-row-2 {
+    grid-template-columns: 1fr !important;
   }
   
-  .hk-layout { 
-    grid-template-columns: 1fr !important; 
+  .hk-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Touch devices - increase tap targets */
+@media (hover: none) and (pointer: coarse) {
+  .nav-item, .action-btn, .btn-primary, .btn-outline, .sidebar-toggle {
+    min-height: 44px !important;
+  }
+  
+  .nav-icon-wrap {
+    min-width: 44px !important;
   }
 }
