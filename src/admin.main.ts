@@ -89,17 +89,59 @@ function hideLoadingScreen(): void {
 }
 
 // ============================================
+// MOBILE SIDEBAR TOGGLE
+// ============================================
+
+function initMobileSidebar(): void {
+  const sidebar = document.getElementById('sidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const overlay = document.getElementById('sidebarOverlay');
+  
+  if (toggleBtn && sidebar && overlay) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('active');
+      document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+    });
+    
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    });
+    
+    const navLinks = sidebar.querySelectorAll('.nav-item');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          sidebar.classList.remove('open');
+          overlay.classList.remove('active');
+          document.body.style.overflow = '';
+        }
+      });
+    });
+    
+    window.addEventListener('resize', () => {
+      if (window.innerWidth > 768) {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    });
+  }
+}
+
+// ============================================
 // SECURITY MEASURES (FULL)
 // ============================================
 
 function initSecurity(): void {
-  // 1. Disable Right Click
   document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     return false;
   });
 
-  // 2. Disable Keyboard Shortcuts
   document.addEventListener('keydown', (e) => {
     const key = e.key;
     const ctrl = e.ctrlKey;
@@ -119,13 +161,11 @@ function initSecurity(): void {
     }
   });
 
-  // 3. Disable Drag and Drop
   window.addEventListener('dragstart', (e) => {
     e.preventDefault();
     return false;
   });
 
-  // 4. Disable Text Selection on non-input elements
   document.addEventListener('selectstart', (e) => {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
       return true;
@@ -134,7 +174,6 @@ function initSecurity(): void {
     return false;
   });
 
-  // 5. Disable Copy/Paste on non-input elements
   document.addEventListener('copy', (e) => {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
       return true;
@@ -159,7 +198,6 @@ function initSecurity(): void {
     return false;
   });
 
-  // 6. Clear console logs in production
   if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
     console.log = function() {};
     console.info = function() {};
@@ -167,7 +205,6 @@ function initSecurity(): void {
     console.error = function() {};
   }
 
-  // 7. Add meta tags to prevent caching
   const metaNoCache = document.createElement('meta');
   metaNoCache.httpEquiv = 'Cache-Control';
   metaNoCache.content = 'no-cache, no-store, must-revalidate';
@@ -256,7 +293,6 @@ async function checkAdminAuth(): Promise<boolean> {
   
   console.log('🔐 Auth check:', { isLoggedIn, adminName, loginMethod });
   
-  // Check session expiry (8 hours)
   if (loginTime) {
     const elapsed = Date.now() - parseInt(loginTime);
     const eightHours = 8 * 60 * 60 * 1000;
@@ -268,14 +304,12 @@ async function checkAdminAuth(): Promise<boolean> {
     }
   }
   
-  // Credentials login
   if (isLoggedIn && adminName && loginMethod === 'credentials') {
     console.log(`✅ Credentials login verified: ${adminName}`);
     localStorage.setItem('admin_login_time', Date.now().toString());
     return true;
   }
   
-  // Magic link login - check Supabase session
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
     console.log('✅ Magic link session valid');
@@ -805,13 +839,12 @@ async function initCharts(): Promise<void> {
 }
 
 // ============================================
-// DASHBOARD INITIALIZATION (FIXED)
+// DASHBOARD INITIALIZATION
 // ============================================
 
 function initAdminDashboard(): void {
   console.log('🚀 Initializing Admin Dashboard...');
   
-  // Wait for DOM elements to be ready
   if (!document.querySelector('.nav-item[data-page]')) {
     console.warn('⚠️ DOM not ready, retrying...');
     setTimeout(initAdminDashboard, 50);
@@ -819,6 +852,7 @@ function initAdminDashboard(): void {
   }
   
   updateAdminDisplay();
+  initMobileSidebar();
   
   const studentController = new AdminStudentController();
   const uiController = new AdminUIController();
@@ -849,7 +883,6 @@ function initAdminDashboard(): void {
     }
   }
   
-  // Attach event listeners safely
   const navItems = document.querySelectorAll('.nav-item[data-page]');
   navItems.forEach(item => {
     item.addEventListener('click', (e) => {
@@ -870,7 +903,7 @@ function initAdminDashboard(): void {
 }
 
 // ============================================
-// START APPLICATION (FIXED)
+// START APPLICATION
 // ============================================
 
 async function startApp(): Promise<void> {
@@ -889,7 +922,6 @@ async function startApp(): Promise<void> {
     updateAdminDisplay();
     initSecurity();
     
-    // Wait for DOM to be ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         setTimeout(initAdminDashboard, 10);
