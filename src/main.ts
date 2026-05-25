@@ -2,6 +2,7 @@
  * VeriStud Student Portal - Main Entry Point
  * TypeScript-based student identity verification system with Supabase
  * Full Security: Anti-F12, Anti-right click, Anti-inspect, Anti-console
+ * Input Validation: Only numbers and dash (-) allowed for Control Number and Student ID
  */
 
 import { UIController } from './controllers/ui.controller';
@@ -45,48 +46,15 @@ function initSecurity(): void {
     const ctrl = e.ctrlKey;
     const shift = e.shiftKey;
     
-    // F12 key
-    if (key === 'F12') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+Shift+I (Inspect Element)
-    if (ctrl && shift && key === 'I') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+Shift+J (Console)
-    if (ctrl && shift && key === 'J') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+Shift+C (Inspect Element)
-    if (ctrl && shift && key === 'C') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+Shift+K (Console - Firefox)
-    if (ctrl && shift && key === 'K') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+U (View Source)
-    if (ctrl && key === 'u') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+S (Save Page)
-    if (ctrl && key === 's') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+P (Print)
-    if (ctrl && key === 'p') {
-      e.preventDefault();
-      return false;
-    }
-    // Print Screen
-    if (key === 'PrintScreen') {
+    if (key === 'F12' || 
+        (ctrl && shift && key === 'I') ||
+        (ctrl && shift && key === 'J') ||
+        (ctrl && shift && key === 'C') ||
+        (ctrl && shift && key === 'K') ||
+        (ctrl && key === 'u') ||
+        (ctrl && key === 's') ||
+        (ctrl && key === 'p') ||
+        key === 'PrintScreen') {
       e.preventDefault();
       return false;
     }
@@ -132,60 +100,7 @@ function initSecurity(): void {
     return false;
   });
 
-  // 6. Detect DevTools Opening
-  let devtoolsOpen = false;
-  const element = new Image();
-  
-  Object.defineProperty(element, 'id', {
-    get: function() {
-      devtoolsOpen = true;
-      document.body.innerHTML = `
-        <div style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
-          <h1 style="color:#ef4444;">🔒 Access Denied</h1>
-          <p>Developer tools detected. Please close DevTools to continue.</p>
-          <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer; background:#1e5c3a; color:white; border:none; border-radius:8px;">Refresh Page</button>
-        </div>
-      `;
-    }
-  });
-  
-  setInterval(() => {
-    devtoolsOpen = false;
-    console.dir(element);
-    if (devtoolsOpen) {
-      document.body.innerHTML = `
-        <div style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
-          <h1 style="color:#ef4444;">🔒 Access Denied</h1>
-          <p>Developer tools detected. Please close DevTools to continue.</p>
-          <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer; background:#1e5c3a; color:white; border:none; border-radius:8px;">Refresh Page</button>
-        </div>
-      `;
-    }
-  }, 1000);
-
-  // 7. Detect DevTools via window size
-  let devtoolsDetected = false;
-  const threshold = 160;
-  
-  const checkDevTools = function() {
-    const widthDiff = window.outerWidth - window.innerWidth;
-    const heightDiff = window.outerHeight - window.innerHeight;
-    
-    if ((widthDiff > threshold || heightDiff > threshold) && !devtoolsDetected) {
-      devtoolsDetected = true;
-      document.body.innerHTML = `
-        <div style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
-          <h1 style="color:#ef4444;">🔒 Security Violation</h1>
-          <p>Developer tools detected. Access denied.</p>
-          <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer; background:#1e5c3a; color:white; border:none; border-radius:8px;">Refresh Page</button>
-        </div>
-      `;
-    }
-  };
-  
-  setInterval(checkDevTools, 1000);
-
-  // 8. Clear console logs in production
+  // 6. Clear console logs in production
   if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
     console.log = function() {};
     console.info = function() {};
@@ -193,7 +108,7 @@ function initSecurity(): void {
     console.error = function() {};
   }
 
-  // 9. Add meta tags to prevent caching
+  // 7. Add meta tags to prevent caching
   const metaNoCache = document.createElement('meta');
   metaNoCache.httpEquiv = 'Cache-Control';
   metaNoCache.content = 'no-cache, no-store, must-revalidate';
@@ -210,6 +125,22 @@ function initSecurity(): void {
   document.head.appendChild(metaExpires);
 
   console.log('✅ Security fully initialized on student portal');
+}
+
+// ============================================
+// INPUT VALIDATION (Numbers and Dash only)
+// ============================================
+
+function validateInput(input: string): boolean {
+  // Only allow numbers, dash (-), and optional plus sign
+  // Pattern: digits, dashes, and spaces (trimmed later)
+  const pattern = /^[0-9\-]+$/;
+  return pattern.test(input);
+}
+
+function formatInput(input: string): string {
+  // Remove any leading/trailing spaces and keep only valid characters
+  return input.trim().replace(/[^0-9\-]/g, '');
 }
 
 // ============================================
@@ -243,6 +174,9 @@ class VeriStudApp {
     // Initialize security first
     initSecurity();
     
+    // Setup input validators
+    this.setupInputValidators();
+    
     // Test Supabase connection
     await this.testSupabaseConnection();
     
@@ -257,6 +191,102 @@ class VeriStudApp {
     
     this.isInitialized = true;
     console.log('✅ VeriStud App successfully initialized');
+  }
+
+  /**
+   * Setup input validators for Control Number and Student ID
+   */
+  private setupInputValidators(): void {
+    const controlInput = document.getElementById('controlNum') as HTMLInputElement;
+    const studentIdInput = document.getElementById('studentId') as HTMLInputElement;
+    
+    if (controlInput) {
+      // Validate on input
+      controlInput.addEventListener('input', (e) => {
+        const input = e.target as HTMLInputElement;
+        const rawValue = input.value;
+        
+        if (!validateInput(rawValue) && rawValue !== '') {
+          // Show error styling
+          input.classList.add('input-error');
+          this.showInputError('ctrl', 'Only numbers and dash (-) are allowed');
+        } else {
+          input.classList.remove('input-error');
+          this.clearInputError('ctrl');
+        }
+      });
+      
+      // Format on blur
+      controlInput.addEventListener('blur', (e) => {
+        const input = e.target as HTMLInputElement;
+        input.value = formatInput(input.value);
+      });
+    }
+    
+    if (studentIdInput) {
+      // Validate on input
+      studentIdInput.addEventListener('input', (e) => {
+        const input = e.target as HTMLInputElement;
+        const rawValue = input.value;
+        
+        if (!validateInput(rawValue) && rawValue !== '') {
+          input.classList.add('input-error');
+          this.showInputError('id', 'Only numbers and dash (-) are allowed');
+        } else {
+          input.classList.remove('input-error');
+          this.clearInputError('id');
+        }
+      });
+      
+      // Format on blur
+      studentIdInput.addEventListener('blur', (e) => {
+        const input = e.target as HTMLInputElement;
+        input.value = formatInput(input.value);
+      });
+    }
+  }
+
+  /**
+   * Show input error message
+   */
+  private showInputError(field: 'ctrl' | 'id', message: string): void {
+    const errorElement = field === 'ctrl' 
+      ? document.getElementById('controlError')
+      : document.getElementById('idError');
+    
+    const inputElement = field === 'ctrl'
+      ? document.getElementById('controlNum') as HTMLInputElement
+      : document.getElementById('studentId') as HTMLInputElement;
+    
+    if (errorElement) {
+      errorElement.textContent = `⚠ ${message}`;
+      errorElement.style.color = '#c0392b';
+    }
+    
+    if (inputElement) {
+      inputElement.style.borderColor = '#c0392b';
+    }
+  }
+
+  /**
+   * Clear input error message
+   */
+  private clearInputError(field: 'ctrl' | 'id'): void {
+    const errorElement = field === 'ctrl'
+      ? document.getElementById('controlError')
+      : document.getElementById('idError');
+    
+    const inputElement = field === 'ctrl'
+      ? document.getElementById('controlNum') as HTMLInputElement
+      : document.getElementById('studentId') as HTMLInputElement;
+    
+    if (errorElement) {
+      errorElement.textContent = '';
+    }
+    
+    if (inputElement) {
+      inputElement.style.borderColor = '';
+    }
   }
 
   /**
@@ -279,10 +309,28 @@ class VeriStudApp {
    * Setup all event listeners for the application
    */
   private setupEventListeners(): void {
-    // Login handler
+    // Login handler with validation
     const loginHandler = () => {
-      const controlNumber = this.getControlNumberValue();
-      const studentId = this.getStudentIdValue();
+      let controlNumber = this.getControlNumberValue();
+      let studentId = this.getStudentIdValue();
+      
+      // Validate inputs before login
+      if (!validateInput(controlNumber) && controlNumber !== '') {
+        this.showInputError('ctrl', 'Only numbers and dash (-) are allowed');
+        this.ui.shakeCard();
+        return;
+      }
+      
+      if (!validateInput(studentId) && studentId !== '') {
+        this.showInputError('id', 'Only numbers and dash (-) are allowed');
+        this.ui.shakeCard();
+        return;
+      }
+      
+      // Clean the inputs
+      controlNumber = formatInput(controlNumber);
+      studentId = formatInput(studentId);
+      
       this.auth.login(controlNumber, studentId);
     };
 

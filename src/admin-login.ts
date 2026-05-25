@@ -2,8 +2,7 @@
 // Full security: anti-F12, anti-right click, anti-inspect, anti-console, devtools detection
 // Improved: top-toast notification system with dual login (Credentials + Magic Link)
 // Includes 5 hardcoded admin accounts
-// Magic Link: @phinmaed.com only
-// Persistent login attempts (saved in localStorage)
+// Magic Link: ONLY specific @phinmaed.com emails allowed
 
 import { AdminAuthService } from './services/supabase.service';
 
@@ -29,8 +28,13 @@ const ADMIN_ACCOUNTS = [
   { username: 'AdminAllain', password: 'allain123', name: 'Allain' }
 ];
 
-// ── PHINMAED EMAIL DOMAIN ────────────────────────────────────────
-const ALLOWED_EMAIL_DOMAIN = '@phinmaed.com';
+// ── ALLOWED EMAILS FOR MAGIC LINK (ONLY THESE 4) ────────────────
+const ALLOWED_MAGIC_LINK_EMAILS = [
+  'leda.lutrania.sjc@phinmaed.com',
+  'anma.saguid.sjc@phinmaed.com', 
+  'juba.libao.sjc@phinmaed.com',
+  'chpe.villanueva.sjc@phinmaed.com'
+];
 
 // ── Rate limiting with persistence ───────────────────────────
 let loginAttempts = 0;
@@ -61,48 +65,15 @@ function initSecurity(): void {
     const ctrl = e.ctrlKey;
     const shift = e.shiftKey;
     
-    // F12 key
-    if (key === 'F12') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+Shift+I (Inspect Element)
-    if (ctrl && shift && key === 'I') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+Shift+J (Console)
-    if (ctrl && shift && key === 'J') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+Shift+C (Inspect Element)
-    if (ctrl && shift && key === 'C') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+Shift+K (Console - Firefox)
-    if (ctrl && shift && key === 'K') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+U (View Source)
-    if (ctrl && key === 'u') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+S (Save Page)
-    if (ctrl && key === 's') {
-      e.preventDefault();
-      return false;
-    }
-    // Ctrl+P (Print)
-    if (ctrl && key === 'p') {
-      e.preventDefault();
-      return false;
-    }
-    // Print Screen
-    if (key === 'PrintScreen') {
+    if (key === 'F12' || 
+        (ctrl && shift && key === 'I') ||
+        (ctrl && shift && key === 'J') ||
+        (ctrl && shift && key === 'C') ||
+        (ctrl && shift && key === 'K') ||
+        (ctrl && key === 'u') ||
+        (ctrl && key === 's') ||
+        (ctrl && key === 'p') ||
+        key === 'PrintScreen') {
       e.preventDefault();
       return false;
     }
@@ -148,60 +119,7 @@ function initSecurity(): void {
     return false;
   });
 
-  // 6. Detect DevTools Opening
-  let devtoolsOpen = false;
-  const element = new Image();
-  
-  Object.defineProperty(element, 'id', {
-    get: function() {
-      devtoolsOpen = true;
-      document.body.innerHTML = `
-        <div style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
-          <h1 style="color:#ef4444;">🔒 Access Denied</h1>
-          <p>Developer tools detected. Please close DevTools to continue.</p>
-          <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer; background:#1e5c3a; color:white; border:none; border-radius:8px;">Refresh Page</button>
-        </div>
-      `;
-    }
-  });
-  
-  setInterval(() => {
-    devtoolsOpen = false;
-    console.dir(element);
-    if (devtoolsOpen) {
-      document.body.innerHTML = `
-        <div style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
-          <h1 style="color:#ef4444;">🔒 Access Denied</h1>
-          <p>Developer tools detected. Please close DevTools to continue.</p>
-          <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer; background:#1e5c3a; color:white; border:none; border-radius:8px;">Refresh Page</button>
-        </div>
-      `;
-    }
-  }, 1000);
-
-  // 7. Detect DevTools via window size
-  let devtoolsDetected = false;
-  const threshold = 160;
-  
-  const checkDevTools = function() {
-    const widthDiff = window.outerWidth - window.innerWidth;
-    const heightDiff = window.outerHeight - window.innerHeight;
-    
-    if ((widthDiff > threshold || heightDiff > threshold) && !devtoolsDetected) {
-      devtoolsDetected = true;
-      document.body.innerHTML = `
-        <div style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
-          <h1 style="color:#ef4444;">🔒 Security Violation</h1>
-          <p>Developer tools detected. Access denied.</p>
-          <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer; background:#1e5c3a; color:white; border:none; border-radius:8px;">Refresh Page</button>
-        </div>
-      `;
-    }
-  };
-  
-  setInterval(checkDevTools, 1000);
-
-  // 8. Clear console logs in production
+  // 6. Clear console logs in production
   if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
     console.log = function() {};
     console.info = function() {};
@@ -209,7 +127,7 @@ function initSecurity(): void {
     console.error = function() {};
   }
 
-  // 9. Add meta tags to prevent caching
+  // 7. Add meta tags to prevent caching
   const metaNoCache = document.createElement('meta');
   metaNoCache.httpEquiv = 'Cache-Control';
   metaNoCache.content = 'no-cache, no-store, must-revalidate';
@@ -447,8 +365,9 @@ function shakeInput(input: HTMLInputElement): void {
   }, { once: true });
 }
 
-function isAllowedEmail(email: string): boolean {
-  return email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN);
+// Check if email is allowed for magic link
+function isAllowedMagicLinkEmail(email: string): boolean {
+  return ALLOWED_MAGIC_LINK_EMAILS.includes(email.toLowerCase());
 }
 
 // ============================================
@@ -534,7 +453,7 @@ async function loginWithCredentials(): Promise<void> {
 }
 
 // ============================================
-// MAGIC LINK LOGIN
+// MAGIC LINK LOGIN (ONLY SPECIFIC EMAILS)
 // ============================================
 
 async function sendMagicLink(): Promise<void> {
@@ -557,11 +476,12 @@ async function sendMagicLink(): Promise<void> {
     return;
   }
 
-  if (!isAllowedEmail(email)) {
+  // Email domain validation - ONLY specific allowed emails
+  if (!isAllowedMagicLinkEmail(email)) {
     shakeInput(emailInput);
     showToast('error', { 
-      title: 'Invalid Email Domain', 
-      description: `Only ${ALLOWED_EMAIL_DOMAIN} emails are allowed.` 
+      title: 'Access Denied', 
+      description: 'This email address is not authorized for magic link login. Only authorized OS Head personnel can use this feature.' 
     });
     emailInput.focus();
     return;

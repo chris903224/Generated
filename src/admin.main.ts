@@ -1,95 +1,55 @@
-// admin.main.ts
+// src/admin-login.ts
+// Full security: anti-F12, anti-right click, anti-inspect, anti-console, devtools detection
+// Improved: top-toast notification system with dual login (Credentials + Magic Link)
+// Includes 5 hardcoded admin accounts
+// Magic Link: ONLY specific @phinmaed.com emails allowed
 
-import { supabase } from './services/supabase.service';
-import { AdminStudentController } from './controllers/admin.student.controller';
-import { AdminUIController } from './controllers/admin.ui.controller';
-import { StudentService } from './services/supabase.service';
+import { AdminAuthService } from './services/supabase.service';
 
-// Declare Chart from CDN
-declare const Chart: any;
+// ── DOM Elements ──────────────────────────────────────────────
+const usernameInput = document.getElementById('adminUsername') as HTMLInputElement;
+const passwordInput = document.getElementById('adminPassword') as HTMLInputElement;
+const emailInput = document.getElementById('adminEmail') as HTMLInputElement;
+const credentialsBtn = document.getElementById('loginWithCredentialsBtn') as HTMLButtonElement;
+const magicBtn = document.getElementById('sendMagicLinkBtn') as HTMLButtonElement;
+const toastRegion = document.getElementById('toastRegion') as HTMLDivElement;
 
-// Chart instances
-let statusChart: any = null;
-let courseChart: any = null;
-let yearChart: any = null;
-let trendChart: any = null;
-let endorseChart: any = null;
-let dutyChart: any = null;
-let supportChart: any = null;
-let hkCourseChart: any = null;
-let hkDutyChart: any = null;
+// Tab elements
+const tabBtns = document.querySelectorAll('.tab-btn');
+const credentialsTab = document.getElementById('credentialsTab');
+const magicTab = document.getElementById('magicTab');
 
-// Colors
-const colors = {
-  green: '#10b981',
-  amber: '#fbbf24',
-  rose: '#f43f5e',
-  blue: '#3b82f6',
-  teal: '#14b8a6',
-  purple: '#8b5cf6',
-  emerald: '#34d399',
-  orange: '#f97316',
-  pink: '#ec4899',
-  cyan: '#06b6d4',
-  lime: '#84cc16',
-  violet: '#a855f7',
-  indigo: '#6366f1',
-  red: '#ef4444',
-  yellow: '#eab308',
-  gray: '#6b7280',
-  slate: '#94a3b8'
-};
-
-// All 17 Courses with display names
-const ALL_COURSES = [
-  { code: 'BSN', name: 'BS Nursing', short: 'Nursing' },
-  { code: 'BSMLS', name: 'BS Medical Lab Sciences', short: 'MedTech' },
-  { code: 'BSPSY', name: 'BS Psychology', short: 'Psych' },
-  { code: 'BSRADTECH', name: 'BS Radiologic Technology', short: 'RadTech' },
-  { code: 'BSRESPT', name: 'BS Respiratory Therapy', short: 'Respiratory' },
-  { code: 'BSPHARM', name: 'BS Pharmacy', short: 'Pharmacy' },
-  { code: 'BSPT', name: 'BS Physical Therapy', short: 'PT' },
-  { code: 'BSIT', name: 'BS Information Technology', short: 'IT' },
-  { code: 'BSA', name: 'BS Accountancy', short: 'Accountancy' },
-  { code: 'BSBA-MM', name: 'BSBA Marketing Management', short: 'BSBA-MM' },
-  { code: 'BSBA-FM', name: 'BSBA Financial Management', short: 'BSBA-FM' },
-  { code: 'BSHM', name: 'BS Hospitality Management', short: 'HM' },
-  { code: 'BSTM', name: 'BS Tourism Management', short: 'Tourism' },
-  { code: 'BSCRIM', name: 'BS Criminology', short: 'Crim' },
-  { code: 'BEED', name: 'Bachelor of Elementary Education', short: 'BEEd' },
-  { code: 'BSED', name: 'Bachelor of Secondary Education', short: 'BSEd' }
+// ── 5 ADMIN ACCOUNTS ──────────────────────────────────────────
+const ADMIN_ACCOUNTS = [
+  { username: 'AdminAnthony', password: 'anthony123', name: 'Anthony' },
+  { username: 'AdminRonan', password: 'ronan123', name: 'Ronan' },
+  { username: 'AdminJay', password: 'jay123', name: 'Jay' },
+  { username: 'AdminLeimark', password: 'leimark123', name: 'Leimark' },
+  { username: 'AdminAllain', password: 'allain123', name: 'Allain' }
 ];
 
-// Color palette for 17 courses
-const courseColors = [
-  '#10b981', '#3b82f6', '#fbbf24', '#f43f5e', '#8b5cf6',
-  '#14b8a6', '#f97316', '#ec4899', '#06b6d4', '#84cc16',
-  '#a855f7', '#eab308', '#ef4444', '#6b7280', '#94a3b8',
-  '#1e3a5f', '#2ecc71'
+// ── ALLOWED EMAILS FOR MAGIC LINK (ONLY THESE 4) ────────────────
+const ALLOWED_MAGIC_LINK_EMAILS = [
+  'leda.lutrania.sjc@phinmaed.com',
+  'anma.saguid.sjc@phinmaed.com', 
+  'juba.libao.sjc@phinmaed.com',
+  'chpe.villanueva.sjc@phinmaed.com'
 ];
 
-// Valid admin usernames for credentials login
-const VALID_ADMIN_USERNAMES = ['AdminAnthony', 'AdminRonan', 'AdminJay', 'AdminLeimark', 'AdminAllain'];
+// ── Rate limiting with persistence ───────────────────────────
+let loginAttempts = 0;
+const MAX_ATTEMPTS = 5;
+const ATTEMPTS_KEY = 'hawak_kamay_login_attempts';
+const ATTEMPTS_TIMESTAMP_KEY = 'hawak_kamay_attempts_timestamp';
+const RESET_TIME = 60 * 60 * 1000; // 1 hour
+
+// ── Toast durations ─────────────────────────────────────────
+const TOAST_SUCCESS_TTL = 8000;
+const TOAST_ERROR_TTL = 6000;
+const TOAST_INFO_TTL = 6000;
 
 // ============================================
-// LOADING SCREEN
-// ============================================
-
-const loadingScreen = document.getElementById('loadingScreen');
-const adminContent = document.getElementById('adminContent');
-
-function showLoadingScreen(): void {
-  if (loadingScreen) loadingScreen.style.display = 'flex';
-  if (adminContent) adminContent.classList.remove('visible');
-}
-
-function hideLoadingScreen(): void {
-  if (loadingScreen) loadingScreen.style.display = 'none';
-  if (adminContent) adminContent.classList.add('visible');
-}
-
-// ============================================
-// SECURITY MEASURES (FULL)
+// SECURITY MEASURES
 // ============================================
 
 function initSecurity(): void {
@@ -183,755 +143,450 @@ function initSecurity(): void {
   metaExpires.content = '0';
   document.head.appendChild(metaExpires);
 
-  console.log('✅ Security fully initialized');
+  console.log('✅ Security fully initialized on login page');
 }
 
 // ============================================
-// ADMIN DISPLAY NAME
+// UI INITIALIZATION (Theme, Tabs, Password Toggle)
 // ============================================
 
-function getAdminName(): string {
-  const loginMethod = localStorage.getItem('login_method');
-  const adminName = localStorage.getItem('admin_name');
-  const adminEmail = localStorage.getItem('admin_email');
+function initTheme(): void {
+  const html = document.documentElement;
+  const stored = localStorage.getItem('portal_theme') || 'dark';
+  html.setAttribute('data-theme', stored);
   
-  if (loginMethod === 'credentials' && adminName) {
-    return adminName;
-  }
-  
-  if (loginMethod === 'magiclink' && adminEmail) {
-    const emailName = adminEmail.split('@')[0];
-    return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-  }
-  
-  return 'Admin User';
-}
-
-function getAdminInitials(): string {
-  const name = getAdminName();
-  return name.charAt(0).toUpperCase();
-}
-
-function updateAdminDisplay(): void {
-  const nameSpan = document.getElementById('adminNameDisplay');
-  const initialsSpan = document.getElementById('adminInitials');
-  const userName = getAdminName();
-  const userInitials = getAdminInitials();
-  
-  if (nameSpan) nameSpan.textContent = userName;
-  if (initialsSpan) initialsSpan.textContent = userInitials;
-}
-
-// ============================================
-// AUTHENTICATION HELPER FUNCTIONS
-// ============================================
-
-function clearAuthData(): void {
-  localStorage.removeItem('admin_logged_in');
-  localStorage.removeItem('admin_user');
-  localStorage.removeItem('admin_email');
-  localStorage.removeItem('admin_user_id');
-  localStorage.removeItem('admin_login_time');
-  localStorage.removeItem('login_method');
-  localStorage.removeItem('admin_name');
-  localStorage.removeItem('admin_username');
-}
-
-function redirectToLogin(): void {
-  if (!window.location.pathname.includes('admin-login') && 
-      !window.location.pathname.includes('admin-callback')) {
-    window.location.replace('/admin-login');
-  }
-}
-
-// ============================================
-// AUTHENTICATION CHECK
-// ============================================
-
-async function checkAdminAuth(): Promise<boolean> {
-  const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
-  const adminName = localStorage.getItem('admin_name');
-  const loginMethod = localStorage.getItem('login_method');
-  const loginTime = localStorage.getItem('admin_login_time');
-  
-  console.log('🔐 Auth check:', { isLoggedIn, adminName, loginMethod });
-  
-  // Check session expiry (8 hours)
-  if (loginTime) {
-    const elapsed = Date.now() - parseInt(loginTime);
-    const eightHours = 8 * 60 * 60 * 1000;
-    if (elapsed > eightHours) {
-      console.log('⏰ Session expired');
-      clearAuthData();
-      redirectToLogin();
-      return false;
-    }
-  }
-  
-  // Credentials login
-  if (isLoggedIn && adminName && loginMethod === 'credentials') {
-    console.log(`✅ Credentials login verified: ${adminName}`);
-    localStorage.setItem('admin_login_time', Date.now().toString());
-    return true;
-  }
-  
-  // Magic link login - check Supabase session
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    console.log('✅ Magic link session valid');
-    localStorage.setItem('admin_login_time', Date.now().toString());
-    return true;
-  }
-  
-  console.log('❌ No valid session found');
-  clearAuthData();
-  redirectToLogin();
-  return false;
-}
-
-// ============================================
-// MONTHLY TREND CHART
-// ============================================
-
-async function initMonthlyTrendChart(): Promise<void> {
-  const canvas = document.getElementById('trendChart') as HTMLCanvasElement;
-  if (!canvas) return;
-
-  const { data: students, error } = await supabase
-    .from('students')
-    .select('remarks, created_at, updated_at')
-    .limit(500);
-
-  if (error || !students) return;
-
-  const months = [
-    { name: 'M', year: 2026, month: 4, full: 'May 2026' },
-    { name: 'J', year: 2026, month: 5, full: 'Jun 2026' },
-    { name: 'J', year: 2026, month: 6, full: 'Jul 2026' },
-    { name: 'A', year: 2026, month: 7, full: 'Aug 2026' },
-    { name: 'S', year: 2026, month: 8, full: 'Sep 2026' },
-    { name: 'O', year: 2026, month: 9, full: 'Oct 2026' },
-    { name: 'N', year: 2026, month: 10, full: 'Nov 2026' },
-    { name: 'D', year: 2026, month: 11, full: 'Dec 2026' },
-    { name: 'J', year: 2027, month: 0, full: 'Jan 2027' },
-    { name: 'F', year: 2027, month: 1, full: 'Feb 2027' },
-    { name: 'M', year: 2027, month: 2, full: 'Mar 2027' },
-    { name: 'A', year: 2027, month: 3, full: 'Apr 2027' }
-  ];
-
-  const monthlyData = months.map(monthInfo => {
-    const startDate = new Date(monthInfo.year, monthInfo.month, 1);
-    const endDate = new Date(monthInfo.year, monthInfo.month + 1, 0);
-    endDate.setHours(23, 59, 59, 999);
-
-    const completed = students.filter((s: any) => {
-      if (s.remarks !== 'COMPLETED') return false;
-      const completedDate = s.updated_at ? new Date(s.updated_at) : null;
-      return completedDate && completedDate >= startDate && completedDate <= endDate;
-    }).length;
-
-    const pending = students.filter((s: any) => {
-      if (s.remarks !== 'PENDING') return false;
-      const createdDate = s.created_at ? new Date(s.created_at) : null;
-      return createdDate && createdDate >= startDate && createdDate <= endDate;
-    }).length;
-
-    const notCompleted = students.filter((s: any) => {
-      if (s.remarks !== 'NOT COMPLETED') return false;
-      const updatedDate = s.updated_at ? new Date(s.updated_at) : null;
-      return updatedDate && updatedDate >= startDate && updatedDate <= endDate;
-    }).length;
-
-    return { month: monthInfo.name, fullMonth: monthInfo.full, completed, pending, notCompleted };
-  });
-
-  if (trendChart) trendChart.destroy();
-
-  const maxValue = Math.max(...monthlyData.flatMap(d => [d.completed, d.pending, d.notCompleted]));
-  const yAxisMax = maxValue === 0 ? 5 : maxValue + Math.ceil(maxValue * 0.2);
-
-  trendChart = new Chart(canvas, {
-    type: 'line',
-    data: {
-      labels: monthlyData.map(d => d.month),
-      datasets: [
-        {
-          label: '✅ Completed',
-          data: monthlyData.map(d => d.completed),
-          borderColor: colors.green,
-          backgroundColor: 'rgba(16, 185, 129, 0.05)',
-          borderWidth: 2,
-          tension: 0.3,
-          fill: true,
-          pointRadius: 3,
-          pointBackgroundColor: colors.green,
-          pointBorderColor: '#fff',
-          pointBorderWidth: 1
-        },
-        {
-          label: '⏳ Pending',
-          data: monthlyData.map(d => d.pending),
-          borderColor: colors.amber,
-          backgroundColor: 'rgba(245, 158, 11, 0.05)',
-          borderWidth: 2,
-          tension: 0.3,
-          fill: true,
-          pointRadius: 3,
-          pointBackgroundColor: colors.amber,
-          pointBorderColor: '#fff',
-          pointBorderWidth: 1
-        },
-        {
-          label: '❌ Not Completed',
-          data: monthlyData.map(d => d.notCompleted),
-          borderColor: colors.rose,
-          backgroundColor: 'rgba(239, 68, 68, 0.05)',
-          borderWidth: 2,
-          tension: 0.3,
-          fill: true,
-          pointRadius: 3,
-          pointBackgroundColor: colors.rose,
-          pointBorderColor: '#fff',
-          pointBorderWidth: 1
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true, boxWidth: 8, font: { size: 10 } } },
-        tooltip: { mode: 'index', intersect: false, callbacks: { title: (ctx: any) => monthlyData[ctx[0].dataIndex].fullMonth } }
-      },
-      scales: {
-        y: { beginAtZero: true, max: yAxisMax, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: maxValue <= 10 ? 1 : Math.ceil(maxValue / 5), precision: 0, font: { size: 9 } } },
-        x: { grid: { display: false }, ticks: { font: { size: 9, weight: 'bold' } } }
-      }
-    }
-  });
-}
-
-// ============================================
-// COURSE CHART
-// ============================================
-
-async function initCourseChart(students: any[]): Promise<void> {
-  const canvas = document.getElementById('courseChart') as HTMLCanvasElement;
-  if (!canvas) return;
-
-  if (courseChart) courseChart.destroy();
-
-  const courseCounts = ALL_COURSES.map(course => 
-    students.filter((s: any) => s.course === course.code).length
-  );
-
-  const nonZeroCourses = ALL_COURSES.filter((_, i) => courseCounts[i] > 0);
-  const nonZeroCounts = courseCounts.filter(count => count > 0);
-  const nonZeroColors = nonZeroCourses.map((_, i) => courseColors[i % courseColors.length]);
-  const nonZeroLabels = nonZeroCourses.map(c => c.short);
-
-  if (nonZeroCourses.length === 0) return;
-
-  courseChart = new Chart(canvas, {
-    type: 'doughnut',
-    data: {
-      labels: nonZeroLabels,
-      datasets: [{
-        data: nonZeroCounts,
-        backgroundColor: nonZeroColors,
-        borderWidth: 0,
-        hoverOffset: 10
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      cutout: '60%',
-      plugins: {
-        legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } },
-        tooltip: {
-          callbacks: {
-            label: (context: any) => {
-              const label = nonZeroCourses[context.dataIndex].name;
-              const value = context.raw;
-              const total = nonZeroCounts.reduce((a, b) => a + b, 0);
-              const percentage = Math.round((value / total) * 100);
-              return `${label}: ${value} (${percentage}%)`;
-            }
-          }
-        }
-      }
-    }
-  });
-
-  const courseLegend = document.getElementById('courseLegend');
-  if (courseLegend) {
-    const total = nonZeroCounts.reduce((a, b) => a + b, 0);
-    courseLegend.innerHTML = nonZeroCourses.map((course, i) => {
-      const count = nonZeroCounts[i];
-      const percentage = Math.round((count / total) * 100);
-      return `<div class="leg-item"><div class="leg-dot" style="background:${nonZeroColors[i]}"></div><span class="leg-label">${course.short}</span><span class="leg-count">(${count} | ${percentage}%)</span></div>`;
-    }).join('');
-  }
-}
-
-// ============================================
-// STATUS CHART
-// ============================================
-
-async function initStatusChart(students: any[]): Promise<void> {
-  const canvas = document.getElementById('statusChart') as HTMLCanvasElement;
-  if (!canvas) return;
-
-  if (statusChart) statusChart.destroy();
-
-  const completed = students.filter((s: any) => s.remarks === 'COMPLETED').length;
-  const pending = students.filter((s: any) => s.remarks === 'PENDING').length;
-  const notCompleted = students.filter((s: any) => s.remarks === 'NOT COMPLETED').length;
-  const continuous = students.filter((s: any) => s.remarks === 'CONTINUOUS TRAINING').length;
-  const total = completed + pending + notCompleted + continuous;
-
-  statusChart = new Chart(canvas, {
-    type: 'doughnut',
-    data: {
-      labels: ['Completed', 'Pending', 'Not Completed', 'Cont. Training'],
-      datasets: [{
-        data: [completed, pending, notCompleted, continuous],
-        backgroundColor: [colors.green, colors.amber, colors.rose, colors.blue],
-        borderWidth: 0,
-        hoverOffset: 10
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      cutout: '65%',
-      plugins: { legend: { display: false } }
-    }
-  });
-
-  const legendElem = document.getElementById('statusLegend');
-  if (legendElem) {
-    legendElem.innerHTML = `
-      <div class="leg-item"><div class="leg-dot" style="background:${colors.green}"></div>Completed (${completed} | ${Math.round((completed/total)*100)}%)</div>
-      <div class="leg-item"><div class="leg-dot" style="background:${colors.amber}"></div>Pending (${pending} | ${Math.round((pending/total)*100)}%)</div>
-      <div class="leg-item"><div class="leg-dot" style="background:${colors.rose}"></div>Not Completed (${notCompleted} | ${Math.round((notCompleted/total)*100)}%)</div>
-      <div class="leg-item"><div class="leg-dot" style="background:${colors.blue}"></div>Cont. Training (${continuous} | ${Math.round((continuous/total)*100)}%)</div>
-    `;
-  }
-}
-
-// ============================================
-// YEAR CHART
-// ============================================
-
-async function initYearChart(students: any[]): Promise<void> {
-  const canvas = document.getElementById('yearChart') as HTMLCanvasElement;
-  if (!canvas) return;
-
-  if (yearChart) yearChart.destroy();
-
-  const years = ['YEAR 1', 'YEAR 2', 'YEAR 3', 'YEAR 4'];
-  const yearCounts = years.map(y => students.filter((s: any) => s.year_level === y).length);
-
-  yearChart = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels: ['1st Year', '2nd Year', '3rd Year', '4th Year'],
-      datasets: [{
-        data: yearCounts,
-        backgroundColor: colors.green,
-        borderRadius: 8,
-        barPercentage: 0.6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1, precision: 0, font: { size: 10 } } } }
-    }
-  });
-}
-
-// ============================================
-// ENDORSEMENT CHART
-// ============================================
-
-async function initEndorseChart(students: any[]): Promise<void> {
-  const canvas = document.getElementById('endorseChart') as HTMLCanvasElement;
-  if (!canvas) return;
-
-  if (endorseChart) endorseChart.destroy();
-
-  const ojt = students.filter((s: any) => s.endorsement === 'Endorsement for OJT - HK Duty').length;
-  const cont = students.filter((s: any) => s.endorsement === 'Endorsed as Continuing OS').length;
-  const notCont = students.filter((s: any) => s.endorsement === 'Not Continuing OS').length;
-  const graduate = students.filter((s: any) => s.endorsement === 'Graduate of 25-26').length;
-
-  endorseChart = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels: ['OJT-HK', 'Continuing', 'Not Continuing', 'Graduate'],
-      datasets: [{
-        data: [ojt, cont, notCont, graduate],
-        backgroundColor: [colors.amber, colors.green, colors.rose, colors.blue],
-        borderRadius: 8,
-        barPercentage: 0.6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { display: false } },
-      scales: { y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1, precision: 0, font: { size: 10 } } } }
-    }
-  });
-}
-
-// ============================================
-// DUTY CHART
-// ============================================
-
-async function initDutyChart(students: any[]): Promise<void> {
-  const canvas = document.getElementById('dutyChart') as HTMLCanvasElement;
-  if (!canvas) return;
-
-  if (dutyChart) dutyChart.destroy();
-
-  const regular = students.filter((s: any) => s.duties === 'Regular Duty Assigned').length;
-  const advance = students.filter((s: any) => s.duties === 'Advance Duties').length;
-  const noLonger = students.filter((s: any) => s.duties === 'No Longer with OS').length;
-  const noGc = students.filter((s: any) => s.duties === 'NO GC Assignment').length;
-
-  dutyChart = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels: ['Regular', 'Advance', 'No Longer', 'No GC'],
-      datasets: [{
-        data: [regular, advance, noLonger, noGc],
-        backgroundColor: [colors.green, colors.blue, colors.rose, colors.amber],
-        borderRadius: 8,
-        barPercentage: 0.7
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { display: false } },
-      scales: { x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1, precision: 0, font: { size: 10 } } } }
-    }
-  });
-}
-
-// ============================================
-// SUPPORT CHART
-// ============================================
-
-async function initSupportChart(students: any[]): Promise<void> {
-  const canvas = document.getElementById('supportChart') as HTMLCanvasElement;
-  if (!canvas) return;
-
-  if (supportChart) supportChart.destroy();
-
-  const freshman = students.filter((s: any) => s.support_type === 'FRESHMEN OS').length;
-  const upper = students.filter((s: any) => s.support_type === 'UPPERCLASSMEN OS').length;
-  const transferee = students.filter((s: any) => s.support_type === 'TRANSFEREE').length;
-  const returning = students.filter((s: any) => s.support_type === 'RETURNING').length;
-
-  supportChart = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels: ['Freshmen', 'Upperclassmen', 'Transferee', 'Returning'],
-      datasets: [{
-        data: [freshman, upper, transferee, returning],
-        backgroundColor: [colors.green, colors.teal, colors.amber, colors.purple],
-        borderRadius: 8,
-        barPercentage: 0.7
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: true,
-      plugins: { legend: { display: false } },
-      scales: { x: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { stepSize: 1, precision: 0, font: { size: 10 } } } }
-    }
-  });
-}
-
-// ============================================
-// HK COURSE CHART
-// ============================================
-
-async function initHkCourseChart(hkStudents: any[]): Promise<void> {
-  const canvas = document.getElementById('hkCourseChart') as HTMLCanvasElement;
-  if (!canvas) return;
-
-  if (hkCourseChart) hkCourseChart.destroy();
-
-  const hkCourseCounts = ALL_COURSES.map(course => 
-    hkStudents.filter((s: any) => s.course === course.code).length
-  );
-  
-  const nonZeroCourses = ALL_COURSES.filter((_, i) => hkCourseCounts[i] > 0);
-  const nonZeroCounts = hkCourseCounts.filter(count => count > 0);
-  const nonZeroColors = nonZeroCourses.map((_, i) => courseColors[i % courseColors.length]);
-  const nonZeroLabels = nonZeroCourses.map(c => c.short);
-
-  if (nonZeroCourses.length > 0) {
-    hkCourseChart = new Chart(canvas, {
-      type: 'doughnut',
-      data: {
-        labels: nonZeroLabels,
-        datasets: [{
-          data: nonZeroCounts,
-          backgroundColor: nonZeroColors,
-          borderWidth: 0,
-          hoverOffset: 10
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        cutout: '60%',
-        plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 8 } } }
-      }
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('portal_theme', next);
     });
   }
 }
 
-// ============================================
-// HK DUTY CHART
-// ============================================
-
-async function initHkDutyChart(hkStudents: any[]): Promise<void> {
-  const canvas = document.getElementById('hkDutyChart') as HTMLCanvasElement;
-  if (!canvas) return;
-
-  if (hkDutyChart) hkDutyChart.destroy();
-
-  const hkRegular = hkStudents.filter((s: any) => s.duties === 'Regular Duty Assigned').length;
-  const hkAdvance = hkStudents.filter((s: any) => s.duties === 'Advance Duties').length;
-
-  hkDutyChart = new Chart(canvas, {
-    type: 'doughnut',
-    data: {
-      labels: ['Regular Duty', 'Advance Duties'],
-      datasets: [{
-        data: [hkRegular, hkAdvance],
-        backgroundColor: [colors.green, colors.blue],
-        borderWidth: 0,
-        hoverOffset: 10
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      cutout: '60%',
-      plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 8 } } }
-    }
-  });
-}
-
-// ============================================
-// CHART INITIALIZATION
-// ============================================
-
-async function initCharts(): Promise<void> {
-  console.log('📊 Initializing charts...');
+function initTabs(): void {
+  const rail = document.querySelector('.tab-rail');
   
-  const students = await StudentService.getAllStudents();
-  const hkStudents = await StudentService.getHKStudents();
-  
-  console.log(`📊 Found ${students.length} students, ${hkStudents.length} HK students`);
-  
-  await initStatusChart(students);
-  await initCourseChart(students);
-  await initYearChart(students);
-  await initEndorseChart(students);
-  await initDutyChart(students);
-  await initSupportChart(students);
-  await initHkCourseChart(hkStudents);
-  await initHkDutyChart(hkStudents);
-  await initMonthlyTrendChart();
-  
-  const completed = students.filter((s: any) => s.remarks === 'COMPLETED').length;
-  const pending = students.filter((s: any) => s.remarks === 'PENDING').length;
-  const notCompleted = students.filter((s: any) => s.remarks === 'NOT COMPLETED').length;
-  const total = students.length;
-  
-  const donutNum = document.getElementById('donutNum');
-  const compPct = document.getElementById('compPct');
-  const totalSpan = document.getElementById('s0');
-  const completedSpan = document.getElementById('s1');
-  const pendingSpan = document.getElementById('s2');
-  const notCompletedSpan = document.getElementById('s3');
-  const hkSpan = document.getElementById('s4');
-  const liveBadge = document.getElementById('liveBadgeText');
-  
-  if (donutNum) donutNum.textContent = total.toString();
-  if (compPct && total > 0) compPct.textContent = `${Math.round((completed / total) * 100)}% Done`;
-  if (totalSpan) totalSpan.textContent = total.toString();
-  if (completedSpan) completedSpan.textContent = completed.toString();
-  if (pendingSpan) pendingSpan.textContent = pending.toString();
-  if (notCompletedSpan) notCompletedSpan.textContent = notCompleted.toString();
-  if (hkSpan) hkSpan.textContent = hkStudents.length.toString();
-  if (liveBadge) liveBadge.textContent = `${total} Students`;
-  
-  const completedPct = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const pendingPct = total > 0 ? Math.round((pending / total) * 100) : 0;
-  const notCompletedPct = total > 0 ? Math.round((notCompleted / total) * 100) : 0;
-  const hkPct = total > 0 ? Math.round((hkStudents.length / total) * 100) : 0;
-  
-  const completedPctEl = document.getElementById('d1');
-  const pendingPctEl = document.getElementById('d2');
-  const notCompletedPctEl = document.getElementById('d3');
-  const completedBar = document.getElementById('sb1');
-  const pendingBar = document.getElementById('sb2');
-  const notCompletedBar = document.getElementById('sb3');
-  const hkBar = document.getElementById('sb4');
-  
-  if (completedPctEl) completedPctEl.innerHTML = `${completedPct}% <span class="trend-arrow up">↑</span>`;
-  if (pendingPctEl) pendingPctEl.textContent = `${pendingPct}%`;
-  if (notCompletedPctEl) notCompletedPctEl.innerHTML = `${notCompletedPct}% <span class="trend-arrow down">↓</span>`;
-  if (completedBar) completedBar.style.width = `${completedPct}%`;
-  if (pendingBar) pendingBar.style.width = `${pendingPct}%`;
-  if (notCompletedBar) notCompletedBar.style.width = `${notCompletedPct}%`;
-  if (hkBar) hkBar.style.width = `${hkPct}%`;
-  
-  console.log('✅ Charts initialized successfully');
-}
-
-// ============================================
-// DASHBOARD INITIALIZATION
-// ============================================
-
-function initAdminDashboard(): void {
-  console.log('🚀 Initializing Admin Dashboard...');
-  
-  updateAdminDisplay();
-  
-  const studentController = new AdminStudentController();
-  const uiController = new AdminUIController();
-  
-  function switchPage(page: string): void {
-    const titles: Record<string, { title: string; subtitle: string; pageId: string }> = {
-      dashboard: { title: 'Dashboard', subtitle: 'Overview of student support completion', pageId: 'dashboardPage' },
-      completion: { title: 'Completion', subtitle: 'Online Support tracker — SY 26-27', pageId: 'completionPage' },
-      hkdatabase: { title: 'HK Database', subtitle: 'Endorsed students for HK duty', pageId: 'hkDatabasePage' },
-      analytics: { title: 'Analytics', subtitle: 'Advanced data analysis & reports', pageId: 'analyticsPage' }
-    };
-    
-    const config = titles[page];
-    if (config) {
-      uiController.showPage(config.pageId);
-      uiController.updatePageTitle(config.title, config.subtitle);
-      uiController.setActiveNav(page);
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.getAttribute('data-tab');
+      rail?.setAttribute('data-active', tab || '');
       
-      if (page === 'completion') {
-        studentController.renderCompletionTable();
-      } else if (page === 'hkdatabase') {
-        studentController.renderHKTable();
-      } else if (page === 'dashboard') {
-        studentController.renderRecentTable();
-        studentController.updateStatsDisplay();
-        initCharts();
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      if (tab === 'credentials') {
+        credentialsTab?.classList.add('active');
+        magicTab?.classList.remove('active');
+      } else {
+        magicTab?.classList.add('active');
+        credentialsTab?.classList.remove('active');
       }
-    }
-  }
-  
-  document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-    item.addEventListener('click', (e) => {
-      e.preventDefault();
-      const page = item.getAttribute('data-page');
-      if (page) switchPage(page);
+      
+      clearToasts();
     });
   });
+}
+
+function initPasswordToggle(): void {
+  const pwToggle = document.getElementById('togglePassword');
+  const pwInput = document.getElementById('adminPassword') as HTMLInputElement;
   
-  uiController.setupEventListeners(studentController, switchPage);
-  
-  studentController.renderCompletionTable();
-  studentController.renderHKTable();
-  studentController.renderRecentTable();
-  initCharts();
-  
-  console.log('✅ Admin Dashboard initialized');
+  if (pwToggle && pwInput) {
+    pwToggle.addEventListener('click', () => {
+      const isText = pwInput.type === 'text';
+      pwInput.type = isText ? 'password' : 'text';
+      
+      const eyeOpen = pwToggle.querySelector('.eye-open') as HTMLElement;
+      const eyeClosed = pwToggle.querySelector('.eye-closed') as HTMLElement;
+      
+      if (eyeOpen) eyeOpen.style.display = isText ? '' : 'none';
+      if (eyeClosed) eyeClosed.style.display = isText ? 'none' : '';
+      pwToggle.setAttribute('aria-label', isText ? 'Show password' : 'Hide password');
+    });
+  }
 }
 
 // ============================================
-// START APPLICATION (UPDATED)
+// PERSISTENT ATTEMPTS MANAGEMENT
 // ============================================
 
-async function startApp(): Promise<void> {
-  console.log('🔐 Checking authentication...');
+function loadAttempts(): void {
+  const savedAttempts = localStorage.getItem(ATTEMPTS_KEY);
+  const savedTimestamp = localStorage.getItem(ATTEMPTS_TIMESTAMP_KEY);
   
-  // Get all auth data from localStorage
+  if (savedAttempts && savedTimestamp) {
+    const elapsed = Date.now() - parseInt(savedTimestamp);
+    
+    if (elapsed < RESET_TIME) {
+      loginAttempts = parseInt(savedAttempts);
+      console.log(`📊 Loaded ${loginAttempts}/${MAX_ATTEMPTS} attempts from storage`);
+    } else {
+      resetAttempts();
+      console.log('🔄 Attempts reset due to timeout');
+    }
+  } else {
+    resetAttempts();
+  }
+  
+  if (loginAttempts >= MAX_ATTEMPTS) {
+    credentialsBtn.disabled = true;
+    magicBtn.disabled = true;
+    console.log('🔒 Max attempts reached, buttons disabled');
+  }
+}
+
+function saveAttempts(): void {
+  localStorage.setItem(ATTEMPTS_KEY, loginAttempts.toString());
+  localStorage.setItem(ATTEMPTS_TIMESTAMP_KEY, Date.now().toString());
+}
+
+function resetAttempts(): void {
+  loginAttempts = 0;
+  localStorage.removeItem(ATTEMPTS_KEY);
+  localStorage.removeItem(ATTEMPTS_TIMESTAMP_KEY);
+  credentialsBtn.disabled = false;
+  magicBtn.disabled = false;
+  console.log('✅ Login attempts reset to 0');
+}
+
+// ============================================
+// TOAST NOTIFICATION SYSTEM
+// ============================================
+
+type ToastType = 'success' | 'error' | 'info';
+
+interface ToastOptions {
+  title: string;
+  description?: string;
+  attempts?: string;
+  ttl?: number;
+}
+
+const TOAST_ICONS: Record<ToastType, string> = {
+  success: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+    <polyline points="22 4 12 14.01 9 11.01"/>
+  </svg>`,
+  error: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="8" x2="12" y2="12"/>
+    <line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>`,
+  info: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+    <circle cx="12" cy="12" r="10"/>
+    <line x1="12" y1="16" x2="12" y2="12"/>
+    <line x1="12" y1="8" x2="12.01" y2="8"/>
+  </svg>`,
+};
+
+function showToast(type: ToastType, opts: ToastOptions): HTMLElement {
+  const ttl = opts.ttl !== undefined ? opts.ttl
+    : type === 'success' ? TOAST_SUCCESS_TTL
+    : type === 'error' ? TOAST_ERROR_TTL
+    : TOAST_INFO_TTL;
+
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.setAttribute('role', 'status');
+
+  toast.innerHTML = `
+    <div class="toast-icon">${TOAST_ICONS[type]}</div>
+    <div class="toast-body">
+      <p class="toast-title">${opts.title}</p>
+      ${opts.description ? `<p class="toast-desc">${opts.description}</p>` : ''}
+      ${opts.attempts ? `<span class="toast-attempts">${opts.attempts}</span>` : ''}
+    </div>
+    <button class="toast-close" aria-label="Dismiss">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  `;
+
+  toastRegion.prepend(toast);
+
+  toast.querySelector('.toast-close')!.addEventListener('click', () => dismissToast(toast));
+
+  if (ttl > 0) {
+    setTimeout(() => dismissToast(toast), ttl);
+  }
+  return toast;
+}
+
+function dismissToast(toast: HTMLElement): void {
+  if (!toast.isConnected) return;
+  toast.classList.add('toast-exit');
+  toast.addEventListener('animationend', () => toast.remove(), { once: true });
+}
+
+function clearToasts(): void {
+  const toasts = toastRegion.querySelectorAll('.toast');
+  toasts.forEach(toast => dismissToast(toast as HTMLElement));
+}
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+async function checkExistingSession(): Promise<void> {
+  const isAuthenticated = await AdminAuthService.isAuthenticated();
   const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
-  const adminName = localStorage.getItem('admin_name');
   const loginMethod = localStorage.getItem('login_method');
-  const adminUsername = localStorage.getItem('admin_username');
   
-  console.log('🔐 Auth data:', { 
-    isLoggedIn, 
-    adminName, 
-    loginMethod, 
-    adminUsername,
-    hasLoadingScreen: !!loadingScreen,
-    hasAdminContent: !!adminContent
-  });
-  
-  // CREDENTIALS LOGIN - Check first (most important)
-  if (isLoggedIn && adminName && loginMethod === 'credentials') {
-    console.log(`✅ Credentials login detected for: ${adminName}`);
-    hideLoadingScreen();
-    updateAdminDisplay();
-    initSecurity();
-    
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initAdminDashboard);
-    } else {
-      initAdminDashboard();
-    }
+  if (loginMethod === 'credentials' && isLoggedIn) {
+    window.location.href = '/admin';
     return;
   }
   
-  // MAGIC LINK LOGIN - Check if already logged in
-  if (isLoggedIn && adminName) {
-    console.log(`✅ Already logged in via magic link as: ${adminName}`);
-    hideLoadingScreen();
-    updateAdminDisplay();
-    initSecurity();
-    
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initAdminDashboard);
-    } else {
-      initAdminDashboard();
-    }
-    return;
+  if (isAuthenticated || isLoggedIn) {
+    window.location.href = '/admin';
   }
-  
-  // Check Supabase session for magic link
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    console.log('✅ Magic link session valid');
-    hideLoadingScreen();
-    updateAdminDisplay();
-    initSecurity();
-    
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initAdminDashboard);
-    } else {
-      initAdminDashboard();
-    }
-    return;
-  }
-  
-  // No valid session - redirect to login
-  console.log('❌ No valid session found, redirecting to login');
-  window.location.replace('/admin-login');
 }
 
-// Start the app
-startApp();
+function setLoading(btn: HTMLButtonElement, loading: boolean): void {
+  if (loading) {
+    btn.classList.add('loading');
+    btn.disabled = true;
+  } else {
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
+
+function shakeInput(input: HTMLInputElement): void {
+  input.classList.remove('shake');
+  void input.offsetWidth;
+  input.classList.add('shake');
+  input.addEventListener('animationend', () => {
+    input.classList.remove('shake');
+  }, { once: true });
+}
+
+// Check if email is allowed for magic link
+function isAllowedMagicLinkEmail(email: string): boolean {
+  return ALLOWED_MAGIC_LINK_EMAILS.includes(email.toLowerCase());
+}
+
+// ============================================
+// CREDENTIALS LOGIN
+// ============================================
+
+async function loginWithCredentials(): Promise<void> {
+  const username = usernameInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  if (loginAttempts >= MAX_ATTEMPTS) {
+    showToast('error', {
+      title: 'Too many attempts',
+      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour or contact administrator.`,
+    });
+    credentialsBtn.disabled = true;
+    magicBtn.disabled = true;
+    return;
+  }
+
+  if (!username) {
+    shakeInput(usernameInput);
+    showToast('error', { title: 'Username required', description: 'Please enter your username.' });
+    usernameInput.focus();
+    return;
+  }
+
+  if (!password) {
+    shakeInput(passwordInput);
+    showToast('error', { title: 'Password required', description: 'Please enter your password.' });
+    passwordInput.focus();
+    return;
+  }
+
+  setLoading(credentialsBtn, true);
+  
+  await new Promise(resolve => setTimeout(resolve, 800));
+
+  const foundAdmin = ADMIN_ACCOUNTS.find(
+    admin => admin.username === username && admin.password === password
+  );
+
+  if (foundAdmin) {
+    resetAttempts();
+    
+    localStorage.clear();
+    localStorage.setItem('admin_logged_in', 'true');
+    localStorage.setItem('admin_username', foundAdmin.username);
+    localStorage.setItem('admin_name', foundAdmin.name);
+    localStorage.setItem('login_method', 'credentials');
+    localStorage.setItem('admin_login_time', Date.now().toString());
+    
+    showToast('success', { 
+      title: `Welcome, ${foundAdmin.name}!`, 
+      description: 'Redirecting to dashboard...' 
+    });
+    
+    setTimeout(() => {
+      window.location.href = '/admin';
+    }, 1000);
+  } else {
+    loginAttempts++;
+    saveAttempts();
+    const remaining = MAX_ATTEMPTS - loginAttempts;
+    
+    shakeInput(usernameInput);
+    showToast('error', {
+      title: 'Invalid credentials',
+      description: 'Username or password is incorrect.',
+      attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
+    });
+    setLoading(credentialsBtn, false);
+    
+    if (loginAttempts >= MAX_ATTEMPTS) {
+      credentialsBtn.disabled = true;
+      magicBtn.disabled = true;
+      showToast('error', {
+        title: 'Account Locked',
+        description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour.`,
+      });
+    }
+  }
+}
+
+// ============================================
+// MAGIC LINK LOGIN (ONLY SPECIFIC EMAILS)
+// ============================================
+
+async function sendMagicLink(): Promise<void> {
+  const email = emailInput.value.trim();
+
+  if (loginAttempts >= MAX_ATTEMPTS) {
+    showToast('error', {
+      title: 'Too many attempts',
+      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour.`,
+    });
+    magicBtn.disabled = true;
+    credentialsBtn.disabled = true;
+    return;
+  }
+
+  if (!email) {
+    shakeInput(emailInput);
+    showToast('error', { title: 'Email required', description: 'Please enter your email address.' });
+    emailInput.focus();
+    return;
+  }
+
+  // Email domain validation - ONLY specific allowed emails
+  if (!isAllowedMagicLinkEmail(email)) {
+    shakeInput(emailInput);
+    showToast('error', { 
+      title: 'Access Denied', 
+      description: 'This email address is not authorized for magic link login. Only authorized OS Head personnel can use this feature.' 
+    });
+    emailInput.focus();
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    shakeInput(emailInput);
+    showToast('error', { title: 'Invalid email', description: 'Please enter a valid email address.' });
+    emailInput.focus();
+    return;
+  }
+
+  setLoading(magicBtn, true);
+
+  try {
+    const result = await AdminAuthService.sendMagicLink(email);
+
+    if (result.success) {
+      resetAttempts();
+      showToast('success', {
+        title: 'Magic link sent!',
+        description: result.message,
+      });
+      emailInput.value = '';
+    } else {
+      loginAttempts++;
+      saveAttempts();
+      const remaining = MAX_ATTEMPTS - loginAttempts;
+      shakeInput(emailInput);
+      showToast('error', {
+        title: 'Failed to send link',
+        description: result.message,
+        attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
+      });
+    }
+  } catch (error) {
+    loginAttempts++;
+    saveAttempts();
+    const remaining = MAX_ATTEMPTS - loginAttempts;
+    console.error('Send magic link error:', error);
+    shakeInput(emailInput);
+    showToast('error', {
+      title: 'Something went wrong',
+      description: 'An unexpected error occurred. Please try again.',
+      attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
+    });
+  } finally {
+    setLoading(magicBtn, false);
+    
+    if (loginAttempts >= MAX_ATTEMPTS) {
+      credentialsBtn.disabled = true;
+      magicBtn.disabled = true;
+      showToast('error', {
+        title: 'Account Locked',
+        description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour.`,
+      });
+    }
+  }
+}
+
+// ============================================
+// AUTO-RESET CHECK
+// ============================================
+
+setInterval(() => {
+  const savedTimestamp = localStorage.getItem(ATTEMPTS_TIMESTAMP_KEY);
+  if (savedTimestamp) {
+    const elapsed = Date.now() - parseInt(savedTimestamp);
+    if (elapsed >= RESET_TIME && loginAttempts > 0) {
+      resetAttempts();
+      console.log('🔄 Auto-reset: Attempts cleared after 1 hour');
+    }
+  }
+}, 60 * 1000);
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+
+credentialsBtn.addEventListener('click', loginWithCredentials);
+magicBtn.addEventListener('click', sendMagicLink);
+
+usernameInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') loginWithCredentials();
+});
+passwordInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') loginWithCredentials();
+});
+emailInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMagicLink();
+});
+
+// ============================================
+// INITIALIZATION
+// ============================================
+
+// Initialize security first
+initSecurity();
+
+// Initialize UI
+initTheme();
+initTabs();
+initPasswordToggle();
+
+// Load attempts and check session
+loadAttempts();
+checkExistingSession();
