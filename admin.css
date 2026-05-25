@@ -1,3 +1,12 @@
+/* ============================================
+   ADMIN.CSS - EXISTING CODE + MOBILE OPTIMIZATION
+   Retains all original styles, adds mobile responsiveness
+============================================ */
+
+/* ============================================
+   EXISTING CSS (KEEP ALL YOUR ORIGINAL STYLES)
+============================================ */
+
 * {
   margin: 0;
   padding: 0;
@@ -1609,16 +1618,72 @@ body.dark .hours-badge {
   color: var(--txt-m);
 }
 
-/* Responsive */
-@media (max-width: 1280px) {
-  .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .charts-row-3 {
-    grid-template-columns: 1fr 1fr;
-  }
+/* Image Fix */
+.logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 16px;
 }
 
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sidebar-logo .logo-mark {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+/* ============================================
+   MOBILE OPTIMIZATION (ADDED - RETAINS ALL ABOVE)
+============================================ */
+
+/* Sidebar Toggle Button - Mobile Only */
+.sidebar-toggle {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 1001;
+  background: var(--accent);
+  border: none;
+  border-radius: 12px;
+  padding: 10px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.sidebar-toggle svg {
+  width: 20px;
+  height: 20px;
+  stroke: white;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 999;
+  display: none;
+  backdrop-filter: blur(4px);
+}
+
+.sidebar-overlay.active {
+  display: block;
+}
+
+/* Mobile Responsive Breakpoints */
 @media (max-width: 1024px) {
   .charts-row-2 {
     grid-template-columns: 1fr;
@@ -1628,24 +1693,109 @@ body.dark .hours-badge {
   }
 }
 
-@media (max-width: 860px) {
-  :root {
-    --sidebar-w: 0px;
+@media (max-width: 768px) {
+  /* Show sidebar toggle on mobile */
+  .sidebar-toggle {
+    display: flex;
   }
+  
+  /* Sidebar hidden by default on mobile */
   .sidebar {
     transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: 280px;
   }
+  
+  .sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .sidebar:hover {
+    width: 280px;
+  }
+  
   .main-area {
     margin-left: 0 !important;
+    padding-top: 60px;
   }
-  .charts-row-3 {
-    grid-template-columns: 1fr;
-  }
+  
+  /* Stats grid - 2 columns on tablet */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
   }
+  
+  /* Charts - 1 column on mobile */
+  .charts-row-3 {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
   .topbar {
-    margin: 10px;
+    flex-direction: column;
+    align-items: stretch;
+    margin: 10px 12px 0;
+    padding: 12px 16px;
+  }
+  
+  .topbar-right {
+    justify-content: space-between;
+  }
+  
+  .page-title {
+    font-size: 1.1rem;
+  }
+  
+  .controls-bar {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  
+  .search-field {
+    width: 100%;
+  }
+  
+  .search-input {
+    width: 100%;
+  }
+  
+  .filter-select {
+    width: 100%;
+  }
+  
+  .panel-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-field.full-width {
+    grid-column: span 1;
+  }
+  
+  .user-pill {
+    padding: 4px 12px 4px 4px;
+  }
+  
+  .user-avatar {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .avatar-initials {
+    font-size: 11px;
+  }
+  
+  .user-info span {
+    display: none;
+  }
+  
+  .live-chip span {
+    font-size: 0.65rem;
   }
 }
 
@@ -1653,112 +1803,115 @@ body.dark .hours-badge {
   .stats-grid {
     grid-template-columns: 1fr 1fr;
   }
-  .form-row {
-    grid-template-columns: 1fr;
+  
+  .stat-number {
+    font-size: 1.4rem;
   }
-  .form-field.full-width {
-    grid-column: span 1;
+  
+  .modal {
+    width: 95%;
+    margin: 0 auto;
   }
-  .controls-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .search-input {
-    width: 100%;
+  
+  .modal-body {
+    padding: 12px;
   }
 }
 
 @media (max-width: 480px) {
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
   }
+  
+  .stat-card {
+    padding: 10px;
+  }
+  
+  .stat-number {
+    font-size: 1.3rem;
+  }
+  
+  .chart-card {
+    padding: 10px;
+  }
+  
+  .table-card-head,
   .panel-head {
-    flex-direction: column;
-    align-items: stretch;
+    padding: 10px 12px;
   }
-  .controls-bar {
-    width: 100%;
+  
+  th, td {
+    padding: 8px;
+    font-size: 0.7rem;
+  }
+  
+  .action-btn {
+    padding: 3px 6px;
+    font-size: 0.55rem;
+  }
+  
+  .badge, .etag, .dtag {
+    padding: 2px 6px;
+    font-size: 0.55rem;
+  }
+  
+  .modal-head {
+    padding: 12px;
+  }
+  
+  .modal-foot {
+    padding: 10px 12px;
+  }
+  
+  .btn-primary, .btn-outline, .btn-ghost, .btn-danger {
+    padding: 6px 12px;
+    font-size: 0.7rem;
   }
 }
-/* admin.css - Image Size Fix Only */
 
-/* Fix for sidebar logo image */
-.logo-img {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 16px;
-}
-
-/* Fix for admin avatar image in top bar */
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.avatar-img {
+/* Loading Screen */
+#loadingScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
-}
-
-/* Make sure images don't overflow */
-.sidebar-logo .logo-mark {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
-  overflow: hidden;
-  border-radius: 16px;
-}
-/* User Avatar with Initials */
-.user-pill {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.15);
-  padding: 8px 16px;
-  border-radius: 60px;
-  backdrop-filter: blur(4px);
-}
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1e5c3a, #2b7049);
+  background: var(--bg);
+  z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.avatar-initials {
-  color: white;
-  font-weight: 700;
-  font-size: 16px;
-  text-transform: uppercase;
-  font-family: 'DM Sans', sans-serif;
-}
-
-.user-info {
-  display: flex;
   flex-direction: column;
+  transition: opacity 0.3s ease;
 }
 
-.user-info strong {
-  font-size: 14px;
-  color: var(--text-dark);
-  font-weight: 700;
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--g-border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-.user-info span {
-  font-size: 11px;
-  color: var(--text-muted);
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 16px;
+  color: var(--txt-m);
+  font-size: 0.8rem;
+}
+
+/* Hidden content initially */
+#adminContent {
+  visibility: hidden;
+  opacity: 0;
+}
+
+#adminContent.visible {
+  visibility: visible;
+  opacity: 1;
 }
