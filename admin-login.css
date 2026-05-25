@@ -1039,3 +1039,35 @@ body.dark .authorized-list {
 body.dark .authorized-emails li {
   color: #a7f3d0;
 }
+/* Authorized List Styles - No personal info displayed */
+.authorized-list {
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: var(--green-ghost, rgba(30, 92, 58, 0.08));
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--glass-border, rgba(91, 170, 120, 0.26));
+  text-align: center;
+}
+
+.authorized-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted, #5B7A5E);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.authorized-desc {
+  font-size: 0.7rem;
+  color: var(--text-mid, #2E4E30);
+  line-height: 1.4;
+}
+
+body.dark .authorized-list {
+  background: rgba(52, 211, 153, 0.08);
+}
+
+body.dark .authorized-desc {
+  color: #a7f3d0;
+}
