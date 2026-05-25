@@ -2,6 +2,7 @@
 // Improved: top-toast notification system with dual login (Credentials + Magic Link)
 // Includes 5 hardcoded admin accounts
 // Magic Link: @phinmaed.com only
+// Persistent login attempts (saved in localStorage)
 
 import { AdminAuthService } from './services/supabase.service';
 
@@ -30,9 +31,12 @@ const ADMIN_ACCOUNTS = [
 // ── PHINMAED EMAIL DOMAIN ────────────────────────────────────────
 const ALLOWED_EMAIL_DOMAIN = '@phinmaed.com';
 
-// ── Rate limiting ───────────────────────────────────────────
+// ── Rate limiting with persistence ───────────────────────────
 let loginAttempts = 0;
 const MAX_ATTEMPTS = 5;
+const ATTEMPTS_KEY = 'hawak_kamay_login_attempts';
+const ATTEMPTS_TIMESTAMP_KEY = 'hawak_kamay_attempts_timestamp';
+const RESET_TIME = 60 * 60 * 1000; // 1 hour
 
 // ── Toast durations ─────────────────────────────────────────
 const TOAST_SUCCESS_TTL = 8000;
@@ -40,27 +44,109 @@ const TOAST_ERROR_TTL = 6000;
 const TOAST_INFO_TTL = 6000;
 
 // ════════════════════════════════════════════════════════════
-//  TAB SWITCHING
+//  UI INITIALIZATION (Theme, Tabs, Password Toggle)
 // ════════════════════════════════════════════════════════════
 
-tabBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const tab = btn.getAttribute('data-tab');
-    
-    tabBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    
-    if (tab === 'credentials') {
-      credentialsTab?.classList.add('active');
-      magicTab?.classList.remove('active');
-    } else {
-      magicTab?.classList.add('active');
-      credentialsTab?.classList.remove('active');
-    }
-    
-    clearToasts();
+function initTheme(): void {
+  const html = document.documentElement;
+  const stored = localStorage.getItem('portal_theme') || 'dark';
+  html.setAttribute('data-theme', stored);
+  
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('portal_theme', next);
+    });
+  }
+}
+
+function initTabs(): void {
+  const rail = document.querySelector('.tab-rail');
+  
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.getAttribute('data-tab');
+      rail?.setAttribute('data-active', tab || '');
+      
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      if (tab === 'credentials') {
+        credentialsTab?.classList.add('active');
+        magicTab?.classList.remove('active');
+      } else {
+        magicTab?.classList.add('active');
+        credentialsTab?.classList.remove('active');
+      }
+      
+      clearToasts();
+    });
   });
-});
+}
+
+function initPasswordToggle(): void {
+  const pwToggle = document.getElementById('togglePassword');
+  const pwInput = document.getElementById('adminPassword') as HTMLInputElement;
+  
+  if (pwToggle && pwInput) {
+    pwToggle.addEventListener('click', () => {
+      const isText = pwInput.type === 'text';
+      pwInput.type = isText ? 'password' : 'text';
+      
+      const eyeOpen = pwToggle.querySelector('.eye-open') as HTMLElement;
+      const eyeClosed = pwToggle.querySelector('.eye-closed') as HTMLElement;
+      
+      if (eyeOpen) eyeOpen.style.display = isText ? '' : 'none';
+      if (eyeClosed) eyeClosed.style.display = isText ? 'none' : '';
+      pwToggle.setAttribute('aria-label', isText ? 'Show password' : 'Hide password');
+    });
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  PERSISTENT ATTEMPTS MANAGEMENT
+// ════════════════════════════════════════════════════════════
+
+function loadAttempts(): void {
+  const savedAttempts = localStorage.getItem(ATTEMPTS_KEY);
+  const savedTimestamp = localStorage.getItem(ATTEMPTS_TIMESTAMP_KEY);
+  
+  if (savedAttempts && savedTimestamp) {
+    const elapsed = Date.now() - parseInt(savedTimestamp);
+    
+    if (elapsed < RESET_TIME) {
+      loginAttempts = parseInt(savedAttempts);
+      console.log(`📊 Loaded ${loginAttempts}/${MAX_ATTEMPTS} attempts from storage`);
+    } else {
+      resetAttempts();
+      console.log('🔄 Attempts reset due to timeout');
+    }
+  } else {
+    resetAttempts();
+  }
+  
+  if (loginAttempts >= MAX_ATTEMPTS) {
+    credentialsBtn.disabled = true;
+    magicBtn.disabled = true;
+    console.log('🔒 Max attempts reached, buttons disabled');
+  }
+}
+
+function saveAttempts(): void {
+  localStorage.setItem(ATTEMPTS_KEY, loginAttempts.toString());
+  localStorage.setItem(ATTEMPTS_TIMESTAMP_KEY, Date.now().toString());
+}
+
+function resetAttempts(): void {
+  loginAttempts = 0;
+  localStorage.removeItem(ATTEMPTS_KEY);
+  localStorage.removeItem(ATTEMPTS_TIMESTAMP_KEY);
+  credentialsBtn.disabled = false;
+  magicBtn.disabled = false;
+  console.log('✅ Login attempts reset to 0');
+}
 
 // ════════════════════════════════════════════════════════════
 //  TOAST NOTIFICATION SYSTEM
@@ -147,13 +233,11 @@ async function checkExistingSession(): Promise<void> {
   const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
   const loginMethod = localStorage.getItem('login_method');
   
-  // If already logged in via credentials, redirect to admin
   if (loginMethod === 'credentials' && isLoggedIn) {
     window.location.href = '/admin';
     return;
   }
   
-  // If logged in via magic link, redirect to admin
   if (isAuthenticated || isLoggedIn) {
     window.location.href = '/admin';
   }
@@ -178,7 +262,6 @@ function shakeInput(input: HTMLInputElement): void {
   }, { once: true });
 }
 
-// Check if email is allowed domain
 function isAllowedEmail(email: string): boolean {
   return email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN);
 }
@@ -194,9 +277,10 @@ async function loginWithCredentials(): Promise<void> {
   if (loginAttempts >= MAX_ATTEMPTS) {
     showToast('error', {
       title: 'Too many attempts',
-      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please contact administrator.`,
+      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour or contact administrator.`,
     });
     credentialsBtn.disabled = true;
+    magicBtn.disabled = true;
     return;
   }
 
@@ -215,10 +299,7 @@ async function loginWithCredentials(): Promise<void> {
   }
 
   setLoading(credentialsBtn, true);
-  loginAttempts++;
-  const remaining = MAX_ATTEMPTS - loginAttempts;
-
-  // Simulate API delay
+  
   await new Promise(resolve => setTimeout(resolve, 800));
 
   const foundAdmin = ADMIN_ACCOUNTS.find(
@@ -226,10 +307,9 @@ async function loginWithCredentials(): Promise<void> {
   );
 
   if (foundAdmin) {
-    // Clear any previous auth data
-    localStorage.clear();
+    resetAttempts();
     
-    // Store credentials login data with timestamp for session expiry
+    localStorage.clear();
     localStorage.setItem('admin_logged_in', 'true');
     localStorage.setItem('admin_username', foundAdmin.username);
     localStorage.setItem('admin_name', foundAdmin.name);
@@ -245,6 +325,10 @@ async function loginWithCredentials(): Promise<void> {
       window.location.href = '/admin';
     }, 1000);
   } else {
+    loginAttempts++;
+    saveAttempts();
+    const remaining = MAX_ATTEMPTS - loginAttempts;
+    
     shakeInput(usernameInput);
     showToast('error', {
       title: 'Invalid credentials',
@@ -252,11 +336,20 @@ async function loginWithCredentials(): Promise<void> {
       attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
     });
     setLoading(credentialsBtn, false);
+    
+    if (loginAttempts >= MAX_ATTEMPTS) {
+      credentialsBtn.disabled = true;
+      magicBtn.disabled = true;
+      showToast('error', {
+        title: 'Account Locked',
+        description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour.`,
+      });
+    }
   }
 }
 
 // ════════════════════════════════════════════════════════════
-//  MAGIC LINK LOGIN (@phinmaed.com ONLY)
+//  MAGIC LINK LOGIN
 // ════════════════════════════════════════════════════════════
 
 async function sendMagicLink(): Promise<void> {
@@ -265,9 +358,10 @@ async function sendMagicLink(): Promise<void> {
   if (loginAttempts >= MAX_ATTEMPTS) {
     showToast('error', {
       title: 'Too many attempts',
-      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please contact administrator.`,
+      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour.`,
     });
     magicBtn.disabled = true;
+    credentialsBtn.disabled = true;
     return;
   }
 
@@ -278,12 +372,11 @@ async function sendMagicLink(): Promise<void> {
     return;
   }
 
-  // Email domain validation - ONLY @phinmaed.com
   if (!isAllowedEmail(email)) {
     shakeInput(emailInput);
     showToast('error', { 
       title: 'Invalid Email Domain', 
-      description: `Only ${ALLOWED_EMAIL_DOMAIN} emails are allowed for magic link login.` 
+      description: `Only ${ALLOWED_EMAIL_DOMAIN} emails are allowed.` 
     });
     emailInput.focus();
     return;
@@ -298,20 +391,21 @@ async function sendMagicLink(): Promise<void> {
   }
 
   setLoading(magicBtn, true);
-  loginAttempts++;
-  const remaining = MAX_ATTEMPTS - loginAttempts;
 
   try {
     const result = await AdminAuthService.sendMagicLink(email);
 
     if (result.success) {
+      resetAttempts();
       showToast('success', {
         title: 'Magic link sent!',
         description: result.message,
-        attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
       });
       emailInput.value = '';
     } else {
+      loginAttempts++;
+      saveAttempts();
+      const remaining = MAX_ATTEMPTS - loginAttempts;
       shakeInput(emailInput);
       showToast('error', {
         title: 'Failed to send link',
@@ -320,6 +414,9 @@ async function sendMagicLink(): Promise<void> {
       });
     }
   } catch (error) {
+    loginAttempts++;
+    saveAttempts();
+    const remaining = MAX_ATTEMPTS - loginAttempts;
     console.error('Send magic link error:', error);
     shakeInput(emailInput);
     showToast('error', {
@@ -329,18 +426,32 @@ async function sendMagicLink(): Promise<void> {
     });
   } finally {
     setLoading(magicBtn, false);
+    
+    if (loginAttempts >= MAX_ATTEMPTS) {
+      credentialsBtn.disabled = true;
+      magicBtn.disabled = true;
+      showToast('error', {
+        title: 'Account Locked',
+        description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour.`,
+      });
+    }
   }
 }
 
-// Reset attempts after 1 hour
+// ════════════════════════════════════════════════════════════
+//  AUTO-RESET CHECK
+// ════════════════════════════════════════════════════════════
+
 setInterval(() => {
-  if (loginAttempts > 0) {
-    loginAttempts = 0;
-    credentialsBtn.disabled = false;
-    magicBtn.disabled = false;
-    console.log('Login attempts reset after 1 hour');
+  const savedTimestamp = localStorage.getItem(ATTEMPTS_TIMESTAMP_KEY);
+  if (savedTimestamp) {
+    const elapsed = Date.now() - parseInt(savedTimestamp);
+    if (elapsed >= RESET_TIME && loginAttempts > 0) {
+      resetAttempts();
+      console.log('🔄 Auto-reset: Attempts cleared after 1 hour');
+    }
   }
-}, 60 * 60 * 1000);
+}, 60 * 1000);
 
 // ════════════════════════════════════════════════════════════
 //  EVENT LISTENERS
@@ -363,4 +474,11 @@ emailInput.addEventListener('keypress', (e) => {
 //  INITIALIZATION
 // ════════════════════════════════════════════════════════════
 
+// Initialize UI
+initTheme();
+initTabs();
+initPasswordToggle();
+
+// Load attempts and check session
+loadAttempts();
 checkExistingSession();
