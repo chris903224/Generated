@@ -1,4 +1,5 @@
 // src/admin-login.ts
+// Full security: anti-F12, anti-right click, anti-inspect, anti-console, devtools detection
 // Improved: top-toast notification system with dual login (Credentials + Magic Link)
 // Includes 5 hardcoded admin accounts
 // Magic Link: @phinmaed.com only
@@ -43,9 +44,193 @@ const TOAST_SUCCESS_TTL = 8000;
 const TOAST_ERROR_TTL = 6000;
 const TOAST_INFO_TTL = 6000;
 
-// ════════════════════════════════════════════════════════════
-//  UI INITIALIZATION (Theme, Tabs, Password Toggle)
-// ════════════════════════════════════════════════════════════
+// ============================================
+// SECURITY MEASURES
+// ============================================
+
+function initSecurity(): void {
+  // 1. Disable Right Click
+  document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    return false;
+  });
+
+  // 2. Disable Keyboard Shortcuts
+  document.addEventListener('keydown', (e) => {
+    const key = e.key;
+    const ctrl = e.ctrlKey;
+    const shift = e.shiftKey;
+    
+    // F12 key
+    if (key === 'F12') {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+Shift+I (Inspect Element)
+    if (ctrl && shift && key === 'I') {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+Shift+J (Console)
+    if (ctrl && shift && key === 'J') {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+Shift+C (Inspect Element)
+    if (ctrl && shift && key === 'C') {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+Shift+K (Console - Firefox)
+    if (ctrl && shift && key === 'K') {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+U (View Source)
+    if (ctrl && key === 'u') {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+S (Save Page)
+    if (ctrl && key === 's') {
+      e.preventDefault();
+      return false;
+    }
+    // Ctrl+P (Print)
+    if (ctrl && key === 'p') {
+      e.preventDefault();
+      return false;
+    }
+    // Print Screen
+    if (key === 'PrintScreen') {
+      e.preventDefault();
+      return false;
+    }
+  });
+
+  // 3. Disable Drag and Drop
+  window.addEventListener('dragstart', (e) => {
+    e.preventDefault();
+    return false;
+  });
+
+  // 4. Disable Text Selection on non-input elements
+  document.addEventListener('selectstart', (e) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return true;
+    }
+    e.preventDefault();
+    return false;
+  });
+
+  // 5. Disable Copy/Paste on non-input elements
+  document.addEventListener('copy', (e) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return true;
+    }
+    e.preventDefault();
+    return false;
+  });
+
+  document.addEventListener('cut', (e) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return true;
+    }
+    e.preventDefault();
+    return false;
+  });
+
+  document.addEventListener('paste', (e) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return true;
+    }
+    e.preventDefault();
+    return false;
+  });
+
+  // 6. Detect DevTools Opening
+  let devtoolsOpen = false;
+  const element = new Image();
+  
+  Object.defineProperty(element, 'id', {
+    get: function() {
+      devtoolsOpen = true;
+      document.body.innerHTML = `
+        <div style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
+          <h1 style="color:#ef4444;">🔒 Access Denied</h1>
+          <p>Developer tools detected. Please close DevTools to continue.</p>
+          <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer; background:#1e5c3a; color:white; border:none; border-radius:8px;">Refresh Page</button>
+        </div>
+      `;
+    }
+  });
+  
+  setInterval(() => {
+    devtoolsOpen = false;
+    console.dir(element);
+    if (devtoolsOpen) {
+      document.body.innerHTML = `
+        <div style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
+          <h1 style="color:#ef4444;">🔒 Access Denied</h1>
+          <p>Developer tools detected. Please close DevTools to continue.</p>
+          <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer; background:#1e5c3a; color:white; border:none; border-radius:8px;">Refresh Page</button>
+        </div>
+      `;
+    }
+  }, 1000);
+
+  // 7. Detect DevTools via window size
+  let devtoolsDetected = false;
+  const threshold = 160;
+  
+  const checkDevTools = function() {
+    const widthDiff = window.outerWidth - window.innerWidth;
+    const heightDiff = window.outerHeight - window.innerHeight;
+    
+    if ((widthDiff > threshold || heightDiff > threshold) && !devtoolsDetected) {
+      devtoolsDetected = true;
+      document.body.innerHTML = `
+        <div style="text-align:center; padding:50px; font-family: 'DM Sans', sans-serif;">
+          <h1 style="color:#ef4444;">🔒 Security Violation</h1>
+          <p>Developer tools detected. Access denied.</p>
+          <button onclick="location.reload()" style="padding:10px 20px; margin-top:20px; cursor:pointer; background:#1e5c3a; color:white; border:none; border-radius:8px;">Refresh Page</button>
+        </div>
+      `;
+    }
+  };
+  
+  setInterval(checkDevTools, 1000);
+
+  // 8. Clear console logs in production
+  if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
+    console.log = function() {};
+    console.info = function() {};
+    console.warn = function() {};
+    console.error = function() {};
+  }
+
+  // 9. Add meta tags to prevent caching
+  const metaNoCache = document.createElement('meta');
+  metaNoCache.httpEquiv = 'Cache-Control';
+  metaNoCache.content = 'no-cache, no-store, must-revalidate';
+  document.head.appendChild(metaNoCache);
+  
+  const metaPragma = document.createElement('meta');
+  metaPragma.httpEquiv = 'Pragma';
+  metaPragma.content = 'no-cache';
+  document.head.appendChild(metaPragma);
+  
+  const metaExpires = document.createElement('meta');
+  metaExpires.httpEquiv = 'Expires';
+  metaExpires.content = '0';
+  document.head.appendChild(metaExpires);
+
+  console.log('✅ Security fully initialized on login page');
+}
+
+// ============================================
+// UI INITIALIZATION (Theme, Tabs, Password Toggle)
+// ============================================
 
 function initTheme(): void {
   const html = document.documentElement;
@@ -105,9 +290,9 @@ function initPasswordToggle(): void {
   }
 }
 
-// ════════════════════════════════════════════════════════════
-//  PERSISTENT ATTEMPTS MANAGEMENT
-// ════════════════════════════════════════════════════════════
+// ============================================
+// PERSISTENT ATTEMPTS MANAGEMENT
+// ============================================
 
 function loadAttempts(): void {
   const savedAttempts = localStorage.getItem(ATTEMPTS_KEY);
@@ -148,9 +333,9 @@ function resetAttempts(): void {
   console.log('✅ Login attempts reset to 0');
 }
 
-// ════════════════════════════════════════════════════════════
-//  TOAST NOTIFICATION SYSTEM
-// ════════════════════════════════════════════════════════════
+// ============================================
+// TOAST NOTIFICATION SYSTEM
+// ============================================
 
 type ToastType = 'success' | 'error' | 'info';
 
@@ -224,9 +409,9 @@ function clearToasts(): void {
   toasts.forEach(toast => dismissToast(toast as HTMLElement));
 }
 
-// ════════════════════════════════════════════════════════════
-//  HELPER FUNCTIONS
-// ════════════════════════════════════════════════════════════
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
 
 async function checkExistingSession(): Promise<void> {
   const isAuthenticated = await AdminAuthService.isAuthenticated();
@@ -266,9 +451,9 @@ function isAllowedEmail(email: string): boolean {
   return email.toLowerCase().endsWith(ALLOWED_EMAIL_DOMAIN);
 }
 
-// ════════════════════════════════════════════════════════════
-//  CREDENTIALS LOGIN
-// ════════════════════════════════════════════════════════════
+// ============================================
+// CREDENTIALS LOGIN
+// ============================================
 
 async function loginWithCredentials(): Promise<void> {
   const username = usernameInput.value.trim();
@@ -348,9 +533,9 @@ async function loginWithCredentials(): Promise<void> {
   }
 }
 
-// ════════════════════════════════════════════════════════════
-//  MAGIC LINK LOGIN
-// ════════════════════════════════════════════════════════════
+// ============================================
+// MAGIC LINK LOGIN
+// ============================================
 
 async function sendMagicLink(): Promise<void> {
   const email = emailInput.value.trim();
@@ -438,9 +623,9 @@ async function sendMagicLink(): Promise<void> {
   }
 }
 
-// ════════════════════════════════════════════════════════════
-//  AUTO-RESET CHECK
-// ════════════════════════════════════════════════════════════
+// ============================================
+// AUTO-RESET CHECK
+// ============================================
 
 setInterval(() => {
   const savedTimestamp = localStorage.getItem(ATTEMPTS_TIMESTAMP_KEY);
@@ -453,9 +638,9 @@ setInterval(() => {
   }
 }, 60 * 1000);
 
-// ════════════════════════════════════════════════════════════
-//  EVENT LISTENERS
-// ════════════════════════════════════════════════════════════
+// ============================================
+// EVENT LISTENERS
+// ============================================
 
 credentialsBtn.addEventListener('click', loginWithCredentials);
 magicBtn.addEventListener('click', sendMagicLink);
@@ -470,9 +655,12 @@ emailInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') sendMagicLink();
 });
 
-// ════════════════════════════════════════════════════════════
-//  INITIALIZATION
-// ════════════════════════════════════════════════════════════
+// ============================================
+// INITIALIZATION
+// ============================================
+
+// Initialize security first
+initSecurity();
 
 // Initialize UI
 initTheme();

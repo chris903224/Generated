@@ -1,7 +1,7 @@
 {
   "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" },
     { "source": "/admin-login", "destination": "/admin-login.html" },
-    { "source": "/admin-callback", "destination": "/admin-callback.html" }
+    { "source": "/admin-callback", "destination": "/admin-callback.html" },
+    { "source": "/admin", "destination": "/admin.html" }
   ]
 }
