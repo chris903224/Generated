@@ -20,7 +20,7 @@ let hkCourseChart: any = null;
 let hkDutyChart: any = null;
 
 // App version - CHANGE THIS ON EVERY DEPLOYMENT
-const APP_VERSION = "v2.1.0";
+const APP_VERSION = "v2.1.1";
 
 // Colors
 const colors = {
@@ -130,51 +130,6 @@ async function forceLogout(): Promise<void> {
 }
 
 // ============================================
-// SESSION VALIDATION WITH SUPABASE
-// ============================================
-
-async function validateSessionWithSupabase(): Promise<boolean> {
-  try {
-    // Get session from Supabase
-    const { data: { session }, error } = await supabase.auth.getSession();
-    
-    if (error || !session) {
-      console.log('❌ No active Supabase session found');
-      await forceLogout();
-      return false;
-    }
-    
-    // Verify user email is allowed
-    const userEmail = session.user.email;
-    if (!userEmail || !ALLOWED_ADMIN_EMAILS.includes(userEmail.toLowerCase())) {
-      console.log(`❌ Unauthorized email (${userEmail}) attempting to access`);
-      await forceLogout();
-      return false;
-    }
-    
-    // Check if session is expired (8 hours)
-    const loginTime = localStorage.getItem('admin_login_time');
-    if (loginTime) {
-      const elapsed = Date.now() - parseInt(loginTime);
-      const eightHours = 8 * 60 * 60 * 1000;
-      if (elapsed > eightHours) {
-        console.log('⏰ Session expired (8 hours)');
-        await forceLogout();
-        return false;
-      }
-    }
-    
-    console.log('✅ Supabase session is valid');
-    return true;
-    
-  } catch (error) {
-    console.error('Session validation error:', error);
-    await forceLogout();
-    return false;
-  }
-}
-
-// ============================================
 // MOBILE SIDEBAR TOGGLE
 // ============================================
 
@@ -237,7 +192,7 @@ function initLogoutHandler(): void {
 }
 
 // ============================================
-// SECURITY MEASURES (DISABLED FOR DEBUGGING)
+// SECURITY MEASURES
 // ============================================
 
 function initSecurity(): void {
@@ -876,31 +831,37 @@ function initAdminDashboard(): void {
 }
 
 // ============================================
-// START APPLICATION (UPDATED WITH SECURITY)
+// START APPLICATION (FIXED - NO REDIRECT LOOP)
 // ============================================
 
 async function startApp(): Promise<void> {
   console.log('🔐 Starting application...');
   
-  // Check version first - forces logout on new deployment
+  // Check version first (forces logout on new deployment)
   checkAppVersion();
   
-  // Validate session with Supabase
-  const isValid = await validateSessionWithSupabase();
-  
-  if (!isValid) {
-    console.log('❌ Invalid session, redirecting to login');
-    return;
-  }
-  
+  // Get auth data from localStorage
   const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
   const adminName = localStorage.getItem('admin_name');
   const loginMethod = localStorage.getItem('login_method');
+  const loginTime = localStorage.getItem('admin_login_time');
   
-  console.log('📋 Auth data:', { isLoggedIn, adminName, loginMethod });
+  console.log('📋 Auth data:', { isLoggedIn, adminName, loginMethod, loginTime });
   
-  if (isLoggedIn && adminName) {
-    console.log(`✅ User already logged in as: ${adminName}`);
+  // Check session expiry (8 hours)
+  if (loginTime) {
+    const elapsed = Date.now() - parseInt(loginTime);
+    const eightHours = 8 * 60 * 60 * 1000;
+    if (elapsed > eightHours) {
+      console.log('⏰ Session expired');
+      await forceLogout();
+      return;
+    }
+  }
+  
+  // If credentials login - show dashboard directly (NO SUPABASE CHECK)
+  if (isLoggedIn && adminName && loginMethod === 'credentials') {
+    console.log(`✅ Credentials login detected for: ${adminName}`);
     hideLoadingScreen();
     updateAdminDisplay();
     initSecurity();
@@ -910,9 +871,21 @@ async function startApp(): Promise<void> {
     return;
   }
   
+  // Check Supabase session for magic link
   const { data: { session } } = await supabase.auth.getSession();
   if (session) {
     console.log('✅ Magic link session valid');
+    // Store session info if not already stored
+    if (!isLoggedIn) {
+      localStorage.setItem('admin_logged_in', 'true');
+      localStorage.setItem('admin_email', session.user.email || '');
+      localStorage.setItem('login_method', 'magiclink');
+      localStorage.setItem('admin_login_time', Date.now().toString());
+      
+      // Extract name from email
+      const emailName = session.user.email?.split('@')[0] || 'Admin';
+      localStorage.setItem('admin_name', emailName.charAt(0).toUpperCase() + emailName.slice(1));
+    }
     hideLoadingScreen();
     updateAdminDisplay();
     initSecurity();

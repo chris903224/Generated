@@ -1,14 +1,10 @@
 // src/admin-login.ts
-// Full security: anti-F12, anti-right click, anti-inspect, anti-console, devtools detection
-// Improved: top-toast notification system with dual login (Credentials + Magic Link)
-// Includes 5 hardcoded admin accounts
-// Magic Link: ONLY specific @phinmaed.com emails allowed
-// Persistent login attempts (saved in localStorage)
+// COMPLETE VERSION WITH SECURITY
 
-import { AdminAuthService } from './services/supabase.service';
+import { supabase, AdminAuthService } from './services/supabase.service';
 
-// App version - must match admin.main.ts
-const APP_VERSION = "v2.1.0";
+// App version - CHANGE THIS ON EVERY DEPLOYMENT
+const APP_VERSION = "v2.5.0";
 
 // ── DOM Elements ──────────────────────────────────────────────
 const usernameInput = document.getElementById('adminUsername') as HTMLInputElement;
@@ -32,7 +28,7 @@ const ADMIN_ACCOUNTS = [
   { username: 'AdminAllain', password: 'allain123', name: 'Allain' }
 ];
 
-// ── ALLOWED EMAILS FOR MAGIC LINK ────────────────────────────────
+// ── ONLY ALLOWED EMAILS FOR MAGIC LINK ────────────────────────────────
 const ALLOWED_MAGIC_LINK_EMAILS = [
   'leda.lutrania.sjc@phinmaed.com',
   'anma.saguid.sjc@phinmaed.com', 
@@ -40,11 +36,11 @@ const ALLOWED_MAGIC_LINK_EMAILS = [
   'chpe.villanueva.sjc@phinmaed.com'
 ];
 
-// ── Rate limiting with persistence ───────────────────────────
+// ── Rate limiting ───────────────────────────────────────────
 let loginAttempts = 0;
 const MAX_ATTEMPTS = 5;
-const ATTEMPTS_KEY = 'hawak_kamay_login_attempts';
-const ATTEMPTS_TIMESTAMP_KEY = 'hawak_kamay_attempts_timestamp';
+const ATTEMPTS_KEY = 'login_attempts';
+const ATTEMPTS_TIMESTAMP_KEY = 'login_attempts_timestamp';
 const RESET_TIME = 60 * 60 * 1000; // 1 hour
 
 // ── Toast durations ─────────────────────────────────────────
@@ -53,13 +49,13 @@ const TOAST_ERROR_TTL = 6000;
 const TOAST_INFO_TTL = 6000;
 
 // ============================================
-// VERSION CHECK - CLEAR OLD SESSIONS
+// VERSION CHECK - CLEAR OLD SESSIONS ON DEPLOY
 // ============================================
 
 function checkAndClearOldSession(): void {
   const storedVersion = localStorage.getItem('app_version');
   if (storedVersion !== APP_VERSION) {
-    console.log(`🔄 App version changed. Clearing old session...`);
+    console.log(`🔄 New version detected. Clearing old session...`);
     localStorage.clear();
     sessionStorage.clear();
     localStorage.setItem('app_version', APP_VERSION);
@@ -71,13 +67,13 @@ function checkAndClearOldSession(): void {
 // ============================================
 
 function initSecurity(): void {
-  // 1. Disable Right Click
+  // Disable Right Click
   document.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     return false;
   });
 
-  // 2. Disable Keyboard Shortcuts
+  // Disable F12 and other dev tools keys
   document.addEventListener('keydown', (e) => {
     const key = e.key;
     const ctrl = e.ctrlKey;
@@ -89,184 +85,11 @@ function initSecurity(): void {
         (ctrl && shift && key === 'C') ||
         (ctrl && shift && key === 'K') ||
         (ctrl && key === 'u') ||
-        (ctrl && key === 's') ||
-        (ctrl && key === 'p') ||
-        key === 'PrintScreen') {
+        (ctrl && key === 's')) {
       e.preventDefault();
       return false;
     }
   });
-
-  // 3. Disable Drag and Drop
-  window.addEventListener('dragstart', (e) => {
-    e.preventDefault();
-    return false;
-  });
-
-  // 4. Disable Text Selection on non-input elements
-  document.addEventListener('selectstart', (e) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return true;
-    }
-    e.preventDefault();
-    return false;
-  });
-
-  // 5. Disable Copy/Paste on non-input elements
-  document.addEventListener('copy', (e) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return true;
-    }
-    e.preventDefault();
-    return false;
-  });
-
-  document.addEventListener('cut', (e) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return true;
-    }
-    e.preventDefault();
-    return false;
-  });
-
-  document.addEventListener('paste', (e) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return true;
-    }
-    e.preventDefault();
-    return false;
-  });
-
-  // 6. Clear console logs in production
-  if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
-    console.log = function() {};
-    console.info = function() {};
-    console.warn = function() {};
-    console.error = function() {};
-  }
-
-  // 7. Add meta tags to prevent caching
-  const metaNoCache = document.createElement('meta');
-  metaNoCache.httpEquiv = 'Cache-Control';
-  metaNoCache.content = 'no-cache, no-store, must-revalidate';
-  document.head.appendChild(metaNoCache);
-  
-  const metaPragma = document.createElement('meta');
-  metaPragma.httpEquiv = 'Pragma';
-  metaPragma.content = 'no-cache';
-  document.head.appendChild(metaPragma);
-  
-  const metaExpires = document.createElement('meta');
-  metaExpires.httpEquiv = 'Expires';
-  metaExpires.content = '0';
-  document.head.appendChild(metaExpires);
-
-  console.log('✅ Security fully initialized on login page');
-}
-
-// ============================================
-// UI INITIALIZATION (Theme, Tabs, Password Toggle)
-// ============================================
-
-function initTheme(): void {
-  const html = document.documentElement;
-  const stored = localStorage.getItem('portal_theme') || 'dark';
-  html.setAttribute('data-theme', stored);
-  
-  const toggle = document.getElementById('themeToggle');
-  if (toggle) {
-    toggle.addEventListener('click', () => {
-      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      html.setAttribute('data-theme', next);
-      localStorage.setItem('portal_theme', next);
-    });
-  }
-}
-
-function initTabs(): void {
-  const rail = document.querySelector('.tab-rail');
-  
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tab = btn.getAttribute('data-tab');
-      rail?.setAttribute('data-active', tab || '');
-      
-      tabBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      if (tab === 'credentials') {
-        credentialsTab?.classList.add('active');
-        magicTab?.classList.remove('active');
-      } else {
-        magicTab?.classList.add('active');
-        credentialsTab?.classList.remove('active');
-      }
-      
-      clearToasts();
-    });
-  });
-}
-
-function initPasswordToggle(): void {
-  const pwToggle = document.getElementById('togglePassword');
-  const pwInput = document.getElementById('adminPassword') as HTMLInputElement;
-  
-  if (pwToggle && pwInput) {
-    pwToggle.addEventListener('click', () => {
-      const isText = pwInput.type === 'text';
-      pwInput.type = isText ? 'password' : 'text';
-      
-      const eyeOpen = pwToggle.querySelector('.eye-open') as HTMLElement;
-      const eyeClosed = pwToggle.querySelector('.eye-closed') as HTMLElement;
-      
-      if (eyeOpen) eyeOpen.style.display = isText ? '' : 'none';
-      if (eyeClosed) eyeClosed.style.display = isText ? 'none' : '';
-      pwToggle.setAttribute('aria-label', isText ? 'Show password' : 'Hide password');
-    });
-  }
-}
-
-// ============================================
-// PERSISTENT ATTEMPTS MANAGEMENT
-// ============================================
-
-function loadAttempts(): void {
-  const savedAttempts = localStorage.getItem(ATTEMPTS_KEY);
-  const savedTimestamp = localStorage.getItem(ATTEMPTS_TIMESTAMP_KEY);
-  
-  if (savedAttempts && savedTimestamp) {
-    const elapsed = Date.now() - parseInt(savedTimestamp);
-    
-    if (elapsed < RESET_TIME) {
-      loginAttempts = parseInt(savedAttempts);
-      console.log(`📊 Loaded ${loginAttempts}/${MAX_ATTEMPTS} attempts from storage`);
-    } else {
-      resetAttempts();
-      console.log('🔄 Attempts reset due to timeout');
-    }
-  } else {
-    resetAttempts();
-  }
-  
-  if (loginAttempts >= MAX_ATTEMPTS) {
-    credentialsBtn.disabled = true;
-    magicBtn.disabled = true;
-    console.log('🔒 Max attempts reached, buttons disabled');
-  }
-}
-
-function saveAttempts(): void {
-  localStorage.setItem(ATTEMPTS_KEY, loginAttempts.toString());
-  localStorage.setItem(ATTEMPTS_TIMESTAMP_KEY, Date.now().toString());
-}
-
-function resetAttempts(): void {
-  loginAttempts = 0;
-  localStorage.removeItem(ATTEMPTS_KEY);
-  localStorage.removeItem(ATTEMPTS_TIMESTAMP_KEY);
-  credentialsBtn.disabled = false;
-  magicBtn.disabled = false;
-  console.log('✅ Login attempts reset to 0');
 }
 
 // ============================================
@@ -346,21 +169,128 @@ function clearToasts(): void {
 }
 
 // ============================================
-// HELPER FUNCTIONS
+// UI INITIALIZATION
+// ============================================
+
+function initTheme(): void {
+  const html = document.documentElement;
+  const stored = localStorage.getItem('portal_theme') || 'dark';
+  html.setAttribute('data-theme', stored);
+  
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('portal_theme', next);
+    });
+  }
+}
+
+function initTabs(): void {
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.getAttribute('data-tab');
+      
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      if (tab === 'credentials') {
+        credentialsTab?.classList.add('active');
+        magicTab?.classList.remove('active');
+      } else {
+        magicTab?.classList.add('active');
+        credentialsTab?.classList.remove('active');
+      }
+      
+      clearToasts();
+    });
+  });
+}
+
+function initPasswordToggle(): void {
+  const pwToggle = document.getElementById('togglePassword');
+  const pwInput = document.getElementById('adminPassword') as HTMLInputElement;
+  
+  if (pwToggle && pwInput) {
+    pwToggle.addEventListener('click', () => {
+      const isText = pwInput.type === 'text';
+      pwInput.type = isText ? 'password' : 'text';
+      
+      const eyeOpen = pwToggle.querySelector('.eye-open') as HTMLElement;
+      const eyeClosed = pwToggle.querySelector('.eye-closed') as HTMLElement;
+      
+      if (eyeOpen) eyeOpen.style.display = isText ? '' : 'none';
+      if (eyeClosed) eyeClosed.style.display = isText ? 'none' : '';
+    });
+  }
+}
+
+// ============================================
+// ATTEMPTS MANAGEMENT
+// ============================================
+
+function loadAttempts(): void {
+  const savedAttempts = localStorage.getItem(ATTEMPTS_KEY);
+  const savedTimestamp = localStorage.getItem(ATTEMPTS_TIMESTAMP_KEY);
+  
+  if (savedAttempts && savedTimestamp) {
+    const elapsed = Date.now() - parseInt(savedTimestamp);
+    if (elapsed < RESET_TIME) {
+      loginAttempts = parseInt(savedAttempts);
+    } else {
+      resetAttempts();
+    }
+  } else {
+    resetAttempts();
+  }
+  
+  if (loginAttempts >= MAX_ATTEMPTS) {
+    credentialsBtn.disabled = true;
+    magicBtn.disabled = true;
+  }
+}
+
+function saveAttempts(): void {
+  localStorage.setItem(ATTEMPTS_KEY, loginAttempts.toString());
+  localStorage.setItem(ATTEMPTS_TIMESTAMP_KEY, Date.now().toString());
+}
+
+function resetAttempts(): void {
+  loginAttempts = 0;
+  localStorage.removeItem(ATTEMPTS_KEY);
+  localStorage.removeItem(ATTEMPTS_TIMESTAMP_KEY);
+  credentialsBtn.disabled = false;
+  magicBtn.disabled = false;
+}
+
+// ============================================
+// SESSION CHECK - WILL REDIRECT IF ALREADY LOGGED IN
 // ============================================
 
 async function checkExistingSession(): Promise<void> {
-  const isAuthenticated = await AdminAuthService.isAuthenticated();
-  const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
-  const loginMethod = localStorage.getItem('login_method');
-  
-  if (loginMethod === 'credentials' && isLoggedIn) {
-    window.location.href = '/admin';
-    return;
-  }
-  
-  if (isAuthenticated || isLoggedIn) {
-    window.location.href = '/admin';
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const isCredentialsLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+    const loginMethod = localStorage.getItem('login_method');
+    const adminName = localStorage.getItem('admin_name');
+    
+    console.log('🔐 Session check:', { 
+      hasSupabaseSession: !!session, 
+      isCredentialsLoggedIn, 
+      loginMethod,
+      adminName
+    });
+    
+    // Valid session conditions
+    const hasValidSession = session || (isCredentialsLoggedIn && loginMethod === 'credentials');
+    
+    if (hasValidSession && adminName) {
+      console.log(`✅ Valid session found for: ${adminName}, redirecting to dashboard`);
+      window.location.replace('/admin');
+    }
+  } catch (error) {
+    console.error('Session check error:', error);
   }
 }
 
@@ -375,12 +305,8 @@ function setLoading(btn: HTMLButtonElement, loading: boolean): void {
 }
 
 function shakeInput(input: HTMLInputElement): void {
-  input.classList.remove('shake');
-  void input.offsetWidth;
   input.classList.add('shake');
-  input.addEventListener('animationend', () => {
-    input.classList.remove('shake');
-  }, { once: true });
+  setTimeout(() => input.classList.remove('shake'), 400);
 }
 
 function isAllowedMagicLinkEmail(email: string): boolean {
@@ -398,10 +324,8 @@ async function loginWithCredentials(): Promise<void> {
   if (loginAttempts >= MAX_ATTEMPTS) {
     showToast('error', {
       title: 'Too many attempts',
-      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour or contact administrator.`,
+      description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour.`,
     });
-    credentialsBtn.disabled = true;
-    magicBtn.disabled = true;
     return;
   }
 
@@ -421,7 +345,7 @@ async function loginWithCredentials(): Promise<void> {
 
   setLoading(credentialsBtn, true);
   
-  await new Promise(resolve => setTimeout(resolve, 800));
+  await new Promise(resolve => setTimeout(resolve, 500));
 
   const foundAdmin = ADMIN_ACCOUNTS.find(
     admin => admin.username === username && admin.password === password
@@ -441,13 +365,15 @@ async function loginWithCredentials(): Promise<void> {
     localStorage.setItem('login_method', 'credentials');
     localStorage.setItem('admin_login_time', Date.now().toString());
     
+    console.log('✅ Session saved for:', foundAdmin.name);
+    
     showToast('success', { 
       title: `Welcome, ${foundAdmin.name}!`, 
       description: 'Redirecting to dashboard...' 
     });
     
     setTimeout(() => {
-      window.location.href = '/admin';
+      window.location.replace('/admin');
     }, 1000);
   } else {
     loginAttempts++;
@@ -461,20 +387,11 @@ async function loginWithCredentials(): Promise<void> {
       attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
     });
     setLoading(credentialsBtn, false);
-    
-    if (loginAttempts >= MAX_ATTEMPTS) {
-      credentialsBtn.disabled = true;
-      magicBtn.disabled = true;
-      showToast('error', {
-        title: 'Account Locked',
-        description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour.`,
-      });
-    }
   }
 }
 
 // ============================================
-// MAGIC LINK LOGIN (ONLY SPECIFIC EMAILS)
+// MAGIC LINK LOGIN (ONLY ALLOWED EMAILS)
 // ============================================
 
 async function sendMagicLink(): Promise<void> {
@@ -485,8 +402,6 @@ async function sendMagicLink(): Promise<void> {
       title: 'Too many attempts',
       description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour.`,
     });
-    magicBtn.disabled = true;
-    credentialsBtn.disabled = true;
     return;
   }
 
@@ -497,7 +412,7 @@ async function sendMagicLink(): Promise<void> {
     return;
   }
 
-  // Email domain validation - ONLY specific allowed emails
+  // Only allowed emails can use magic link
   if (!isAllowedMagicLinkEmail(email)) {
     shakeInput(emailInput);
     showToast('error', { 
@@ -552,15 +467,6 @@ async function sendMagicLink(): Promise<void> {
     });
   } finally {
     setLoading(magicBtn, false);
-    
-    if (loginAttempts >= MAX_ATTEMPTS) {
-      credentialsBtn.disabled = true;
-      magicBtn.disabled = true;
-      showToast('error', {
-        title: 'Account Locked',
-        description: `Maximum ${MAX_ATTEMPTS} attempts reached. Please wait 1 hour.`,
-      });
-    }
   }
 }
 
@@ -574,7 +480,7 @@ setInterval(() => {
     const elapsed = Date.now() - parseInt(savedTimestamp);
     if (elapsed >= RESET_TIME && loginAttempts > 0) {
       resetAttempts();
-      console.log('🔄 Auto-reset: Attempts cleared after 1 hour');
+      console.log('🔄 Login attempts reset after 1 hour');
     }
   }
 }, 60 * 1000);
@@ -600,10 +506,10 @@ emailInput.addEventListener('keypress', (e) => {
 // INITIALIZATION
 // ============================================
 
-// Check and clear old session first
+// Clear old session on new version
 checkAndClearOldSession();
 
-// Initialize security first
+// Initialize security
 initSecurity();
 
 // Initialize UI
@@ -611,6 +517,8 @@ initTheme();
 initTabs();
 initPasswordToggle();
 
-// Load attempts and check session
+// Load attempts
 loadAttempts();
+
+// Check if already logged in (will redirect to /admin if true)
 checkExistingSession();
