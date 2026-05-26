@@ -24,7 +24,7 @@ const ADMIN_ACCOUNTS = [
   { username: 'AdminRonan', password: 'ronan123', name: 'Ronan' },
   { username: 'AdminJay', password: 'jay123', name: 'Jay' },
   { username: 'AdminLeimark', password: 'leimark123', name: 'Leimark' },
-  { username: 'AdminAllain', password: 'allain123', name: 'Allain' }
+  { username: 'AdminAlain', password: 'alain123', name: 'Alain' }
 ];
 
 // ── ONLY ALLOWED EMAILS FOR MAGIC LINK ────────────────────────────────

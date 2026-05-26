@@ -1,5 +1,5 @@
-// admin.main.ts - COMPLETE WITH FORCED LOGOUT ON REDEPLOY
-
+// admin.main.ts - COMPLETE FIXED VERSION
+// Place this in the ROOT directory (same level as admin.html)
 import { supabase } from './services/supabase.service';
 import { AdminStudentController } from './controllers/admin.student.controller';
 import { AdminUIController } from './controllers/admin.ui.controller';
@@ -19,8 +19,8 @@ let supportChart: any = null;
 let hkCourseChart: any = null;
 let hkDutyChart: any = null;
 
-// App version - CHANGE THIS ON EVERY DEPLOYMENT
-const APP_VERSION = "v2.1.3"; // INCREMENT THIS ON EVERY DEPLOY!
+// App version - MUST MATCH admin-login.ts
+const APP_VERSION = "v2.1.3";
 
 // Colors
 const colors = {
@@ -89,136 +89,82 @@ function hideLoadingScreen(): void {
 }
 
 // ============================================
-// VERSION CHECK - FORCES LOGOUT ON DEPLOYMENT
+// VERSION CHECK - FIXED
 // ============================================
 
 function checkAppVersion(): void {
   const storedVersion = localStorage.getItem('app_version');
-  const deploymentId = localStorage.getItem('deployment_id');
-  const newDeploymentId = generateDeploymentId();
   
   console.log(`🔍 Version check: Stored=${storedVersion}, Current=${APP_VERSION}`);
-  console.log(`🔍 Deployment check: Stored=${deploymentId}, Current=${newDeploymentId}`);
   
-  // CASE 1: No stored version - first time visit
+  // First time visit - set version
   if (!storedVersion) {
     console.log('📝 First time visit, setting version');
     localStorage.setItem('app_version', APP_VERSION);
-    localStorage.setItem('deployment_id', newDeploymentId);
     return;
   }
   
-  // CASE 2: Version mismatch - FORCE LOGOUT IMMEDIATELY
+  // Version mismatch
   if (storedVersion !== APP_VERSION) {
-    console.log(`🚨 VERSION MISMATCH! New deployment detected!`);
-    console.log(`   Old: ${storedVersion} → New: ${APP_VERSION}`);
-    console.log(`   Forcing logout for security...`);
+    console.log(`⚠️ Version mismatch: ${storedVersion} vs ${APP_VERSION}`);
     
-    // Show message to user before logout
-    showDeploymentLogoutMessage();
-    
-    // Force immediate logout
-    forceLogout();
-    return;
-  }
-  
-  // CASE 3: Same version but check deployment ID (extra security)
-  if (deploymentId !== newDeploymentId) {
-    console.log(`🚨 DEPLOYMENT ID MISMATCH! Forcing logout...`);
-    showDeploymentLogoutMessage();
-    forceLogout();
-    return;
-  }
-  
-  console.log('✅ Version check passed');
-}
-
-// Generate unique deployment ID based on timestamp and version
-function generateDeploymentId(): string {
-  return `${APP_VERSION}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
-// Show message to user before logout
-function showDeploymentLogoutMessage(): void {
-  // Create a temporary overlay message
-  const messageDiv = document.createElement('div');
-  messageDiv.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    color: white;
-    font-family: system-ui, -apple-system, sans-serif;
-    text-align: center;
-    padding: 20px;
-  `;
-  messageDiv.innerHTML = `
-    <div style="background: #1e293b; padding: 30px; border-radius: 20px; max-width: 350px;">
-      <div style="font-size: 48px; margin-bottom: 16px;">🔄</div>
-      <h2 style="margin: 0 0 12px 0; font-size: 24px;">System Updated</h2>
-      <p style="margin: 0 0 20px 0; color: #94a3b8; line-height: 1.5;">
-        A new version of the dashboard has been deployed. 
-        Please log in again for security.
-      </p>
-      <div class="spinner" style="margin: 0 auto;"></div>
-      <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Redirecting to login...</p>
-    </div>
-  `;
-  document.body.appendChild(messageDiv);
-  
-  // Remove after 2 seconds
-  setTimeout(() => {
-    if (messageDiv && messageDiv.parentNode) {
-      messageDiv.remove();
+    // Check if this is a recent login (within last 10 seconds)
+    const loginTime = localStorage.getItem('admin_login_time');
+    if (loginTime) {
+      const elapsed = Date.now() - parseInt(loginTime);
+      if (elapsed < 10000) {
+        // Recent login, just update version
+        console.log('✅ Recent login detected, updating version');
+        localStorage.setItem('app_version', APP_VERSION);
+        return;
+      }
     }
-  }, 2000);
+    
+    // Not a recent login, force logout
+    console.log('🔄 Forcing logout due to version mismatch');
+    forceLogout();
+  }
 }
 
 // ============================================
-// FORCE LOGOUT - CLEARS ALL SESSION DATA
+// FORCE LOGOUT
 // ============================================
 
 async function forceLogout(): Promise<void> {
-  console.log('🚪 Force logout initiated...');
+  console.log('🚪 Force logout...');
   
-  // Clear all local storage
+  // Clear all storage
   localStorage.clear();
   sessionStorage.clear();
   
   // Sign out from Supabase
   try {
     await supabase.auth.signOut();
-  } catch (error) {
-    console.error('Supabase signout error:', error);
+  } catch (e) {
+    console.error('Signout error:', e);
   }
   
-  // Redirect to login page with cache busting
-  const loginUrl = '/admin-login?t=' + Date.now();
-  window.location.replace(loginUrl);
+  // Redirect to login
+  window.location.href = '/admin-login.html';
 }
 
 // ============================================
-// CHECK IF USER SHOULD BE ALLOWED TO ACCESS
+// VALIDATE SESSION - FIXED
 // ============================================
 
 async function validateSession(): Promise<boolean> {
   console.log('🔐 Validating session...');
   
-  // Check if logged in flag exists
   const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
-  const loginTime = localStorage.getItem('admin_login_time');
   const loginMethod = localStorage.getItem('login_method');
+  const loginTime = localStorage.getItem('admin_login_time');
+  const adminName = localStorage.getItem('admin_name');
   
-  // If not logged in, reject
+  console.log('📋 Session data:', { isLoggedIn, loginMethod, loginTime, adminName });
+  
+  // Check if logged in
   if (!isLoggedIn) {
-    console.log('❌ User not logged in');
+    console.log('❌ Not logged in');
     return false;
   }
   
@@ -227,7 +173,7 @@ async function validateSession(): Promise<boolean> {
     const elapsed = Date.now() - parseInt(loginTime);
     const eightHours = 8 * 60 * 60 * 1000;
     if (elapsed > eightHours) {
-      console.log('⏰ Session expired (8 hours passed)');
+      console.log('⏰ Session expired');
       await forceLogout();
       return false;
     }
@@ -235,23 +181,22 @@ async function validateSession(): Promise<boolean> {
   
   // For credentials login, no need to check Supabase
   if (loginMethod === 'credentials') {
-    console.log('✅ Credentials session validated');
+    console.log('✅ Credentials session valid');
     return true;
   }
   
-  // For magic link, verify Supabase session
+  // For magic link, check Supabase
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      console.log('❌ No valid Supabase session');
+      console.log('❌ No Supabase session');
       await forceLogout();
       return false;
     }
-    console.log('✅ Magic link session validated');
+    console.log('✅ Magic link session valid');
     return true;
   } catch (error) {
-    console.error('Session validation error:', error);
-    await forceLogout();
+    console.error('Session check error:', error);
     return false;
   }
 }
@@ -402,19 +347,6 @@ function initSecurity(): void {
   metaExpires.httpEquiv = 'Expires';
   metaExpires.content = '0';
   document.head.appendChild(metaExpires);
-  
-  // Prevent page from being cached in browser history
-  window.addEventListener('pageshow', (event) => {
-    if (event.persisted) {
-      // Page was loaded from cache (back/forward button)
-      console.log('Page loaded from cache, re-validating session...');
-      validateSession().then(isValid => {
-        if (!isValid) {
-          forceLogout();
-        }
-      });
-    }
-  });
 }
 
 // ============================================
@@ -1034,29 +966,33 @@ function initAdminDashboard(): void {
 }
 
 // ============================================
-// START APPLICATION - WITH FORCED LOGOUT ON REDEPLOY
+// START APPLICATION - FIXED
 // ============================================
 
 async function startApp(): Promise<void> {
-  console.log('🔐 Starting application...');
+  console.log('🚀 Starting application...');
   
-  // STEP 1: Check version FIRST - forces logout on version mismatch
+  // Show loading screen
+  showLoadingScreen();
+  
+  // Check version first
   checkAppVersion();
   
-  // STEP 2: Validate session
+  // Validate session
   const isValid = await validateSession();
+  
   if (!isValid) {
-    console.log('❌ Session invalid, redirecting to login...');
+    console.log('❌ Invalid session, redirecting to login...');
+    window.location.href = '/admin-login.html';
     return;
   }
   
-  // STEP 3: Session is valid, load dashboard
+  // Session is valid, load dashboard
   console.log('✅ Session valid, loading dashboard...');
   hideLoadingScreen();
   initSecurity();
   initAdminDashboard();
 }
 
-// Initialize the application
-showLoadingScreen();
+// Start the app
 startApp();
