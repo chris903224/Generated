@@ -1,10 +1,9 @@
-// src/admin-login.ts
-// COMPLETE VERSION - SYNCED WITH admin.main.ts
+// admin-login.ts - COMPLETE VERSION WITH SECURITY FIXES
 
 import { supabase, AdminAuthService } from './services/supabase.service';
 
 // App version - MUST MATCH admin.main.ts
-const APP_VERSION = "v2.1.1";
+const APP_VERSION = "v2.1.3";
 
 // ── DOM Elements ──────────────────────────────────────────────
 const usernameInput = document.getElementById('adminUsername') as HTMLInputElement;
@@ -49,13 +48,67 @@ const TOAST_ERROR_TTL = 6000;
 const TOAST_INFO_TTL = 6000;
 
 // ============================================
+// PREVENT AUTO-FILL AND SAVED PASSWORDS
+// ============================================
+
+function preventAutoFill(): void {
+  // Clear input values on page load
+  if (usernameInput) usernameInput.value = '';
+  if (passwordInput) passwordInput.value = '';
+  if (emailInput) emailInput.value = '';
+  
+  // Add autocomplete="off" to all inputs
+  if (usernameInput) {
+    usernameInput.setAttribute('autocomplete', 'off');
+    usernameInput.setAttribute('autocomplete', 'new-password');
+  }
+  if (passwordInput) {
+    passwordInput.setAttribute('autocomplete', 'new-password');
+  }
+  if (emailInput) {
+    emailInput.setAttribute('autocomplete', 'off');
+  }
+  
+  // Clear browser's saved form data on page load
+  if (document.forms) {
+    const forms = document.getElementsByTagName('form');
+    for (let i = 0; i < forms.length; i++) {
+      forms[i].reset();
+    }
+  }
+}
+
+// ============================================
+// CLEAR ANY STORED CREDENTIALS IN LOCALSTORAGE
+// ============================================
+
+function clearStoredCredentials(): void {
+  // Remove any potential stored credentials
+  localStorage.removeItem('saved_username');
+  localStorage.removeItem('saved_password');
+  localStorage.removeItem('remember_me');
+  localStorage.removeItem('admin_username'); // Remove any stored username
+  sessionStorage.removeItem('temp_username');
+  sessionStorage.removeItem('temp_password');
+}
+
+// ============================================
 // VERSION CHECK - CLEAR OLD SESSIONS ON DEPLOY
 // ============================================
 
 function checkAndClearOldSession(): void {
   const storedVersion = localStorage.getItem('app_version');
   if (storedVersion !== APP_VERSION) {
-    localStorage.clear();
+    // Clear everything except version
+    const keysToKeep = ['app_version'];
+    const allKeys = Object.keys(localStorage);
+    
+    allKeys.forEach(key => {
+      if (!keysToKeep.includes(key)) {
+        localStorage.removeItem(key);
+      }
+    });
+    
     sessionStorage.clear();
     localStorage.setItem('app_version', APP_VERSION);
   }
@@ -88,6 +141,15 @@ function initSecurity(): void {
       e.preventDefault();
       return false;
     }
+  });
+  
+  // Prevent form submission on enter (we handle manually)
+  const forms = document.querySelectorAll('form');
+  forms.forEach(form => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      return false;
+    });
   });
 }
 
@@ -196,9 +258,14 @@ function initTabs(): void {
       if (tab === 'credentials') {
         credentialsTab?.classList.add('active');
         magicTab?.classList.remove('active');
+        // Clear inputs when switching tabs
+        if (usernameInput) usernameInput.value = '';
+        if (passwordInput) passwordInput.value = '';
       } else {
         magicTab?.classList.add('active');
         credentialsTab?.classList.remove('active');
+        // Clear email when switching tabs
+        if (emailInput) emailInput.value = '';
       }
       
       clearToasts();
@@ -282,12 +349,13 @@ function isAllowedMagicLinkEmail(email: string): boolean {
 }
 
 // ============================================
-// CREDENTIALS LOGIN
+// CREDENTIALS LOGIN - NO STORAGE OF CREDENTIALS
 // ============================================
 
 async function loginWithCredentials(): Promise<void> {
+  // Get fresh values from inputs - never from storage
   const username = usernameInput.value.trim();
-  const password = passwordInput.value.trim();
+  const password = passwordInput.value;
 
   if (loginAttempts >= MAX_ATTEMPTS) {
     showToast('error', {
@@ -320,15 +388,26 @@ async function loginWithCredentials(): Promise<void> {
 
   if (foundAdmin) {
     resetAttempts();
+    
+    // Clear any existing data first
+    const version = localStorage.getItem('app_version');
     localStorage.clear();
     sessionStorage.clear();
+    if (version) localStorage.setItem('app_version', version);
     
+    // Store ONLY session info, NEVER credentials
     localStorage.setItem('app_version', APP_VERSION);
     localStorage.setItem('admin_logged_in', 'true');
-    localStorage.setItem('admin_username', foundAdmin.username);
     localStorage.setItem('admin_name', foundAdmin.name);
     localStorage.setItem('login_method', 'credentials');
     localStorage.setItem('admin_login_time', Date.now().toString());
+    
+    // IMPORTANT: NEVER store username or password in localStorage!
+    // Do NOT add: localStorage.setItem('admin_username', username)
+    
+    // Clear input fields for security
+    usernameInput.value = '';
+    passwordInput.value = '';
     
     showToast('success', { 
       title: `Welcome, ${foundAdmin.name}!`, 
@@ -336,12 +415,17 @@ async function loginWithCredentials(): Promise<void> {
     });
     
     setTimeout(() => {
-      window.location.replace('/admin');
+      window.location.href = '/admin';
     }, 1000);
   } else {
     loginAttempts++;
     saveAttempts();
     const remaining = MAX_ATTEMPTS - loginAttempts;
+    
+    // Clear password field on failed attempt
+    passwordInput.value = '';
+    passwordInput.focus();
+    
     shakeInput(usernameInput);
     showToast('error', {
       title: 'Invalid credentials',
@@ -403,7 +487,7 @@ async function sendMagicLink(): Promise<void> {
         title: 'Magic link sent!',
         description: result.message,
       });
-      emailInput.value = '';
+      emailInput.value = ''; // Clear email field
     } else {
       loginAttempts++;
       saveAttempts();
@@ -432,6 +516,36 @@ async function sendMagicLink(): Promise<void> {
 }
 
 // ============================================
+// PREVENT BROWSER FROM SAVING CREDENTIALS
+// ============================================
+
+function preventBrowserSavePassword(): void {
+  // Add hidden fields to confuse browser's password manager
+  const hiddenUsername = document.createElement('input');
+  hiddenUsername.type = 'text';
+  hiddenUsername.style.display = 'none';
+  hiddenUsername.setAttribute('autocomplete', 'username');
+  
+  const hiddenPassword = document.createElement('input');
+  hiddenPassword.type = 'password';
+  hiddenPassword.style.display = 'none';
+  hiddenPassword.setAttribute('autocomplete', 'new-password');
+  
+  const credentialsContainer = document.querySelector('.credentials-fields');
+  if (credentialsContainer) {
+    credentialsContainer.prepend(hiddenUsername);
+    credentialsContainer.prepend(hiddenPassword);
+  }
+  
+  // Clear fields on page unload
+  window.addEventListener('beforeunload', () => {
+    if (usernameInput) usernameInput.value = '';
+    if (passwordInput) passwordInput.value = '';
+    if (emailInput) emailInput.value = '';
+  });
+}
+
+// ============================================
 // AUTO-RESET CHECK
 // ============================================
 
@@ -452,27 +566,40 @@ setInterval(() => {
 credentialsBtn.addEventListener('click', loginWithCredentials);
 magicBtn.addEventListener('click', sendMagicLink);
 
+// Prevent Enter key from submitting forms unexpectedly
 usernameInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') loginWithCredentials();
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    loginWithCredentials();
+  }
 });
 passwordInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') loginWithCredentials();
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    loginWithCredentials();
+  }
 });
 emailInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendMagicLink();
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    sendMagicLink();
+  }
 });
 
 // ============================================
 // INITIALIZATION - NO AUTO REDIRECT!
 // ============================================
 
+// Clear any stored credentials first
+clearStoredCredentials();
+
 checkAndClearOldSession();
 initSecurity();
 initTheme();
 initTabs();
 initPasswordToggle();
+preventAutoFill(); // Clear input values
+preventBrowserSavePassword(); // Prevent browser from saving
 loadAttempts();
 
-// IMPORTANT: DO NOT call checkExistingSession() here
-// Let user click login button manually
-console.log('✅ Login page ready');
+console.log('✅ Login page ready - No credentials stored');

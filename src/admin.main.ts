@@ -1,4 +1,4 @@
-// admin.main.ts
+// admin.main.ts - COMPLETE WITH FORCED LOGOUT ON REDEPLOY
 
 import { supabase } from './services/supabase.service';
 import { AdminStudentController } from './controllers/admin.student.controller';
@@ -20,7 +20,7 @@ let hkCourseChart: any = null;
 let hkDutyChart: any = null;
 
 // App version - CHANGE THIS ON EVERY DEPLOYMENT
-const APP_VERSION = "v2.1.1";
+const APP_VERSION = "v2.1.3"; // INCREMENT THIS ON EVERY DEPLOY!
 
 // Colors
 const colors = {
@@ -71,17 +71,6 @@ const courseColors = [
   '#1e3a5f', '#2ecc71'
 ];
 
-// Allowed admin emails for magic link
-const ALLOWED_ADMIN_EMAILS = [
-  'leda.lutrania.sjc@phinmaed.com',
-  'anma.saguid.sjc@phinmaed.com',
-  'juba.libao.sjc@phinmaed.com',
-  'chpe.villanueva.sjc@phinmaed.com'
-];
-
-// Valid admin usernames for credentials login
-const VALID_ADMIN_USERNAMES = ['AdminAnthony', 'AdminRonan', 'AdminJay', 'AdminLeimark', 'AdminAllain'];
-
 // ============================================
 // LOADING SCREEN
 // ============================================
@@ -100,15 +89,96 @@ function hideLoadingScreen(): void {
 }
 
 // ============================================
-// VERSION CHECK - FORCES LOGOUT ON DEPLOY
+// VERSION CHECK - FORCES LOGOUT ON DEPLOYMENT
 // ============================================
 
 function checkAppVersion(): void {
   const storedVersion = localStorage.getItem('app_version');
-  if (storedVersion !== APP_VERSION) {
-    console.log(`🔄 App version changed from ${storedVersion} to ${APP_VERSION}. Clearing session...`);
-    forceLogout();
+  const deploymentId = localStorage.getItem('deployment_id');
+  const newDeploymentId = generateDeploymentId();
+  
+  console.log(`🔍 Version check: Stored=${storedVersion}, Current=${APP_VERSION}`);
+  console.log(`🔍 Deployment check: Stored=${deploymentId}, Current=${newDeploymentId}`);
+  
+  // CASE 1: No stored version - first time visit
+  if (!storedVersion) {
+    console.log('📝 First time visit, setting version');
+    localStorage.setItem('app_version', APP_VERSION);
+    localStorage.setItem('deployment_id', newDeploymentId);
+    return;
   }
+  
+  // CASE 2: Version mismatch - FORCE LOGOUT IMMEDIATELY
+  if (storedVersion !== APP_VERSION) {
+    console.log(`🚨 VERSION MISMATCH! New deployment detected!`);
+    console.log(`   Old: ${storedVersion} → New: ${APP_VERSION}`);
+    console.log(`   Forcing logout for security...`);
+    
+    // Show message to user before logout
+    showDeploymentLogoutMessage();
+    
+    // Force immediate logout
+    forceLogout();
+    return;
+  }
+  
+  // CASE 3: Same version but check deployment ID (extra security)
+  if (deploymentId !== newDeploymentId) {
+    console.log(`🚨 DEPLOYMENT ID MISMATCH! Forcing logout...`);
+    showDeploymentLogoutMessage();
+    forceLogout();
+    return;
+  }
+  
+  console.log('✅ Version check passed');
+}
+
+// Generate unique deployment ID based on timestamp and version
+function generateDeploymentId(): string {
+  return `${APP_VERSION}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Show message to user before logout
+function showDeploymentLogoutMessage(): void {
+  // Create a temporary overlay message
+  const messageDiv = document.createElement('div');
+  messageDiv.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: white;
+    font-family: system-ui, -apple-system, sans-serif;
+    text-align: center;
+    padding: 20px;
+  `;
+  messageDiv.innerHTML = `
+    <div style="background: #1e293b; padding: 30px; border-radius: 20px; max-width: 350px;">
+      <div style="font-size: 48px; margin-bottom: 16px;">🔄</div>
+      <h2 style="margin: 0 0 12px 0; font-size: 24px;">System Updated</h2>
+      <p style="margin: 0 0 20px 0; color: #94a3b8; line-height: 1.5;">
+        A new version of the dashboard has been deployed. 
+        Please log in again for security.
+      </p>
+      <div class="spinner" style="margin: 0 auto;"></div>
+      <p style="margin-top: 20px; font-size: 12px; color: #64748b;">Redirecting to login...</p>
+    </div>
+  `;
+  document.body.appendChild(messageDiv);
+  
+  // Remove after 2 seconds
+  setTimeout(() => {
+    if (messageDiv && messageDiv.parentNode) {
+      messageDiv.remove();
+    }
+  }, 2000);
 }
 
 // ============================================
@@ -123,10 +193,67 @@ async function forceLogout(): Promise<void> {
   sessionStorage.clear();
   
   // Sign out from Supabase
-  await supabase.auth.signOut();
+  try {
+    await supabase.auth.signOut();
+  } catch (error) {
+    console.error('Supabase signout error:', error);
+  }
   
-  // Redirect to login page
-  window.location.replace('/admin-login');
+  // Redirect to login page with cache busting
+  const loginUrl = '/admin-login?t=' + Date.now();
+  window.location.replace(loginUrl);
+}
+
+// ============================================
+// CHECK IF USER SHOULD BE ALLOWED TO ACCESS
+// ============================================
+
+async function validateSession(): Promise<boolean> {
+  console.log('🔐 Validating session...');
+  
+  // Check if logged in flag exists
+  const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+  const loginTime = localStorage.getItem('admin_login_time');
+  const loginMethod = localStorage.getItem('login_method');
+  
+  // If not logged in, reject
+  if (!isLoggedIn) {
+    console.log('❌ User not logged in');
+    return false;
+  }
+  
+  // Check session expiry (8 hours)
+  if (loginTime) {
+    const elapsed = Date.now() - parseInt(loginTime);
+    const eightHours = 8 * 60 * 60 * 1000;
+    if (elapsed > eightHours) {
+      console.log('⏰ Session expired (8 hours passed)');
+      await forceLogout();
+      return false;
+    }
+  }
+  
+  // For credentials login, no need to check Supabase
+  if (loginMethod === 'credentials') {
+    console.log('✅ Credentials session validated');
+    return true;
+  }
+  
+  // For magic link, verify Supabase session
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      console.log('❌ No valid Supabase session');
+      await forceLogout();
+      return false;
+    }
+    console.log('✅ Magic link session validated');
+    return true;
+  } catch (error) {
+    console.error('Session validation error:', error);
+    await forceLogout();
+    return false;
+  }
 }
 
 // ============================================
@@ -178,17 +305,79 @@ function initMobileSidebar(): void {
 }
 
 // ============================================
-// LOGOUT HANDLER
+// LOGOUT HANDLER WITH CONFIRMATION MODAL
 // ============================================
 
 function initLogoutHandler(): void {
   const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
+  const logoutModal = document.getElementById('logoutModal');
+  const closeLogoutBtn = document.getElementById('closeLogout');
+  const stayBtn = document.getElementById('stayBtn');
+  const doLogoutBtn = document.getElementById('doLogout');
+  
+  if (!logoutBtn) {
+    console.warn('Logout button not found');
+    return;
+  }
+  
+  // Open modal when logout button is clicked
+  logoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (logoutModal) {
+      logoutModal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Fallback if modal doesn't exist
+      const userConfirmed = confirm('Are you sure you want to log out?');
+      if (userConfirmed) {
+        forceLogout();
+      }
+    }
+  });
+  
+  // Close modal functions
+  function closeModal(): void {
+    if (logoutModal) {
+      logoutModal.style.display = 'none';
+      document.body.style.overflow = '';
+    }
+  }
+  
+  // Close button
+  if (closeLogoutBtn) {
+    closeLogoutBtn.addEventListener('click', closeModal);
+  }
+  
+  // Stay/Cancel button
+  if (stayBtn) {
+    stayBtn.addEventListener('click', closeModal);
+  }
+  
+  // Confirm logout button
+  if (doLogoutBtn) {
+    doLogoutBtn.addEventListener('click', async () => {
+      closeModal();
       await forceLogout();
     });
   }
+  
+  // Close modal when clicking outside
+  if (logoutModal) {
+    logoutModal.addEventListener('click', (e) => {
+      if (e.target === logoutModal) {
+        closeModal();
+      }
+    });
+  }
+  
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && logoutModal && logoutModal.style.display === 'flex') {
+      closeModal();
+    }
+  });
 }
 
 // ============================================
@@ -196,8 +385,9 @@ function initLogoutHandler(): void {
 // ============================================
 
 function initSecurity(): void {
-  console.log('⚠️ Security features disabled for debugging');
+  console.log('🔒 Initializing security measures');
   
+  // Add cache control headers via meta tags
   const metaNoCache = document.createElement('meta');
   metaNoCache.httpEquiv = 'Cache-Control';
   metaNoCache.content = 'no-cache, no-store, must-revalidate';
@@ -212,6 +402,19 @@ function initSecurity(): void {
   metaExpires.httpEquiv = 'Expires';
   metaExpires.content = '0';
   document.head.appendChild(metaExpires);
+  
+  // Prevent page from being cached in browser history
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      // Page was loaded from cache (back/forward button)
+      console.log('Page loaded from cache, re-validating session...');
+      validateSession().then(isValid => {
+        if (!isValid) {
+          forceLogout();
+        }
+      });
+    }
+  });
 }
 
 // ============================================
@@ -831,73 +1034,29 @@ function initAdminDashboard(): void {
 }
 
 // ============================================
-// START APPLICATION (FIXED - NO REDIRECT LOOP)
+// START APPLICATION - WITH FORCED LOGOUT ON REDEPLOY
 // ============================================
 
 async function startApp(): Promise<void> {
   console.log('🔐 Starting application...');
   
-  // Check version first (forces logout on new deployment)
+  // STEP 1: Check version FIRST - forces logout on version mismatch
   checkAppVersion();
   
-  // Get auth data from localStorage
-  const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
-  const adminName = localStorage.getItem('admin_name');
-  const loginMethod = localStorage.getItem('login_method');
-  const loginTime = localStorage.getItem('admin_login_time');
-  
-  console.log('📋 Auth data:', { isLoggedIn, adminName, loginMethod, loginTime });
-  
-  // Check session expiry (8 hours)
-  if (loginTime) {
-    const elapsed = Date.now() - parseInt(loginTime);
-    const eightHours = 8 * 60 * 60 * 1000;
-    if (elapsed > eightHours) {
-      console.log('⏰ Session expired');
-      await forceLogout();
-      return;
-    }
-  }
-  
-  // If credentials login - show dashboard directly (NO SUPABASE CHECK)
-  if (isLoggedIn && adminName && loginMethod === 'credentials') {
-    console.log(`✅ Credentials login detected for: ${adminName}`);
-    hideLoadingScreen();
-    updateAdminDisplay();
-    initSecurity();
-    initMobileSidebar();
-    initLogoutHandler();
-    initAdminDashboard();
+  // STEP 2: Validate session
+  const isValid = await validateSession();
+  if (!isValid) {
+    console.log('❌ Session invalid, redirecting to login...');
     return;
   }
   
-  // Check Supabase session for magic link
-  const { data: { session } } = await supabase.auth.getSession();
-  if (session) {
-    console.log('✅ Magic link session valid');
-    // Store session info if not already stored
-    if (!isLoggedIn) {
-      localStorage.setItem('admin_logged_in', 'true');
-      localStorage.setItem('admin_email', session.user.email || '');
-      localStorage.setItem('login_method', 'magiclink');
-      localStorage.setItem('admin_login_time', Date.now().toString());
-      
-      // Extract name from email
-      const emailName = session.user.email?.split('@')[0] || 'Admin';
-      localStorage.setItem('admin_name', emailName.charAt(0).toUpperCase() + emailName.slice(1));
-    }
-    hideLoadingScreen();
-    updateAdminDisplay();
-    initSecurity();
-    initMobileSidebar();
-    initLogoutHandler();
-    initAdminDashboard();
-    return;
-  }
-  
-  console.log('❌ No valid session, redirecting to login');
-  window.location.replace('/admin-login');
+  // STEP 3: Session is valid, load dashboard
+  console.log('✅ Session valid, loading dashboard...');
+  hideLoadingScreen();
+  initSecurity();
+  initAdminDashboard();
 }
 
-// Start the app
+// Initialize the application
+showLoadingScreen();
 startApp();
