@@ -1,10 +1,10 @@
 // src/admin-login.ts
-// COMPLETE VERSION WITH SECURITY
+// COMPLETE VERSION - SYNCED WITH admin.main.ts
 
 import { supabase, AdminAuthService } from './services/supabase.service';
 
-// App version - CHANGE THIS ON EVERY DEPLOYMENT
-const APP_VERSION = "v2.5.0";
+// App version - MUST MATCH admin.main.ts
+const APP_VERSION = "v2.1.1";
 
 // ── DOM Elements ──────────────────────────────────────────────
 const usernameInput = document.getElementById('adminUsername') as HTMLInputElement;
@@ -55,7 +55,6 @@ const TOAST_INFO_TTL = 6000;
 function checkAndClearOldSession(): void {
   const storedVersion = localStorage.getItem('app_version');
   if (storedVersion !== APP_VERSION) {
-    console.log(`🔄 New version detected. Clearing old session...`);
     localStorage.clear();
     sessionStorage.clear();
     localStorage.setItem('app_version', APP_VERSION);
@@ -148,7 +147,6 @@ function showToast(type: ToastType, opts: ToastOptions): HTMLElement {
   `;
 
   toastRegion.prepend(toast);
-
   toast.querySelector('.toast-close')!.addEventListener('click', () => dismissToast(toast));
 
   if (ttl > 0) {
@@ -264,36 +262,6 @@ function resetAttempts(): void {
   magicBtn.disabled = false;
 }
 
-// ============================================
-// SESSION CHECK - WILL REDIRECT IF ALREADY LOGGED IN
-// ============================================
-
-async function checkExistingSession(): Promise<void> {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    const isCredentialsLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
-    const loginMethod = localStorage.getItem('login_method');
-    const adminName = localStorage.getItem('admin_name');
-    
-    console.log('🔐 Session check:', { 
-      hasSupabaseSession: !!session, 
-      isCredentialsLoggedIn, 
-      loginMethod,
-      adminName
-    });
-    
-    // Valid session conditions
-    const hasValidSession = session || (isCredentialsLoggedIn && loginMethod === 'credentials');
-    
-    if (hasValidSession && adminName) {
-      console.log(`✅ Valid session found for: ${adminName}, redirecting to dashboard`);
-      window.location.replace('/admin');
-    }
-  } catch (error) {
-    console.error('Session check error:', error);
-  }
-}
-
 function setLoading(btn: HTMLButtonElement, loading: boolean): void {
   if (loading) {
     btn.classList.add('loading');
@@ -344,7 +312,6 @@ async function loginWithCredentials(): Promise<void> {
   }
 
   setLoading(credentialsBtn, true);
-  
   await new Promise(resolve => setTimeout(resolve, 500));
 
   const foundAdmin = ADMIN_ACCOUNTS.find(
@@ -353,8 +320,6 @@ async function loginWithCredentials(): Promise<void> {
 
   if (foundAdmin) {
     resetAttempts();
-    
-    // Clear any previous auth data and set new session
     localStorage.clear();
     sessionStorage.clear();
     
@@ -364,8 +329,6 @@ async function loginWithCredentials(): Promise<void> {
     localStorage.setItem('admin_name', foundAdmin.name);
     localStorage.setItem('login_method', 'credentials');
     localStorage.setItem('admin_login_time', Date.now().toString());
-    
-    console.log('✅ Session saved for:', foundAdmin.name);
     
     showToast('success', { 
       title: `Welcome, ${foundAdmin.name}!`, 
@@ -379,7 +342,6 @@ async function loginWithCredentials(): Promise<void> {
     loginAttempts++;
     saveAttempts();
     const remaining = MAX_ATTEMPTS - loginAttempts;
-    
     shakeInput(usernameInput);
     showToast('error', {
       title: 'Invalid credentials',
@@ -412,12 +374,11 @@ async function sendMagicLink(): Promise<void> {
     return;
   }
 
-  // Only allowed emails can use magic link
   if (!isAllowedMagicLinkEmail(email)) {
     shakeInput(emailInput);
     showToast('error', { 
       title: 'Access Denied', 
-      description: 'This email address is not authorized for magic link login. Only authorized OS Head personnel can use this feature.' 
+      description: 'This email address is not authorized for magic link login.' 
     });
     emailInput.focus();
     return;
@@ -462,7 +423,7 @@ async function sendMagicLink(): Promise<void> {
     shakeInput(emailInput);
     showToast('error', {
       title: 'Something went wrong',
-      description: 'An unexpected error occurred. Please try again.',
+      description: 'An unexpected error occurred.',
       attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
     });
   } finally {
@@ -480,7 +441,6 @@ setInterval(() => {
     const elapsed = Date.now() - parseInt(savedTimestamp);
     if (elapsed >= RESET_TIME && loginAttempts > 0) {
       resetAttempts();
-      console.log('🔄 Login attempts reset after 1 hour');
     }
   }
 }, 60 * 1000);
@@ -503,22 +463,16 @@ emailInput.addEventListener('keypress', (e) => {
 });
 
 // ============================================
-// INITIALIZATION
+// INITIALIZATION - NO AUTO REDIRECT!
 // ============================================
 
-// Clear old session on new version
 checkAndClearOldSession();
-
-// Initialize security
 initSecurity();
-
-// Initialize UI
 initTheme();
 initTabs();
 initPasswordToggle();
-
-// Load attempts
 loadAttempts();
 
-// Check if already logged in (will redirect to /admin if true)
-checkExistingSession();
+// IMPORTANT: DO NOT call checkExistingSession() here
+// Let user click login button manually
+console.log('✅ Login page ready');
