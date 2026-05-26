@@ -1,9 +1,9 @@
-// admin-login.ts - COMPLETE VERSION WITH SECURITY FIXES
+// src/admin-login.ts - UPDATED WITH SESSIONSTORAGE
 
 import { supabase, AdminAuthService } from './services/supabase.service';
 
 // App version - MUST MATCH admin.main.ts
-const APP_VERSION = "v2.1.3";
+const APP_VERSION = "v2.1.4";
 
 // ── DOM Elements ──────────────────────────────────────────────
 const usernameInput = document.getElementById('adminUsername') as HTMLInputElement;
@@ -79,17 +79,23 @@ function preventAutoFill(): void {
 }
 
 // ============================================
-// CLEAR ANY STORED CREDENTIALS IN LOCALSTORAGE
+// CLEAR ANY STORED CREDENTIALS
 // ============================================
 
 function clearStoredCredentials(): void {
-  // Remove any potential stored credentials
+  // Clear localStorage
   localStorage.removeItem('saved_username');
   localStorage.removeItem('saved_password');
   localStorage.removeItem('remember_me');
-  localStorage.removeItem('admin_username'); // Remove any stored username
+  localStorage.removeItem('admin_username');
+  
+  // Clear sessionStorage
   sessionStorage.removeItem('temp_username');
   sessionStorage.removeItem('temp_password');
+  sessionStorage.removeItem('admin_logged_in');
+  sessionStorage.removeItem('admin_name');
+  sessionStorage.removeItem('login_method');
+  sessionStorage.removeItem('admin_login_time');
 }
 
 // ============================================
@@ -97,19 +103,25 @@ function clearStoredCredentials(): void {
 // ============================================
 
 function checkAndClearOldSession(): void {
-  const storedVersion = localStorage.getItem('app_version');
+  const storedVersion = sessionStorage.getItem('app_version');
   if (storedVersion !== APP_VERSION) {
-    // Clear everything except version
+    // Clear everything except version in sessionStorage
     const keysToKeep = ['app_version'];
-    const allKeys = Object.keys(localStorage);
+    const allKeys = Object.keys(sessionStorage);
     
     allKeys.forEach(key => {
       if (!keysToKeep.includes(key)) {
-        localStorage.removeItem(key);
+        sessionStorage.removeItem(key);
       }
     });
     
-    sessionStorage.clear();
+    sessionStorage.setItem('app_version', APP_VERSION);
+  }
+  
+  // Also clear localStorage for old data
+  const localVersion = localStorage.getItem('app_version');
+  if (localVersion !== APP_VERSION) {
+    localStorage.clear();
     localStorage.setItem('app_version', APP_VERSION);
   }
 }
@@ -349,7 +361,7 @@ function isAllowedMagicLinkEmail(email: string): boolean {
 }
 
 // ============================================
-// CREDENTIALS LOGIN - NO STORAGE OF CREDENTIALS
+// CREDENTIALS LOGIN - USING SESSIONSTORAGE
 // ============================================
 
 async function loginWithCredentials(): Promise<void> {
@@ -389,21 +401,22 @@ async function loginWithCredentials(): Promise<void> {
   if (foundAdmin) {
     resetAttempts();
     
-    // Clear any existing data first
-    const version = localStorage.getItem('app_version');
-    localStorage.clear();
+    // Clear ALL existing data from both storages
+    const version = sessionStorage.getItem('app_version');
     sessionStorage.clear();
-    if (version) localStorage.setItem('app_version', version);
+    localStorage.clear();
     
-    // Store ONLY session info, NEVER credentials
+    // Store session in sessionStorage (temporary - mawawala pag close ng browser)
+    sessionStorage.setItem('app_version', APP_VERSION);
+    sessionStorage.setItem('admin_logged_in', 'true');
+    sessionStorage.setItem('admin_name', foundAdmin.name);
+    sessionStorage.setItem('login_method', 'credentials');
+    sessionStorage.setItem('admin_login_time', Date.now().toString());
+    
+    // Store version in localStorage for reference only (not session data)
     localStorage.setItem('app_version', APP_VERSION);
-    localStorage.setItem('admin_logged_in', 'true');
-    localStorage.setItem('admin_name', foundAdmin.name);
-    localStorage.setItem('login_method', 'credentials');
-    localStorage.setItem('admin_login_time', Date.now().toString());
     
-    // IMPORTANT: NEVER store username or password in localStorage!
-    // Do NOT add: localStorage.setItem('admin_username', username)
+    // IMPORTANT: NEVER store username or password!
     
     // Clear input fields for security
     usernameInput.value = '';
@@ -415,7 +428,7 @@ async function loginWithCredentials(): Promise<void> {
     });
     
     setTimeout(() => {
-      window.location.href = '/admin';
+      window.location.href = '/admin.html';
     }, 1000);
   } else {
     loginAttempts++;
@@ -437,7 +450,7 @@ async function loginWithCredentials(): Promise<void> {
 }
 
 // ============================================
-// MAGIC LINK LOGIN (ONLY ALLOWED EMAILS)
+// MAGIC LINK LOGIN - USING SESSIONSTORAGE
 // ============================================
 
 async function sendMagicLink(): Promise<void> {
@@ -487,7 +500,7 @@ async function sendMagicLink(): Promise<void> {
         title: 'Magic link sent!',
         description: result.message,
       });
-      emailInput.value = ''; // Clear email field
+      emailInput.value = '';
     } else {
       loginAttempts++;
       saveAttempts();
@@ -587,7 +600,7 @@ emailInput.addEventListener('keypress', (e) => {
 });
 
 // ============================================
-// INITIALIZATION - NO AUTO REDIRECT!
+// INITIALIZATION
 // ============================================
 
 // Clear any stored credentials first
@@ -598,8 +611,8 @@ initSecurity();
 initTheme();
 initTabs();
 initPasswordToggle();
-preventAutoFill(); // Clear input values
-preventBrowserSavePassword(); // Prevent browser from saving
+preventAutoFill();
+preventBrowserSavePassword();
 loadAttempts();
 
-console.log('✅ Login page ready - No credentials stored');
+console.log('✅ Login page ready - Using sessionStorage for session management');

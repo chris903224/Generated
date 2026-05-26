@@ -1,9 +1,10 @@
-// admin.main.ts - COMPLETE FIXED VERSION
-// Place this in the ROOT directory (same level as admin.html)
+// admin.main.ts - UPDATED WITH SESSIONSTORAGE
+
 import { supabase } from './services/supabase.service';
 import { AdminStudentController } from './controllers/admin.student.controller';
 import { AdminUIController } from './controllers/admin.ui.controller';
 import { StudentService } from './services/supabase.service';
+
 
 // Declare Chart from CDN
 declare const Chart: any;
@@ -20,7 +21,7 @@ let hkCourseChart: any = null;
 let hkDutyChart: any = null;
 
 // App version - MUST MATCH admin-login.ts
-const APP_VERSION = "v2.1.3";
+const APP_VERSION = "v2.1.4";
 
 // Colors
 const colors = {
@@ -89,18 +90,18 @@ function hideLoadingScreen(): void {
 }
 
 // ============================================
-// VERSION CHECK - FIXED
+// VERSION CHECK - Using sessionStorage
 // ============================================
 
 function checkAppVersion(): void {
-  const storedVersion = localStorage.getItem('app_version');
+  const storedVersion = sessionStorage.getItem('app_version');
   
   console.log(`🔍 Version check: Stored=${storedVersion}, Current=${APP_VERSION}`);
   
   // First time visit - set version
   if (!storedVersion) {
     console.log('📝 First time visit, setting version');
-    localStorage.setItem('app_version', APP_VERSION);
+    sessionStorage.setItem('app_version', APP_VERSION);
     return;
   }
   
@@ -109,13 +110,12 @@ function checkAppVersion(): void {
     console.log(`⚠️ Version mismatch: ${storedVersion} vs ${APP_VERSION}`);
     
     // Check if this is a recent login (within last 10 seconds)
-    const loginTime = localStorage.getItem('admin_login_time');
+    const loginTime = sessionStorage.getItem('admin_login_time');
     if (loginTime) {
       const elapsed = Date.now() - parseInt(loginTime);
       if (elapsed < 10000) {
-        // Recent login, just update version
         console.log('✅ Recent login detected, updating version');
-        localStorage.setItem('app_version', APP_VERSION);
+        sessionStorage.setItem('app_version', APP_VERSION);
         return;
       }
     }
@@ -127,13 +127,13 @@ function checkAppVersion(): void {
 }
 
 // ============================================
-// FORCE LOGOUT
+// FORCE LOGOUT - Clear ALL storages
 // ============================================
 
 async function forceLogout(): Promise<void> {
   console.log('🚪 Force logout...');
   
-  // Clear all storage
+  // Clear BOTH storages for security
   localStorage.clear();
   sessionStorage.clear();
   
@@ -144,27 +144,28 @@ async function forceLogout(): Promise<void> {
     console.error('Signout error:', e);
   }
   
-  // Redirect to login
-  window.location.href = '/admin-login.html';
+  // Redirect to login with cache buster
+  window.location.href = '/admin-login.html?t=' + Date.now();
 }
 
 // ============================================
-// VALIDATE SESSION - FIXED
+// VALIDATE SESSION - Using sessionStorage
 // ============================================
 
 async function validateSession(): Promise<boolean> {
   console.log('🔐 Validating session...');
   
-  const isLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
-  const loginMethod = localStorage.getItem('login_method');
-  const loginTime = localStorage.getItem('admin_login_time');
-  const adminName = localStorage.getItem('admin_name');
+  // CHECK sessionStorage (temporary, mawawala pag close ng browser)
+  const isLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
+  const loginMethod = sessionStorage.getItem('login_method');
+  const loginTime = sessionStorage.getItem('admin_login_time');
+  const adminName = sessionStorage.getItem('admin_name');
   
   console.log('📋 Session data:', { isLoggedIn, loginMethod, loginTime, adminName });
   
   // Check if logged in
   if (!isLoggedIn) {
-    console.log('❌ Not logged in');
+    console.log('❌ Not logged in - sessionStorage empty');
     return false;
   }
   
@@ -173,7 +174,7 @@ async function validateSession(): Promise<boolean> {
     const elapsed = Date.now() - parseInt(loginTime);
     const eightHours = 8 * 60 * 60 * 1000;
     if (elapsed > eightHours) {
-      console.log('⏰ Session expired');
+      console.log('⏰ Session expired (8 hours passed)');
       await forceLogout();
       return false;
     }
@@ -265,7 +266,6 @@ function initLogoutHandler(): void {
     return;
   }
   
-  // Open modal when logout button is clicked
   logoutBtn.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -274,7 +274,6 @@ function initLogoutHandler(): void {
       logoutModal.style.display = 'flex';
       document.body.style.overflow = 'hidden';
     } else {
-      // Fallback if modal doesn't exist
       const userConfirmed = confirm('Are you sure you want to log out?');
       if (userConfirmed) {
         forceLogout();
@@ -282,7 +281,6 @@ function initLogoutHandler(): void {
     }
   });
   
-  // Close modal functions
   function closeModal(): void {
     if (logoutModal) {
       logoutModal.style.display = 'none';
@@ -290,17 +288,9 @@ function initLogoutHandler(): void {
     }
   }
   
-  // Close button
-  if (closeLogoutBtn) {
-    closeLogoutBtn.addEventListener('click', closeModal);
-  }
+  if (closeLogoutBtn) closeLogoutBtn.addEventListener('click', closeModal);
+  if (stayBtn) stayBtn.addEventListener('click', closeModal);
   
-  // Stay/Cancel button
-  if (stayBtn) {
-    stayBtn.addEventListener('click', closeModal);
-  }
-  
-  // Confirm logout button
   if (doLogoutBtn) {
     doLogoutBtn.addEventListener('click', async () => {
       closeModal();
@@ -308,16 +298,12 @@ function initLogoutHandler(): void {
     });
   }
   
-  // Close modal when clicking outside
   if (logoutModal) {
     logoutModal.addEventListener('click', (e) => {
-      if (e.target === logoutModal) {
-        closeModal();
-      }
+      if (e.target === logoutModal) closeModal();
     });
   }
   
-  // Close on Escape key
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && logoutModal && logoutModal.style.display === 'flex') {
       closeModal();
@@ -347,16 +333,28 @@ function initSecurity(): void {
   metaExpires.httpEquiv = 'Expires';
   metaExpires.content = '0';
   document.head.appendChild(metaExpires);
+  
+  // Prevent page from being cached in browser history
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      console.log('Page loaded from cache, re-validating session...');
+      validateSession().then(isValid => {
+        if (!isValid) {
+          forceLogout();
+        }
+      });
+    }
+  });
 }
 
 // ============================================
-// ADMIN DISPLAY NAME
+// ADMIN DISPLAY NAME - Using sessionStorage
 // ============================================
 
 function getAdminName(): string {
-  const loginMethod = localStorage.getItem('login_method');
-  const adminName = localStorage.getItem('admin_name');
-  const adminEmail = localStorage.getItem('admin_email');
+  const loginMethod = sessionStorage.getItem('login_method');
+  const adminName = sessionStorage.getItem('admin_name');
+  const adminEmail = sessionStorage.getItem('admin_email');
   
   if (loginMethod === 'credentials' && adminName) {
     return adminName;
@@ -966,28 +964,26 @@ function initAdminDashboard(): void {
 }
 
 // ============================================
-// START APPLICATION - FIXED
+// START APPLICATION
 // ============================================
 
 async function startApp(): Promise<void> {
   console.log('🚀 Starting application...');
   
-  // Show loading screen
   showLoadingScreen();
   
-  // Check version first
+  // Check version
   checkAppVersion();
   
-  // Validate session
+  // Validate session (now using sessionStorage)
   const isValid = await validateSession();
   
   if (!isValid) {
     console.log('❌ Invalid session, redirecting to login...');
-    window.location.href = '/admin-login.html';
+    window.location.href = '/admin-login.html?t=' + Date.now();
     return;
   }
   
-  // Session is valid, load dashboard
   console.log('✅ Session valid, loading dashboard...');
   hideLoadingScreen();
   initSecurity();
