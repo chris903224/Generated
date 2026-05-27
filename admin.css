@@ -3561,3 +3561,60 @@ body {
 .color-theme-option.active {
   animation: themeSelect 0.3s ease;
 }
+/* ============================================
+   AGGRESSIVE - REMOVE ALL WHITE BG FROM LOGO
+   ============================================ */
+
+.sidebar-logo .logo-mark,
+.sidebar-logo .logo-mark *,
+.logo-mark,
+.logo-mark::before,
+.logo-mark::after,
+.brand__logo-ring,
+.brand__logo-ring * {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.logo-img {
+  background: transparent !important;
+  background-color: transparent !important;
+  border-radius: 12px !important;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)) !important;
+}
+
+/* Remove white bg from the circular container */
+.sidebar-logo .logo-mark {
+  background: none !important;
+  background-color: rgba(0,0,0,0) !important;
+}
+/* ============================================
+   PURPLE THEME - SIMPLE VERSION
+   ============================================ */
+
+/* Purple Theme Variables */
+body.color-theme-purple {
+  --bg: linear-gradient(145deg, #E9D5FF 0%, #D8B4FE 40%, #C084FC 100%);
+  --glass: rgba(233, 213, 255, 0.65);
+  --glass-deep: rgba(216, 180, 254, 0.80);
+  --glass-modal: rgba(233, 213, 255, 0.95);
+  --glass-nav: rgba(216, 180, 254, 0.85);
+  --g-border: rgba(168, 85, 247, 0.30);
+  --g-border-s: rgba(139, 92, 246, 0.40);
+  --txt-h: #2e1065;
+  --txt-b: #4c1d95;
+  --txt-m: #7c3aed;
+  --accent: #8b5cf6;
+  --accent-alt: #a855f7;
+  --accent-glow: rgba(139, 92, 246, 0.22);
+  --accent-subtle: rgba(139, 92, 246, 0.10);
+}
+
+/* Purple Theme Option Button */
+.color-theme-option[data-color="purple"] {
+  background: linear-gradient(135deg, #A855F7 0%, #7C3AED 100%);
+  color: white;
+}
