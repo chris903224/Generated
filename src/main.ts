@@ -2,7 +2,7 @@
  * VeriStud Student Portal - Main Entry Point
  * TypeScript-based student identity verification system with Supabase
  * Full Security: Anti-F12, Anti-right click, Anti-inspect, Anti-console
- * Input Validation: Only numbers and dash (-) allowed for Control Number and Student ID
+ * Input Validation: Student ID only (Control Number optional)
  * Performance Optimized: 60 FPS on mobile devices
  */
 
@@ -136,7 +136,7 @@ function initSecurity(): void {
 }
 
 // ============================================
-// INPUT VALIDATION (Numbers and Dash only)
+// INPUT VALIDATION (Numbers and Dash only - Student ID only required)
 // ============================================
 
 function validateInput(input: string): boolean {
@@ -206,10 +206,10 @@ class VeriStudApp {
     const controlInput = document.getElementById('controlNum') as HTMLInputElement;
     const studentIdInput = document.getElementById('studentId') as HTMLInputElement;
     
-    // Debounced validation function
+    // Control number is OPTIONAL now - just validate if something is entered
     const debouncedValidateCtrl = debounce((input: HTMLInputElement) => {
       const rawValue = input.value;
-      if (!validateInput(rawValue) && rawValue !== '') {
+      if (rawValue !== '' && !validateInput(rawValue)) {
         input.classList.add('input-error');
         this.showInputError('ctrl', 'Only numbers and dash (-) are allowed');
       } else {
@@ -218,9 +218,13 @@ class VeriStudApp {
       }
     }, 150);
     
+    // Student ID validation (REQUIRED field)
     const debouncedValidateId = debounce((input: HTMLInputElement) => {
       const rawValue = input.value;
-      if (!validateInput(rawValue) && rawValue !== '') {
+      if (rawValue === '') {
+        input.classList.add('input-error');
+        this.showInputError('id', 'Student ID is required');
+      } else if (!validateInput(rawValue)) {
         input.classList.add('input-error');
         this.showInputError('id', 'Only numbers and dash (-) are allowed');
       } else {
@@ -316,27 +320,41 @@ class VeriStudApp {
    */
   private setupEventListeners(): void {
     const loginHandler = () => {
-      let controlNumber = this.getControlNumberValue();
+      // Get student ID (REQUIRED)
       let studentId = this.getStudentIdValue();
       
-      if (!validateInput(controlNumber) && controlNumber !== '') {
-        this.showInputError('ctrl', 'Only numbers and dash (-) are allowed');
+      // Get control number (OPTIONAL)
+      let controlNumber = this.getControlNumberValue();
+      
+      // Validate Student ID is required
+      if (!studentId) {
+        this.showInputError('id', 'Student ID is required');
         this.ui.shakeCard();
         return;
       }
       
-      if (!validateInput(studentId) && studentId !== '') {
+      // Validate Student ID format if not empty
+      if (studentId && !validateInput(studentId)) {
         this.showInputError('id', 'Only numbers and dash (-) are allowed');
         this.ui.shakeCard();
         return;
       }
       
-      controlNumber = formatInput(controlNumber);
+      // Validate Control Number format if not empty
+      if (controlNumber && !validateInput(controlNumber)) {
+        this.showInputError('ctrl', 'Only numbers and dash (-) are allowed');
+        this.ui.shakeCard();
+        return;
+      }
+      
+      // Format inputs
       studentId = formatInput(studentId);
+      controlNumber = formatInput(controlNumber);
       
       // Use requestAnimationFrame for smooth transition
       requestAnimationFrame(() => {
-        this.auth.login(controlNumber, studentId);
+        // Pass both values, but Student ID is primary
+        this.auth.login(studentId, controlNumber);
       });
     };
 
@@ -468,7 +486,7 @@ class VeriStudApp {
   }
 
   /**
-   * Get control number value
+   * Get control number value (OPTIONAL)
    */
   private getControlNumberValue(): string {
     const input = document.getElementById('controlNum') as HTMLInputElement;
@@ -476,7 +494,7 @@ class VeriStudApp {
   }
 
   /**
-   * Get student ID value
+   * Get student ID value (REQUIRED)
    */
   private getStudentIdValue(): string {
     const input = document.getElementById('studentId') as HTMLInputElement;
