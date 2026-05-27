@@ -1144,3 +1144,241 @@ body.black-theme .hours-val {
 
 input, button { touch-action: manipulation; }
 .portal { -webkit-overflow-scrolling: touch; }
+/* ============================================
+   PERFORMANCE & CACHE OPTIMIZATION v3.1
+   ============================================ */
+
+/* Force GPU acceleration sa lahat ng animated elements */
+.card,
+.profile-banner,
+.data-table,
+.modal-box,
+.btn-verify,
+.btn-reset,
+.theme-fab,
+.data-row,
+.guide-item,
+.scene__orb,
+.brand__ring-pulse {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Optimize composite layers */
+.card,
+.modal-box,
+.profile-banner {
+  isolation: isolate;
+  contain: layout style paint;
+}
+
+/* Reduce repaint sa mga blurred elements */
+.card,
+.modal-box,
+.profile-banner,
+.btn-reset,
+.guide-item {
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+
+/* Optimize scroll performance sa table */
+.table-wrapper {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Prevent FPS drop sa heavy animations */
+@media (prefers-reduced-motion: no-preference) {
+  .scene__orb,
+  .brand__ring-pulse {
+    animation-play-state: running;
+  }
+  
+  /* Throttle animations sa low-end devices */
+  @media (max-width: 768px) and (pointer: coarse) {
+    .scene__orb {
+      animation-duration: 28s !important;
+      animation-timing-function: linear !important;
+    }
+    
+    .brand__ring-pulse {
+      animation-duration: 4.5s !important;
+    }
+  }
+}
+
+/* Optimize backdrop-filter performance */
+.card,
+.modal-box,
+.profile-banner,
+.btn-reset,
+.guide-item {
+  backdrop-filter: blur(var(--glass-blur-value, 20px)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--glass-blur-value, 20px)) saturate(180%);
+}
+
+/* Cache blur values para iwas recalculation */
+:root {
+  --glass-blur-value: 20px;
+  --glass-blur-strong: 32px;
+  --glass-blur-light: 12px;
+}
+
+/* Enable hardware acceleration sa lahat ng may transition */
+.btn-verify,
+.btn-reset,
+.theme-fab,
+.data-row,
+.guide-item {
+  transition-property: transform, box-shadow, background, border-color;
+  transition-duration: 0.18s;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Limit CSS paint areas */
+.card__sheen,
+.card::after,
+.scene__grain {
+  pointer-events: none;
+  contain: strict;
+}
+
+/* Optimize font rendering sa mobile */
+@media (max-width: 768px) {
+  body {
+    text-rendering: optimizeSpeed;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  .field-input,
+  .data-row__val,
+  .guide-item__desc {
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Reduce flicker sa dark mode transition */
+body,
+.card,
+.modal-box {
+  transition: background-color 0.2s ease, backdrop-filter 0.2s ease;
+}
+
+/* Optimize image rendering */
+.brand__img,
+.modal-header__img,
+.profile-avatar svg {
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Prevent layout thrashing */
+.data-table,
+.card,
+.modal-box {
+  contain: layout style;
+}
+
+/* Optimize scroll-linked effects */
+@media (max-width: 768px) {
+  .data-table,
+  .table-wrapper {
+    contain: strict;
+  }
+}
+
+/* Frame rate smoothing sa animations */
+@keyframes orb-drift {
+  0%   { transform: translate3d(0,0,0) scale(1); }
+  100% { transform: translate3d(24px, 16px, 0) scale(1.08); }
+}
+
+@keyframes ring-pulse {
+  0%   { transform: scale3d(.86, .86, 1); opacity: 1; }
+  70%  { transform: scale3d(1.24, 1.24, 1); opacity: 0; }
+  100% { transform: scale3d(1.24, 1.24, 1); opacity: 0; }
+}
+
+/* Throttle heavy shadows sa mobile */
+@media (max-width: 768px) {
+  .card,
+  .modal-box {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  
+  .btn-verify,
+  .btn-proceed {
+    box-shadow: 0 2px 8px rgba(21, 72, 46, 0.25);
+  }
+}
+
+/* Will-change hints para smooth scroll */
+.data-row,
+.guide-item,
+.student-table tr {
+  will-change: background;
+  transition: background 0.12s ease;
+}
+
+/* Optimize modal animation */
+.modal-overlay {
+  will-change: opacity;
+  contain: content;
+}
+
+.modal-box {
+  will-change: transform, opacity;
+  contain: layout style;
+}
+
+/* Reduce input lag sa forms */
+.field-input,
+.btn-verify,
+.btn-reset,
+.modal-close,
+.btn-proceed {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Cache layer hints */
+.scene,
+.scene__canvas,
+.scene__grain {
+  contain: size layout;
+  transform: translateZ(0);
+}
+
+/* Optimize dark mode performance */
+body.black-theme .card,
+body.black-theme .modal-box {
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+
+/* Limit paint sa mabagal na devices */
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .scene__orb,
+  .brand__ring-pulse,
+  .btn-verify::before {
+    animation: none !important;
+  }
+  
+  .card,
+  .modal-box {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+/* Ensure smooth 60fps */
+@media (min-width: 1024px) {
+  .card,
+  .modal-box,
+  .profile-banner {
+    transform-style: preserve-3d;
+  }
+}
