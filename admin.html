@@ -7,64 +7,53 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
   <title>PHINMA SIS · OS Head Dashboard</title>
   
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
-  
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  
-
- <!--SJC ICON-->
   <link rel="icon" type="image/jpeg" href="sjc.jpg">
   <link rel="shortcut icon" type="image/jpeg" href="sjc.jpg">
   <link rel="apple-touch-icon" href="sjc.jpg">
   
-  <!-- Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="admin.css">
   <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
 
-  <!-- Loading Screen -->
   <div id="loadingScreen">
     <div class="spinner"></div>
     <div class="loading-text">Verifying access<span class="loading-dots"></span></div>
   </div>
 
-  <!-- Mobile Sidebar Toggle Button -->
   <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation">
     <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-      <line x1="3" y1="6" x2="21" y2="6"/>
-      <line x1="3" y1="12" x2="21" y2="12"/>
-      <line x1="3" y1="18" x2="21" y2="18"/>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
     </svg>
     <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-      <line x1="18" y1="6" x2="6" y2="18"/>
-      <line x1="6" y1="6" x2="18" y2="18"/>
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
   </button>
 
-  <!-- Sidebar Overlay -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-  <!-- Main Admin Content -->
   <div id="adminContent">
 
-    <!-- Background Elements -->
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
     <div class="noise-overlay"></div>
 
-    <!-- App Container -->
     <div class="shell" id="appShell">
 
-      <!-- SIDEBAR -->
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-inner">
           
@@ -85,10 +74,10 @@
             <a href="#" class="nav-item active" data-page="dashboard">
               <div class="nav-icon-wrap">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-                  <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-                  <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-                  <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+                  <rect x="3" y="3" width="7" height="7" rx="1.5"></rect>
+                  <rect x="14" y="3" width="7" height="7" rx="1.5"></rect>
+                  <rect x="3" y="14" width="7" height="7" rx="1.5"></rect>
+                  <rect x="14" y="14" width="7" height="7" rx="1.5"></rect>
                 </svg>
               </div>
               <span class="nav-label">Dashboard</span>
@@ -98,8 +87,8 @@
             <a href="#" class="nav-item" data-page="completion">
               <div class="nav-icon-wrap">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M9 11l3 3L22 4"/>
-                  <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                  <path d="M9 11l3 3L22 4"></path>
+                  <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
                 </svg>
               </div>
               <span class="nav-label">Completion</span>
@@ -109,9 +98,9 @@
             <a href="#" class="nav-item" data-page="hkdatabase">
               <div class="nav-icon-wrap">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <ellipse cx="12" cy="5" rx="9" ry="3"/>
-                  <path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"/>
-                  <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/>
+                  <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                  <path d="M21 12c0 1.66-4.03 3-9 3S3 13.66 3 12"></path>
+                  <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"></path>
                 </svg>
               </div>
               <span class="nav-label">HK Database</span>
@@ -123,9 +112,9 @@
             <a href="#" class="nav-item" data-page="analytics">
               <div class="nav-icon-wrap">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="18" y1="20" x2="18" y2="10"/>
-                  <line x1="12" y1="20" x2="12" y2="4"/>
-                  <line x1="6" y1="20" x2="6" y2="14"/>
+                  <line x1="18" y1="20" x2="18" y2="10"></line>
+                  <line x1="12" y1="20" x2="12" y2="4"></line>
+                  <line x1="6" y1="20" x2="6" y2="14"></line>
                 </svg>
               </div>
               <span class="nav-label">Analytics</span>
@@ -137,13 +126,12 @@
           <div class="nav-divider"></div>
 
           <div class="nav-bottom">
-            <!-- COLOR THEME PICKER BUTTON -->
             <button class="nav-item theme-picker-btn" id="themePickerBtn">
               <div class="nav-icon-wrap">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="3"/>
-                  <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.07.08A8 8 0 0 0 12 21a8 8 0 0 0 6.33-3.07l.07-.08z"/>
-                  <path d="M12 3a8 8 0 0 0-6.33 3.07l-.07.08a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1h12.44a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.07-.08A8 8 0 0 0 12 3z"/>
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.07.08A8 8 0 0 0 12 21a8 8 0 0 0 6.33-3.07l.07-.08z"></path>
+                  <path d="M12 3a8 8 0 0 0-6.33 3.07l-.07.08a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1h12.44a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.07-.08A8 8 0 0 0 12 3z"></path>
                 </svg>
               </div>
               <span class="nav-label">Theme Colors</span>
@@ -153,9 +141,9 @@
             <a href="#" class="nav-item nav-logout" id="logoutBtn">
               <div class="nav-icon-wrap">
                 <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-                  <polyline points="16 17 21 12 16 7"/>
-                  <line x1="21" y1="12" x2="9" y2="12"/>
+                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
               </div>
               <span class="nav-label">Logout</span>
@@ -165,10 +153,8 @@
         </div>
       </aside>
 
-      <!-- MAIN CONTENT -->
       <div class="main-area">
 
-        <!-- Top Bar -->
         <header class="topbar glass" id="topbar">
           <div class="topbar-left">
             <h1 class="page-title" id="pageTitle">Dashboard</h1>
@@ -179,7 +165,7 @@
               <span class="live-dot"></span>
               <span id="liveBadgeText">0 Students</span>
             </div>
-            <div class="user-pill">
+            <div class="user-pill" id="userPill" style="cursor: pointer;">
               <div class="user-avatar">
                 <div class="avatar-initials" id="adminInitials">AD</div>
               </div>
@@ -191,7 +177,6 @@
           </div>
         </header>
 
-        <!-- Page Content -->
         <main class="content" id="mainContent">
 
           <!-- DASHBOARD PAGE -->
@@ -202,8 +187,8 @@
                 <div class="stat-header">
                   <div class="stat-icon-wrap green">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="M12 8v4l3 3"/>
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M12 8v4l3 3"></path>
                     </svg>
                   </div>
                   <span class="stat-tag flat">SY 26-27</span>
@@ -219,7 +204,7 @@
                 <div class="stat-header">
                   <div class="stat-icon-wrap lime">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M20 6L9 17l-5-5"/>
+                      <path d="M20 6L9 17l-5-5"></path>
                     </svg>
                   </div>
                   <span class="stat-tag up" id="completedPct">0%</span>
@@ -235,9 +220,9 @@
                 <div class="stat-header">
                   <div class="stat-icon-wrap amber">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="12" y1="8" x2="12" y2="12"/>
-                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
                     </svg>
                   </div>
                   <span class="stat-tag flat" id="pendingPct">0%</span>
@@ -253,9 +238,9 @@
                 <div class="stat-header">
                   <div class="stat-icon-wrap rose">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <line x1="15" y1="9" x2="9" y2="15"/>
-                      <line x1="9" y1="9" x2="15" y2="15"/>
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="15" y1="9" x2="9" y2="15"></line>
+                      <line x1="9" y1="9" x2="15" y2="15"></line>
                     </svg>
                   </div>
                   <span class="stat-tag down" id="notCompletedPct">0%</span>
@@ -271,8 +256,8 @@
                 <div class="stat-header">
                   <div class="stat-icon-wrap blue">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M22 2L11 13"/>
-                      <path d="M22 2L15 22l-4-9-9-4 20-7z"/>
+                      <path d="M22 2L11 13"></path>
+                      <path d="M22 2L15 22l-4-9-9-4 20-7z"></path>
                     </svg>
                   </div>
                   <span class="stat-tag up">✈️</span>
@@ -421,44 +406,40 @@
                 <div class="controls-bar">
                   <button class="btn-primary" id="addStudentBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M12 5v14M5 12h14"/>
+                      <path d="M12 5v14M5 12h14"></path>
                     </svg>
                     Add Student
                   </button>
-                  
                   <button class="btn-outline" id="exportExcelBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="12" y1="18" x2="12" y2="12"/>
-                      <line x1="9" y1="15" x2="15" y2="15"/>
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="12" y1="18" x2="12" y2="12"></line>
+                      <line x1="9" y1="15" x2="15" y2="15"></line>
                     </svg>
                     Export to Excel
                   </button>
-                  
                   <button class="btn-outline" id="importExcelBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="12" y1="18" x2="12" y2="12"/>
-                      <line x1="9" y1="15" x2="15" y2="15"/>
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="12" y1="18" x2="12" y2="12"></line>
+                      <line x1="9" y1="15" x2="15" y2="15"></line>
                     </svg>
                     Import Excel
                   </button>
-                  
                   <button class="btn-danger" id="deleteAllBtn" style="background:#dc2626;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                      <line x1="10" y1="11" x2="10" y2="17"/>
-                      <line x1="14" y1="11" x2="14" y2="17"/>
+                      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      <line x1="10" y1="11" x2="10" y2="17"></line>
+                      <line x1="14" y1="11" x2="14" y2="17"></line>
                     </svg>
                     Delete All
                   </button>
-                  
                   <div class="search-field">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="11" cy="11" r="8"/>
-                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                     <input type="text" id="searchInput" class="search-input" placeholder="Search name, course, ID…">
                   </div>
@@ -515,18 +496,10 @@
               </div>
               <div class="panel-foot">
                 <div class="legend-row">
-                  <span class="leg-item">
-                    <span class="leg-dot" style="background:#10b981"></span>Continuing OS
-                  </span>
-                  <span class="leg-item">
-                    <span class="leg-dot" style="background:#fbbf24"></span>OJT-HK Duty
-                  </span>
-                  <span class="leg-item">
-                    <span class="leg-dot" style="background:#60a5fa"></span>Advance Duties
-                  </span>
-                  <span class="leg-item">
-                    <span class="leg-dot" style="background:#9ca3af"></span>No Longer w/ OS
-                  </span>
+                  <span class="leg-item"><span class="leg-dot" style="background:#10b981"></span>Continuing OS</span>
+                  <span class="leg-item"><span class="leg-dot" style="background:#fbbf24"></span>OJT-HK Duty</span>
+                  <span class="leg-item"><span class="leg-dot" style="background:#60a5fa"></span>Advance Duties</span>
+                  <span class="leg-item"><span class="leg-dot" style="background:#9ca3af"></span>No Longer w/ OS</span>
                 </div>
                 <div id="paginationControls" class="pagination-controls"></div>
               </div>
@@ -536,8 +509,8 @@
           <!-- HK DATABASE PAGE -->
           <section id="hkDatabasePage" class="page">
             <div class="hk-stats-row">
-              <div class="hk-chip glass">🗄️ &nbsp;<strong id="hkTot">0</strong>&nbsp; total HK entries</div>
-              <div class="hk-chip glass amber">✈️ &nbsp;<strong id="hkOjt">0</strong>&nbsp; OJT endorsed</div>
+              <div class="hk-chip glass">🗄️ <strong id="hkTot">0</strong> total HK entries</div>
+              <div class="hk-chip glass amber">✈️ <strong id="hkOjt">0</strong> OJT endorsed</div>
             </div>
             <div class="hk-layout">
               <div class="page-panel glass">
@@ -549,8 +522,8 @@
                   <div class="controls-bar">
                     <div class="search-field">
                       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"/>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                       </svg>
                       <input type="text" id="hkSearch" class="search-input" placeholder="Search HK records…">
                     </div>
@@ -605,14 +578,224 @@
 
           <!-- ANALYTICS PAGE -->
           <section id="analyticsPage" class="page">
-            <div class="empty-state glass">
-              <div class="empty-icon">📊</div>
-              <h3>Advanced Analytics</h3>
-              <p>Detailed reports and insights coming soon.</p>
+            
+            <div class="stats-grid">
+              <div class="stat-card glass">
+                <div class="stat-header">
+                  <div class="stat-icon-wrap purple">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M2 20L22 20"></path>
+                      <path d="M4 16L4 10"></path>
+                      <path d="M10 16L10 4"></path>
+                      <path d="M16 16L16 12"></path>
+                      <path d="M22 16L22 8"></path>
+                    </svg>
+                  </div>
+                  <span class="stat-tag flat">Completion Rate</span>
+                </div>
+                <div class="stat-number" id="analyticsCompletionRate">0%</div>
+                <div class="stat-label">Overall Completion</div>
+              </div>
+              <div class="stat-card glass">
+                <div class="stat-header">
+                  <div class="stat-icon-wrap blue">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <path d="M12 8v4l3 3"></path>
+                    </svg>
+                  </div>
+                  <span class="stat-tag flat">This Month</span>
+                </div>
+                <div class="stat-number" id="analyticsMonthlyProgress">0</div>
+                <div class="stat-label">New Completions</div>
+              </div>
+              <div class="stat-card glass">
+                <div class="stat-header">
+                  <div class="stat-icon-wrap green">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 12h-4l-3 9-4-18-3 9H2"></path>
+                    </svg>
+                  </div>
+                  <span class="stat-tag flat">Trend</span>
+                </div>
+                <div class="stat-number" id="analyticsTrend">+0%</div>
+                <div class="stat-label">vs Last Month</div>
+              </div>
             </div>
+
+            <div class="charts-row-2">
+              <div class="chart-card glass">
+                <div class="chart-card-head">
+                  <div>
+                    <div class="chart-title">Weekly Completion Trend</div>
+                    <div class="chart-sub">Last 7 days progress</div>
+                  </div>
+                </div>
+                <div class="chart-wrap">
+                  <canvas id="weeklyChart" height="200"></canvas>
+                </div>
+              </div>
+              <div class="chart-card glass">
+                <div class="chart-card-head">
+                  <div>
+                    <div class="chart-title">Top Courses</div>
+                    <div class="chart-sub">Highest enrolled programs</div>
+                  </div>
+                </div>
+                <div class="chart-wrap">
+                  <canvas id="topCoursesChart" height="200"></canvas>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-card glass">
+              <div class="table-card-head">
+                <div>
+                  <div class="chart-title">Generate Reports</div>
+                  <div class="chart-sub">Export analytics data</div>
+                </div>
+                <div class="report-buttons">
+                  <button class="btn-outline" id="exportPDFBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="16" y1="13" x2="8" y2="13"></line>
+                      <line x1="16" y1="17" x2="8" y2="17"></line>
+                      <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    PDF
+                  </button>
+                  <button class="btn-outline" id="exportAnalyticsExcelBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="12" y1="18" x2="12" y2="12"></line>
+                      <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    Excel
+                  </button>
+                  <button class="btn-outline" id="printAnalyticsBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                      <path d="M6 9V3h12v6"></path>
+                      <rect x="6" y="15" width="12" height="6" rx="2"></rect>
+                    </svg>
+                    Print
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="table-card glass">
+              <div class="table-card-head">
+                <div>
+                  <div class="chart-title">Recent Activity</div>
+                  <div class="chart-sub">Latest student completions</div>
+                </div>
+              </div>
+              <div class="table-scroll">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Student Name</th>
+                      <th>Course</th>
+                      <th>Action</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recentActivityTbody">
+                    <tr><td colspan="5" style="text-align:center; padding:40px;">Loading activity...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="table-card glass" style="margin-top: 20px;">
+              <div class="table-card-head">
+                <div>
+                  <div class="chart-title">👥 Admin Management</div>
+                  <div class="chart-sub">View all registered admin accounts</div>
+                </div>
+                <button class="btn-primary" id="viewAdminAccountsBtn" style="background: #8b5cf6;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20v-1C4 15.134 7.134 12 11 12h2c3.866 0 7 3.134 7 7v1"></path>
+                  </svg>
+                  View Admin Accounts
+                </button>
+              </div>
+            </div>
+
           </section>
 
         </main>
+      </div>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div class="modal-backdrop" id="profileModal" style="display:none">
+      <div class="modal modal-md">
+        <div class="modal-head">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4 20v-1C4 15.134 7.134 12 11 12h2c3.866 0 7 3.134 7 7v1"></path>
+            </svg>
+            Admin Account
+            <span class="login-badge" id="loginMethodBadge"></span>
+          </div>
+          <button class="modal-close" id="closeProfileModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="credentialsProfileInfo" style="display: none;">
+            <div class="profile-avatar-large">
+              <div class="avatar-large"><span id="credInitials">AD</span></div>
+              <div class="profile-status"><span class="status-dot online"></span><span>Active</span></div>
+            </div>
+            <div class="profile-section">
+              <div class="profile-section-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Account Information
+              </div>
+              <div class="profile-info-list">
+                <div class="profile-info-item"><span class="info-label">Full Name</span><span class="info-value" id="credFullName">—</span></div>
+                <div class="profile-info-item"><span class="info-label">Username</span><span class="info-value" id="credUsername">—</span></div>
+                <div class="profile-info-item"><span class="info-label">Role</span><span class="info-value" id="credRole">—</span></div>
+                <div class="profile-info-item"><span class="info-label">Login Method</span><span class="info-value">Username & Password</span></div>
+                <div class="profile-info-item"><span class="info-label">Last Login</span><span class="info-value" id="credLastLogin">—</span></div>
+              </div>
+            </div>
+          </div>
+          <div id="magicLinkProfileInfo" style="display: none;">
+            <div class="profile-avatar-large">
+              <div class="avatar-large"><span id="magicInitials">PH</span></div>
+              <div class="profile-status"><span class="status-dot online"></span><span>Active</span></div>
+            </div>
+            <div class="profile-section">
+              <div class="profile-section-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                Account Information
+              </div>
+              <div class="profile-info-list">
+                <div class="profile-info-item"><span class="info-label">Full Name</span><span class="info-value" id="magicFullName">—</span></div>
+                <div class="profile-info-item"><span class="info-label">Email Address</span><span class="info-value" id="magicEmail">—</span></div>
+                <div class="profile-info-item"><span class="info-label">Role</span><span class="info-value" id="magicRole">—</span></div>
+                <div class="profile-info-item"><span class="info-label">Login Method</span><span class="info-value">Magic Link (PHINMA Email)</span></div>
+                <div class="profile-info-item"><span class="info-label">Last Login</span><span class="info-value" id="magicLastLogin">—</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn-ghost" id="closeProfileModalBtn">Close</button>
+        </div>
       </div>
     </div>
 
@@ -622,9 +805,9 @@
         <div class="modal-head">
           <div class="modal-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="3"/>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.07.08A8 8 0 0 0 12 21a8 8 0 0 0 6.33-3.07l.07-.08z"/>
-              <path d="M12 3a8 8 0 0 0-6.33 3.07l-.07.08a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1h12.44a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.07-.08A8 8 0 0 0 12 3z"/>
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.07.08A8 8 0 0 0 12 21a8 8 0 0 0 6.33-3.07l.07-.08z"></path>
+              <path d="M12 3a8 8 0 0 0-6.33 3.07l-.07.08a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1h12.44a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.07-.08A8 8 0 0 0 12 3z"></path>
             </svg>
             Choose Theme Color
           </div>
@@ -632,42 +815,15 @@
         </div>
         <div class="modal-body">
           <div class="color-theme-grid">
-            <button class="color-theme-option" data-color="green">
-              <span class="color-check">✓</span>
-              <span class="color-label">🌿 Green Glass</span>
-            </button>
-            <button class="color-theme-option" data-color="purple">
-            <span class="color-check">✓</span>
-            <span class="color-label">🟣 Purple Glass</span>
-            </button>
-            <button class="color-theme-option" data-color="cream">
-              <span class="color-check">✓</span>
-              <span class="color-label">🧴 Cream Glass</span>
-            </button>
-            <button class="color-theme-option" data-color="white">
-              <span class="color-check">✓</span>
-              <span class="color-label">⚪ White Glass</span>
-            </button>
-            <button class="color-theme-option" data-color="yellow">
-              <span class="color-check">✓</span>
-              <span class="color-label">💛 Yellow Glass</span>
-            </button>
-            <button class="color-theme-option" data-color="orange">
-              <span class="color-check">✓</span>
-              <span class="color-label">🍊 Orange Glass</span>
-            </button>
-            <button class="color-theme-option" data-color="gray">
-              <span class="color-check">✓</span>
-              <span class="color-label">🩶 Gray Glass</span>
-            </button>
-            <button class="color-theme-option" data-color="lightblack">
-              <span class="color-check">✓</span>
-              <span class="color-label">🌑 Light Black Glass</span>
-            </button>
-            <button class="color-theme-option" data-color="dark">
-              <span class="color-check">✓</span>
-              <span class="color-label">🌙 Dark Glass</span>
-            </button>
+            <button class="color-theme-option" data-color="green"><span class="color-check">✓</span><span class="color-label">🌿 Green Glass</span></button>
+            <button class="color-theme-option" data-color="cream"><span class="color-check">✓</span><span class="color-label">🧴 Cream Glass</span></button>
+            <button class="color-theme-option" data-color="white"><span class="color-check">✓</span><span class="color-label">⚪ White Glass</span></button>
+            <button class="color-theme-option" data-color="yellow"><span class="color-check">✓</span><span class="color-label">💛 Yellow Glass</span></button>
+            <button class="color-theme-option" data-color="orange"><span class="color-check">✓</span><span class="color-label">🍊 Orange Glass</span></button>
+            <button class="color-theme-option" data-color="purple"><span class="color-check">✓</span><span class="color-label">🟣 Purple Glass</span></button>
+            <button class="color-theme-option" data-color="gray"><span class="color-check">✓</span><span class="color-label">🩶 Gray Glass</span></button>
+            <button class="color-theme-option" data-color="lightblack"><span class="color-check">✓</span><span class="color-label">🌑 Light Black Glass</span></button>
+            <button class="color-theme-option" data-color="dark"><span class="color-check">✓</span><span class="color-label">🌙 Dark Glass</span></button>
           </div>
         </div>
         <div class="modal-foot">
@@ -683,7 +839,7 @@
         <div class="modal-head">
           <div class="modal-title" id="editModalTitle">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 5v14M5 12h14"/>
+              <path d="M12 5v14M5 12h14"></path>
             </svg>
             Add New Student
           </div>
@@ -691,23 +847,12 @@
         </div>
         <div class="modal-body">
           <div class="form-row">
-            <div class="form-field">
-              <label for="eStudentId">Student ID *</label>
-              <input type="text" id="eStudentId" class="form-input" placeholder="e.g. 2025-12345">
-            </div>
-            <div class="form-field">
-              <label for="eControlNumber">Control Number (Auto)</label>
-              <input type="text" id="eControlNumber" class="form-input" readonly placeholder="Auto 6-digit" style="background:#f0f0f0">
-            </div>
+            <div class="form-field"><label for="eStudentId">Student ID *</label><input type="text" id="eStudentId" class="form-input" placeholder="e.g. 2025-12345"></div>
+            <div class="form-field"><label for="eControlNumber">Control Number (Auto)</label><input type="text" id="eControlNumber" class="form-input" readonly placeholder="Auto 6-digit" style="background:#f0f0f0"></div>
           </div>
-          
           <div class="form-row">
-            <div class="form-field">
-              <label for="eFullName">Complete Name *</label>
-              <input type="text" id="eFullName" class="form-input" placeholder="e.g. Juan Dela Cruz">
-            </div>
-            <div class="form-field">
-              <label for="eCourse">Course *</label>
+            <div class="form-field"><label for="eFullName">Complete Name *</label><input type="text" id="eFullName" class="form-input" placeholder="e.g. Juan Dela Cruz"></div>
+            <div class="form-field"><label for="eCourse">Course *</label>
               <select id="eCourse" class="form-select" required>
                 <option value="">Select Course...</option>
                 <optgroup label="ALLIED HEALTH & SCIENCES">
@@ -719,9 +864,7 @@
                   <option value="BSPHARM">BS Pharmacy</option>
                   <option value="BSPT">BS Physical Therapy</option>
                 </optgroup>
-                <optgroup label="INFORMATION TECHNOLOGY">
-                  <option value="BSIT">BS Information Technology (BSIT)</option>
-                </optgroup>
+                <optgroup label="INFORMATION TECHNOLOGY"><option value="BSIT">BS Information Technology (BSIT)</option></optgroup>
                 <optgroup label="BUSINESS & MANAGEMENT">
                   <option value="BSA">BS Accountancy (BSA)</option>
                   <option value="BSBA">BS Business Administration (BSBA)</option>
@@ -730,9 +873,7 @@
                   <option value="BSHM">BS Hospitality Management (BSHM)</option>
                   <option value="BSTM">BS Tourism Management (BSTM)</option>
                 </optgroup>
-                <optgroup label="CRIMINOLOGY & LAW">
-                  <option value="BSCRIM">BS Criminology (BSCrim)</option>
-                </optgroup>
+                <optgroup label="CRIMINOLOGY & LAW"><option value="BSCRIM">BS Criminology (BSCrim)</option></optgroup>
                 <optgroup label="TEACHER EDUCATION">
                   <option value="BEED">Bachelor of Elementary Education (BEEd)</option>
                   <option value="BSED">Bachelor of Secondary Education (BSEd)</option>
@@ -740,86 +881,27 @@
               </select>
             </div>
           </div>
-          
           <div class="form-row">
-            <div class="form-field">
-              <label for="eYearLevel">Year Level</label>
-              <select id="eYearLevel" class="form-select">
-                <option value="YEAR 1">1st Year</option>
-                <option value="YEAR 2">2nd Year</option>
-                <option value="YEAR 3">3rd Year</option>
-                <option value="YEAR 4">4th Year</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label for="eSection">Section</label>
-              <input type="text" id="eSection" class="form-input" placeholder="e.g. A, B, 1A, etc.">
-            </div>
+            <div class="form-field"><label for="eYearLevel">Year Level</label><select id="eYearLevel" class="form-select"><option value="YEAR 1">1st Year</option><option value="YEAR 2">2nd Year</option><option value="YEAR 3">3rd Year</option><option value="YEAR 4">4th Year</option></select></div>
+            <div class="form-field"><label for="eSection">Section</label><input type="text" id="eSection" class="form-input" placeholder="e.g. A, B, 1A, etc."></div>
           </div>
-          
           <div class="form-row">
-            <div class="form-field">
-              <label for="eSupportType">Support Type</label>
-              <select id="eSupportType" class="form-select">
-                <option value="FRESHMEN OS">Freshmen OS</option>
-                <option value="UPPERCLASSMEN OS">Upperclassmen OS</option>
-                <option value="TRANSFEREE">Transferee</option>
-                <option value="RETURNING">Returning</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label for="eRemarks">Remarks</label>
-              <select id="eRemarks" class="form-select">
-                <option value="COMPLETED">✅ Completed</option>
-                <option value="NOT COMPLETED">❌ Not Completed</option>
-                <option value="PENDING">⏳ Pending</option>
-                <option value="CONTINUOUS TRAINING">🔄 Continuous Training</option>
-              </select>
-            </div>
+            <div class="form-field"><label for="eSupportType">Support Type</label><select id="eSupportType" class="form-select"><option value="FRESHMEN OS">Freshmen OS</option><option value="UPPERCLASSMEN OS">Upperclassmen OS</option><option value="TRANSFEREE">Transferee</option><option value="RETURNING">Returning</option></select></div>
+            <div class="form-field"><label for="eRemarks">Remarks</label><select id="eRemarks" class="form-select"><option value="COMPLETED">✅ Completed</option><option value="NOT COMPLETED">❌ Not Completed</option><option value="PENDING">⏳ Pending</option><option value="CONTINUOUS TRAINING">🔄 Continuous Training</option></select></div>
           </div>
-          
           <div class="form-row">
-            <div class="form-field">
-              <label for="eEndorsement">Endorsement</label>
-              <select id="eEndorsement" class="form-select">
-                <option value="Endorsement for OJT - HK Duty">✈️ OJT – HK Duty</option>
-                <option value="Endorsed as Continuing OS">🔄 Continuing OS</option>
-                <option value="Not Continuing OS">❌ Not Continuing OS</option>
-                <option value="Graduate of 25-26">🎓 Graduate 25-26</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label for="eDataSheet">Data Sheet</label>
-              <select id="eDataSheet" class="form-select">
-                <option value="Encoded">📝 Encoded</option>
-                <option value="No Credit">⚠️ No Credit</option>
-              </select>
-            </div>
+            <div class="form-field"><label for="eEndorsement">Endorsement</label><select id="eEndorsement" class="form-select"><option value="Endorsement for OJT - HK Duty">✈️ OJT – HK Duty</option><option value="Endorsed as Continuing OS">🔄 Continuing OS</option><option value="Not Continuing OS">❌ Not Continuing OS</option><option value="Graduate of 25-26">🎓 Graduate 25-26</option></select></div>
+            <div class="form-field"><label for="eDataSheet">Data Sheet</label><select id="eDataSheet" class="form-select"><option value="Encoded">📝 Encoded</option><option value="No Credit">⚠️ No Credit</option></select></div>
           </div>
-          
           <div class="form-row">
-            <div class="form-field">
-              <label for="eHours">Hours Completed</label>
-              <input type="text" id="eHours" class="form-input" placeholder="e.g. 55 hrs or 120">
-            </div>
+            <div class="form-field"><label for="eHours">Hours Completed</label><input type="text" id="eHours" class="form-input" placeholder="e.g. 55 hrs or 120"></div>
           </div>
-          
-          <div class="form-field full-width">
-            <label for="eDuties">Duties SY 26-27</label>
-            <select id="eDuties" class="form-select">
-              <option value="Regular Duty Assigned">📋 Regular Duty Assigned</option>
-              <option value="NO GC Assignment">📵 No GC Assignment</option>
-              <option value="No Longer with OS">🚫 No Longer with OS</option>
-              <option value="Advance Duties">⭐ Advance Duties</option>
-            </select>
-          </div>
+          <div class="form-field full-width"><label for="eDuties">Duties SY 26-27</label><select id="eDuties" class="form-select"><option value="Regular Duty Assigned">📋 Regular Duty Assigned</option><option value="NO GC Assignment">📵 No GC Assignment</option><option value="No Longer with OS">🚫 No Longer with OS</option><option value="Advance Duties">⭐ Advance Duties</option></select></div>
         </div>
         <div class="modal-foot">
           <button class="btn-ghost" id="cancelEdit">Cancel</button>
           <button class="btn-primary" id="saveEdit">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M20 6L9 17l-5-5"/>
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"></path></svg>
             Save Changes
           </button>
         </div>
@@ -829,17 +911,9 @@
     <!-- LOGOUT CONFIRMATION MODAL -->
     <div class="modal-backdrop" id="logoutModal" style="display:none">
       <div class="modal modal-sm">
-        <div class="modal-head">
-          <div class="modal-title">Confirm Logout</div>
-          <button class="modal-close" id="closeLogout">✕</button>
-        </div>
-        <div class="modal-body">
-          <p>You are about to log out of the PHINMA SIS Dashboard. Any unsaved changes will be lost.</p>
-        </div>
-        <div class="modal-foot">
-          <button class="btn-ghost" id="stayBtn">Stay</button>
-          <button class="btn-danger" id="doLogout">Logout</button>
-        </div>
+        <div class="modal-head"><div class="modal-title">Confirm Logout</div><button class="modal-close" id="closeLogout">✕</button></div>
+        <div class="modal-body"><p>You are about to log out of the PHINMA SIS Dashboard. Any unsaved changes will be lost.</p></div>
+        <div class="modal-foot"><button class="btn-ghost" id="stayBtn">Stay</button><button class="btn-danger" id="doLogout">Logout</button></div>
       </div>
     </div>
 
@@ -849,30 +923,21 @@
         <div class="modal-head">
           <div class="modal-title" style="color:#dc2626;">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="8" x2="12" y2="12"/>
-              <line x1="12" y1="16" x2="12.01" y2="16"/>
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
             </svg>
             Delete All Students
           </div>
           <button class="modal-close" id="closeDeleteModal">✕</button>
         </div>
         <div class="modal-body">
-          <p style="margin-bottom: 16px;"><strong>⚠️ WARNING: This action cannot be undone!</strong></p>
+          <p><strong>⚠️ WARNING: This action cannot be undone!</strong></p>
           <p>Are you sure you want to delete <strong id="deleteCount">ALL</strong> students?</p>
           <p style="margin-top: 16px; font-size: 0.8rem; color: #ef4444;">This will permanently remove all student records from the database.</p>
-          
-          <div style="margin-top: 20px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-              <input type="checkbox" id="confirmDeleteCheckbox">
-              <span style="font-size: 0.8rem;">I understand that this action is irreversible</span>
-            </label>
-          </div>
+          <div><label style="display: flex; align-items: center; gap: 8px; cursor: pointer;"><input type="checkbox" id="confirmDeleteCheckbox"><span>I understand that this action is irreversible</span></label></div>
         </div>
-        <div class="modal-foot">
-          <button class="btn-ghost" id="cancelDeleteBtn">Cancel</button>
-          <button class="btn-danger" id="confirmDeleteAllBtn" disabled style="background:#dc2626;">Delete All Students</button>
-        </div>
+        <div class="modal-foot"><button class="btn-ghost" id="cancelDeleteBtn">Cancel</button><button class="btn-danger" id="confirmDeleteAllBtn" disabled style="background:#dc2626;">Delete All Students</button></div>
       </div>
     </div>
 
@@ -882,124 +947,111 @@
         <div class="modal-head">
           <div class="modal-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="12" y1="18" x2="12" y2="12"/>
-              <line x1="9" y1="15" x2="15" y2="15"/>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="12" y1="18" x2="12" y2="12"></line>
+              <line x1="9" y1="15" x2="15" y2="15"></line>
             </svg>
             Import Students
           </div>
           <button class="modal-close" id="closeImportModal">✕</button>
         </div>
-        
-        <div class="import-tabs" style="padding: 0 20px; padding-top: 16px;">
-          <button class="import-tab active" id="fileImportTab">📁 Upload File</button>
-          <button class="import-tab" id="urlImportTab">🔗 Import from URL</button>
-        </div>
-        
+        <div class="import-tabs"><button class="import-tab active" id="fileImportTab">📁 Upload File</button><button class="import-tab" id="urlImportTab">🔗 Import from URL</button></div>
         <div class="modal-body">
-          
           <div id="fileImportSection">
             <div id="importStepUpload" class="import-step active">
-              <div class="import-header">
-                <h3>Upload Excel File</h3>
-                <p>Select an Excel file containing student records</p>
-              </div>
-              
+              <div class="import-header"><h3>Upload Excel File</h3><p>Select an Excel file containing student records</p></div>
               <div class="drop-zone" id="dropZone">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="12" y1="18" x2="12" y2="12"/>
-                  <line x1="9" y1="15" x2="15" y2="15"/>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="12" y1="18" x2="12" y2="12"></line>
+                  <line x1="9" y1="15" x2="15" y2="15"></line>
                 </svg>
-                <p>Drag & drop Excel file here or click to browse</p>
-                <span class="file-hint">Supports .xlsx, .xls files</span>
+                <p>Drag & drop Excel file here or click to browse</p><span class="file-hint">Supports .xlsx, .xls files</span>
                 <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none">
               </div>
-              
               <button class="btn-outline" id="downloadTemplateBtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
                 Download Template
               </button>
             </div>
           </div>
-          
           <div id="urlImportSection" style="display:none">
-            <div class="import-header">
-              <h3>Import from URL Link</h3>
-              <p>Paste a link to an Excel file (Google Drive, OneDrive, or direct URL)</p>
-            </div>
-            
-            <div class="url-input-group">
-              <input type="text" id="excelUrlInput" class="form-input" placeholder="https://docs.google.com/spreadsheets/d/.../edit">
-              <button class="btn-primary" id="fetchUrlBtn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="16" x2="12" y2="12"/>
-                  <line x1="12" y1="8" x2="12.01" y2="8"/>
-                </svg>
-                Fetch & Import
-              </button>
-            </div>
-            
-            <div class="url-help">
-              <p>📌 Supported links:</p>
-              <ul>
-                <li><strong>Google Sheet:</strong> <code>https://docs.google.com/spreadsheets/d/FILE_ID/edit</code></li>
-                <li><strong>Google Drive:</strong> <code>https://drive.google.com/file/d/FILE_ID/view</code></li>
-                <li><strong>OneDrive:</strong> <code>https://1drv.ms/x/...</code></li>
-                <li><strong>Direct URL:</strong> <code>https://example.com/file.xlsx</code></li>
-              </ul>
-              <p class="url-note">⚠️ Make sure the file is shared with "Anyone with the link"</p>
+            <div class="import-header"><h3>Import from URL Link</h3><p>Paste a link to an Excel file</p></div>
+            <div class="url-input-group"><input type="text" id="excelUrlInput" class="form-input" placeholder="https://docs.google.com/spreadsheets/d/.../edit"><button class="btn-primary" id="fetchUrlBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>Fetch & Import</button></div>
+            <div class="url-help"><p>📌 Supported links: Google Sheet, Google Drive, OneDrive, Direct URL</p><p class="url-note">⚠️ Make sure the file is shared with "Anyone with the link"</p></div>
+          </div>
+          <div id="importStepMap" class="import-step" style="display:none"><div id="mappingContainer" class="mapping-container"></div><div class="import-actions"><button class="btn-ghost" id="backToUploadBtn">Back</button><button class="btn-primary" id="previewImportBtn">Preview Import</button></div></div>
+          <div id="importStepPreview" class="import-step" style="display:none"><div id="previewContainer" class="preview-container"></div><div class="import-actions"><button class="btn-ghost" id="backToMapBtn">Back</button><button class="btn-primary" id="confirmImportBtn">Import Students</button></div></div>
+          <div id="importStepResult" class="import-step" style="display:none"><div id="resultContainer"></div><div class="import-actions"><button class="btn-primary" id="closeImportResultBtn">Close</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN ACCOUNTS MODAL -->
+    <div class="modal-backdrop" id="adminAccountsModal" style="display:none">
+      <div class="modal modal-lg">
+        <div class="modal-head">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="4"></circle>
+              <path d="M4 20v-1C4 15.134 7.134 12 11 12h2c3.866 0 7 3.134 7 7v1"></path>
+            </svg>
+            Admin Accounts
+          </div>
+          <button class="modal-close" id="closeAdminAccountsModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="admin-tabs">
+            <button class="admin-tab active" data-admin-tab="credentials">🔐 Credentials <span class="tab-count">(5)</span></button>
+            <button class="admin-tab" data-admin-tab="magiclink">📧 Magic Link <span class="tab-count">(4)</span></button>
+          </div>
+          <div id="credentialsAdminsPanel" class="admin-panel active">
+            <div class="admin-table-wrapper">
+              <table class="admin-accounts-table">
+                <thead><tr><th>#</th><th>Name</th><th>Username</th><th>Role</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>1</td><td><strong>Anthony</strong></td><td><code>AdminAnthony</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
+                  <tr><td>2</td><td><strong>Ronan</strong></td><td><code>AdminRonan</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
+                  <tr><td>3</td><td><strong>Jay</strong></td><td><code>AdminJay</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
+                  <tr><td>4</td><td><strong>Leimark</strong></td><td><code>AdminLeimark</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
+                  <tr><td>5</td><td><strong>Alain</strong></td><td><code>AdminAlain</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
-          
-          <div id="importStepMap" class="import-step" style="display:none">
-            <div class="import-header">
-              <h3>Map Excel Columns</h3>
-              <p>Match your Excel columns with database fields</p>
-            </div>
-            <div id="mappingContainer" class="mapping-container"></div>
-            <div class="import-actions">
-              <button class="btn-ghost" id="backToUploadBtn">Back</button>
-              <button class="btn-primary" id="previewImportBtn">Preview Import</button>
-            </div>
-          </div>
-          
-          <div id="importStepPreview" class="import-step" style="display:none">
-            <div class="import-header">
-              <h3>Preview Import Data</h3>
-              <p>Review the data before importing</p>
-            </div>
-            <div id="previewContainer" class="preview-container"></div>
-            <div class="import-actions">
-              <button class="btn-ghost" id="backToMapBtn">Back</button>
-              <button class="btn-primary" id="confirmImportBtn">Import Students</button>
+          <div id="magiclinkAdminsPanel" class="admin-panel">
+            <div class="admin-table-wrapper">
+              <table class="admin-accounts-table">
+                <thead><tr><th>#</th><th>Name</th><th>Email Address</th><th>Role</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>1</td><td><strong>Leda L. Lutrania</strong></td><td><code>leda.lutrania.sjc@phinmaed.com</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
+                  <tr><td>2</td><td><strong>Anma S. Saguid</strong></td><td><code>anma.saguid.sjc@phinmaed.com</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
+                  <tr><td>3</td><td><strong>Juba L. Libao</strong></td><td><code>juba.libao.sjc@phinmaed.com</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
+                  <tr><td>4</td><td><strong>Chpe P. Villanueva</strong></td><td><code>chpe.villanueva.sjc@phinmaed.com</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
-          
-          <div id="importStepResult" class="import-step" style="display:none">
-            <div class="import-header">
-              <h3>Import Complete</h3>
-            </div>
-            <div id="resultContainer"></div>
-            <div class="import-actions">
-              <button class="btn-primary" id="closeImportResultBtn">Close</button>
-            </div>
+          <div class="admin-summary">
+            <div class="summary-card"><div class="summary-icon">🔐</div><div class="summary-info"><span class="summary-count">5</span><span class="summary-label">Credentials Admins</span></div></div>
+            <div class="summary-card"><div class="summary-icon">📧</div><div class="summary-info"><span class="summary-count">4</span><span class="summary-label">Magic Link Admins</span></div></div>
+            <div class="summary-card"><div class="summary-icon">👥</div><div class="summary-info"><span class="summary-count">9</span><span class="summary-label">Total Admins</span></div></div>
           </div>
-          
+        </div>
+        <div class="modal-foot">
+          <button class="btn-ghost" id="closeAdminAccountsModalBtn">Close</button>
         </div>
       </div>
     </div>
 
   </div>
 
-  <!-- Scripts -->
   <script type="module" src="src/controllers/mobile.controller.ts"></script>
   <script type="module" src="src/admin.main.ts"></script>
 </body>

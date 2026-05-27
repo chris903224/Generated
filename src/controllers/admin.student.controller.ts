@@ -217,15 +217,45 @@ export class AdminStudentController {
     }
   }
 
+  // ============================================
+  // TOAST NOTIFICATION - TOP RIGHT CORNER
+  // ============================================
+
   showToast(message: string, type: 'success' | 'error'): void {
+    // Remove any existing toasts first to prevent stacking
+    const existingToasts = document.querySelectorAll('.student-toast');
+    existingToasts.forEach(toast => toast.remove());
+    
     const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
+    toast.className = 'student-toast';
+    
+    // Set text and styles - TOP RIGHT CORNER
     toast.textContent = message;
-    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;z-index:9999;';
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.right = '20px';
+    toast.style.bottom = 'auto';
+    toast.style.left = 'auto';
     toast.style.backgroundColor = type === 'success' ? '#10b981' : '#ef4444';
     toast.style.color = 'white';
+    toast.style.padding = '12px 20px';
+    toast.style.borderRadius = '8px';
+    toast.style.zIndex = '99999';
+    toast.style.fontSize = '14px';
+    toast.style.fontWeight = '500';
+    toast.style.fontFamily = "'DM Sans', system-ui, sans-serif";
+    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    toast.style.animation = 'toastSlideInRight 0.3s ease';
+    
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+      toast.style.animation = 'toastSlideOutRight 0.3s ease';
+      setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+      }, 300);
+    }, 3000);
   }
 
   // ============================================
@@ -324,15 +354,20 @@ export class AdminStudentController {
       status: 'Active'
     };
     
-    if (this.currentEditId) {
-      await StudentService.updateStudent(this.currentEditId, formData);
-    } else {
-      await StudentService.addStudent(formData);
+    try {
+      if (this.currentEditId) {
+        await StudentService.updateStudent(this.currentEditId, formData);
+        this.showToast(`${fullName} updated successfully!`, 'success');
+      } else {
+        await StudentService.addStudent(formData);
+        this.showToast(`${fullName} added successfully!`, 'success');
+      }
+      
+      this.closeModal();
+      await this.refreshAllTables();
+    } catch (error) {
+      this.showToast('Operation failed. Please try again.', 'error');
     }
-    
-    this.closeModal();
-    await this.refreshAllTables();
-    this.showToast('Student saved successfully!', 'success');
   }
 
   clearModalForm(): void {
@@ -373,7 +408,7 @@ export class AdminStudentController {
   }
 
   // ============================================
-  // EVENT LISTENERS - SIMPLE DIRECT LISTENERS (NO cloneNode)
+  // EVENT LISTENERS - SIMPLE DIRECT LISTENERS
   // ============================================
 
   setupEventListeners(): void {
