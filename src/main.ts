@@ -4,6 +4,7 @@
  * Full Security: Anti-F12, Anti-right click, Anti-inspect, Anti-console
  * Input Validation: Student ID only (Control Number optional)
  * Performance Optimized: 60 FPS on mobile devices
+ * FIXED: Mobile session validation and data display
  */
 
 import { UIController } from './controllers/ui.controller';
@@ -174,6 +175,27 @@ class VeriStudApp {
 
     console.log('🚀 VeriStud Student Portal Initializing...');
     
+    // FIX: Clear invalid session data on mobile
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      console.log('📱 Mobile device detected');
+      const storedUser = sessionStorage.getItem('veristud_user');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          // Check if stored user data is invalid
+          if (!user.fullName || user.fullName === '—' || user.fullName === '') {
+            console.log('⚠️ Invalid session detected on mobile, clearing...');
+            sessionStorage.removeItem('veristud_user');
+            localStorage.removeItem('veristud_user');
+          }
+        } catch (e) {
+          console.error('Error parsing stored user:', e);
+          sessionStorage.removeItem('veristud_user');
+        }
+      }
+    }
+    
     // Initialize security first
     initSecurity();
     
@@ -195,28 +217,42 @@ class VeriStudApp {
     // Setup performance optimizations
     this.setupPerformanceOptimizations();
     
+    // Force mobile data visibility
+    if (isMobile) {
+      this.forceMobileDataVisibility();
+    }
+    
     this.isInitialized = true;
     console.log('✅ VeriStud App successfully initialized');
+  }
+
+  /**
+   * Force visibility of data on mobile
+   */
+  private forceMobileDataVisibility(): void {
+    setTimeout(() => {
+      const dataTable = document.querySelector('.data-table');
+      if (dataTable) {
+        (dataTable as HTMLElement).style.display = 'block';
+        (dataTable as HTMLElement).style.visibility = 'visible';
+        (dataTable as HTMLElement).style.opacity = '1';
+      }
+      
+      const dataRows = document.querySelectorAll('.data-row');
+      dataRows.forEach(row => {
+        (row as HTMLElement).style.display = 'flex';
+        (row as HTMLElement).style.visibility = 'visible';
+      });
+      
+      console.log(`📱 Force visibility: ${dataRows.length} data rows found`);
+    }, 200);
   }
 
   /**
    * Setup input validators with debouncing
    */
   private setupInputValidators(): void {
-    const controlInput = document.getElementById('controlNum') as HTMLInputElement;
     const studentIdInput = document.getElementById('studentId') as HTMLInputElement;
-    
-    // Control number is OPTIONAL now - just validate if something is entered
-    const debouncedValidateCtrl = debounce((input: HTMLInputElement) => {
-      const rawValue = input.value;
-      if (rawValue !== '' && !validateInput(rawValue)) {
-        input.classList.add('input-error');
-        this.showInputError('ctrl', 'Only numbers and dash (-) are allowed');
-      } else {
-        input.classList.remove('input-error');
-        this.clearInputError('ctrl');
-      }
-    }, 150);
     
     // Student ID validation (REQUIRED field)
     const debouncedValidateId = debounce((input: HTMLInputElement) => {
@@ -232,18 +268,6 @@ class VeriStudApp {
         this.clearInputError('id');
       }
     }, 150);
-    
-    if (controlInput) {
-      controlInput.addEventListener('input', (e) => {
-        const input = e.target as HTMLInputElement;
-        debouncedValidateCtrl(input);
-      });
-      
-      controlInput.addEventListener('blur', (e) => {
-        const input = e.target as HTMLInputElement;
-        input.value = formatInput(input.value);
-      });
-    }
     
     if (studentIdInput) {
       studentIdInput.addEventListener('input', (e) => {
@@ -261,14 +285,9 @@ class VeriStudApp {
   /**
    * Show input error message
    */
-  private showInputError(field: 'ctrl' | 'id', message: string): void {
-    const errorElement = field === 'ctrl' 
-      ? document.getElementById('controlError')
-      : document.getElementById('idError');
-    
-    const inputElement = field === 'ctrl'
-      ? document.getElementById('controlNum') as HTMLInputElement
-      : document.getElementById('studentId') as HTMLInputElement;
+  private showInputError(field: 'id', message: string): void {
+    const errorElement = document.getElementById('idError');
+    const inputElement = document.getElementById('studentId') as HTMLInputElement;
     
     if (errorElement) {
       errorElement.textContent = `⚠ ${message}`;
@@ -283,14 +302,9 @@ class VeriStudApp {
   /**
    * Clear input error message
    */
-  private clearInputError(field: 'ctrl' | 'id'): void {
-    const errorElement = field === 'ctrl'
-      ? document.getElementById('controlError')
-      : document.getElementById('idError');
-    
-    const inputElement = field === 'ctrl'
-      ? document.getElementById('controlNum') as HTMLInputElement
-      : document.getElementById('studentId') as HTMLInputElement;
+  private clearInputError(field: 'id'): void {
+    const errorElement = document.getElementById('idError');
+    const inputElement = document.getElementById('studentId') as HTMLInputElement;
     
     if (errorElement) {
       errorElement.textContent = '';
@@ -309,6 +323,8 @@ class VeriStudApp {
       const { error } = await supabase.from('students').select('count', { count: 'exact', head: true });
       if (error) {
         console.error('❌ Supabase connection failed:', error.message);
+      } else {
+        console.log('✅ Supabase connection successful');
       }
     } catch (error) {
       console.error('❌ Supabase connection error:', error);
@@ -322,9 +338,6 @@ class VeriStudApp {
     const loginHandler = () => {
       // Get student ID (REQUIRED)
       let studentId = this.getStudentIdValue();
-      
-      // Get control number (OPTIONAL)
-      let controlNumber = this.getControlNumberValue();
       
       // Validate Student ID is required
       if (!studentId) {
@@ -340,21 +353,12 @@ class VeriStudApp {
         return;
       }
       
-      // Validate Control Number format if not empty
-      if (controlNumber && !validateInput(controlNumber)) {
-        this.showInputError('ctrl', 'Only numbers and dash (-) are allowed');
-        this.ui.shakeCard();
-        return;
-      }
-      
       // Format inputs
       studentId = formatInput(studentId);
-      controlNumber = formatInput(controlNumber);
       
       // Use requestAnimationFrame for smooth transition
       requestAnimationFrame(() => {
-        // Pass both values, but Student ID is primary
-        this.auth.login(studentId, controlNumber);
+        this.auth.login(studentId, '');
       });
     };
 
@@ -369,14 +373,40 @@ class VeriStudApp {
   }
 
   /**
-   * Check existing session with caching
+   * Check existing session with validation
    */
   private async checkExistingSession(): Promise<void> {
     const currentUser = this.auth.getCurrentUser();
-    if (currentUser) {
+    
+    console.log('🔍 Checking existing session...', currentUser);
+    
+    // VALIDATE: Check if user data is valid
+    const isValidUser = currentUser && 
+                        currentUser.fullName && 
+                        currentUser.fullName !== '—' &&
+                        currentUser.fullName !== '';
+    
+    if (isValidUser) {
+      console.log('✅ Valid session found for:', currentUser.fullName);
       this.ui.populateProfile(currentUser);
       this.ui.showProfile();
       await this.loadTableDataOptimized();
+      
+      // Force visibility on mobile
+      if (window.innerWidth <= 768) {
+        setTimeout(() => {
+          this.forceMobileDataVisibility();
+        }, 100);
+      }
+    } else {
+      // Clear invalid session
+      console.log('⚠️ Invalid session detected, clearing...');
+      if (currentUser) {
+        console.warn('Invalid user data:', currentUser);
+      }
+      this.auth.logout();
+      this.ui.resetForm();
+      this.ui.showLogin();
     }
   }
 
@@ -440,6 +470,9 @@ class VeriStudApp {
     // Throttled resize handler
     const handleResize = throttle(() => {
       // Handle resize if needed
+      if (window.innerWidth <= 768) {
+        this.forceMobileDataVisibility();
+      }
     }, 100);
     
     window.addEventListener('resize', handleResize);
@@ -483,14 +516,6 @@ class VeriStudApp {
       document.body.classList.remove('black-theme');
       if (themeIcon) themeIcon.textContent = '🌙';
     }
-  }
-
-  /**
-   * Get control number value (OPTIONAL)
-   */
-  private getControlNumberValue(): string {
-    const input = document.getElementById('controlNum') as HTMLInputElement;
-    return input?.value?.trim() || '';
   }
 
   /**
