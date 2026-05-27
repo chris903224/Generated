@@ -2,258 +2,234 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=0.65, maximum-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#1e6e4a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Hawak Kamay | Online Support System</title>
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 </head>
 <body class="white-theme">
 
-  <!-- ── Ambient Background ── -->
-  <div class="scene" aria-hidden="true">
-    <div class="scene__canvas"></div>
-    <div class="scene__orb scene__orb--a"></div>
-    <div class="scene__orb scene__orb--b"></div>
-    <div class="scene__orb scene__orb--c"></div>
-    <div class="scene__grid"></div>
-    <div class="scene__grain"></div>
-  </div>
+  <!-- Mesh background -->
+  <div class="bg-mesh"></div>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+  <div class="bg-grain"></div>
 
   <!-- ============================================
        GUIDELINES MODAL
   ============================================ -->
-  <div class="modal-overlay" id="guidelinesModal" role="dialog" aria-modal="true" aria-label="Online Support Guidelines">
+  <div class="modal-overlay" id="guidelinesModal">
     <div class="modal-box">
-
       <div class="modal-header">
         <div class="modal-header__brand">
           <div class="modal-header__logo">
-            <img src="sjc.jpg" alt="Hawak Kamay" class="modal-header__img">
-            <span class="modal-header__pulse"></span>
+            <img src="sjc.jpg" alt="Hawak Kamay Logo" class="modal-header__img">
+            <div class="modal-header__pulse"></div>
           </div>
           <div>
             <h2 class="modal-header__title">Online Support Guidelines</h2>
             <p class="modal-header__sub">Hawak Kamay Support System</p>
           </div>
         </div>
-        <button class="modal-close" id="closeModalBtn" aria-label="Close guidelines">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        </button>
+        <button class="modal-close" id="closeModalBtn" aria-label="Close">✕</button>
       </div>
-
       <div class="modal-body">
-        <ul class="guide-list" role="list">
-
-          <li class="guide-item">
-            <span class="guide-item__icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            </span>
+        <div class="guide-list">
+          <div class="guide-item">
+            <div class="guide-item__icon">🔐</div>
             <div>
               <p class="guide-item__title">Student ID Entry</p>
               <p class="guide-item__desc">Enter your <strong>Student ID</strong> to access your support profile and records.</p>
             </div>
-          </li>
-
-          <li class="guide-item guide-item--cred">
-            <span class="guide-item__icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
+          </div>
+          <div class="guide-item guide-item--cred">
+            <div class="guide-item__icon">📘</div>
             <div>
               <p class="guide-item__title">Demo Credentials</p>
-              <p class="guide-item__desc">Student ID: <code class="guide-cred">06-2526-123456</code></p>
+              <p class="guide-item__desc">Student ID: <span class="guide-cred">06-2526-123456</span></p>
             </div>
-          </li>
-
-          <li class="guide-item">
-            <span class="guide-item__icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/></svg>
-            </span>
+          </div>
+          <div class="guide-item">
+            <div class="guide-item__icon">✅</div>
             <div>
               <p class="guide-item__title">What You'll Access</p>
-              <p class="guide-item__desc">Name, course, year, section, hours completed, and endorsement status.</p>
+              <p class="guide-item__desc">After verification, your full support record is revealed — name, course, year, section, hours completed, and status.</p>
             </div>
-          </li>
-
-          <li class="guide-item">
-            <span class="guide-item__icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
-            </span>
+          </div>
+          <div class="guide-item">
+            <div class="guide-item__icon">💬</div>
             <div>
               <p class="guide-item__title">Support Services</p>
-              <p class="guide-item__desc">Track hours, endorsement status, duties rendered, and completion progress.</p>
+              <p class="guide-item__desc">Track your online support hours, endorsement status, duties rendered, and completion progress.</p>
             </div>
-          </li>
-
-          <li class="guide-item">
-            <span class="guide-item__icon" aria-hidden="true">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            </span>
+          </div>
+          <div class="guide-item">
+            <div class="guide-item__icon">🔄</div>
             <div>
               <p class="guide-item__title">Verify Another</p>
               <p class="guide-item__desc">Use <em>"Verify Another Account"</em> to reset and check a different support account.</p>
             </div>
-          </li>
-
-        </ul>
+          </div>
+        </div>
       </div>
-
       <div class="modal-footer">
         <button class="btn-proceed" id="proceedBtn">
-          <span>Got it, Proceed</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12H19M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Got it, Proceed →
         </button>
       </div>
-
     </div>
   </div>
 
   <!-- ============================================
        MAIN PORTAL
   ============================================ -->
-  <main class="portal" role="main">
+  <div class="portal">
     <div class="card" id="mainCard">
+      <div class="card__sheen"></div>
 
-      <!-- Decorative inner sheen -->
-      <div class="card__sheen" aria-hidden="true"></div>
-
-      <!-- Brand Bar -->
-      <header class="brand">
+      <!-- Logo area -->
+      <div class="brand">
         <div class="brand__logo-ring">
           <img src="sjc.jpg" alt="Hawak Kamay Logo" class="brand__img">
-          <span class="brand__ring-pulse" aria-hidden="true"></span>
+          <div class="brand__ring-pulse"></div>
         </div>
-        <div>
-          <p class="brand__name">Hawak Kamay</p>
-          <p class="brand__system">Online Support System</p>
+        <div class="brand__text">
+          <div class="brand__name">Hawak Kamay</div>
+          <div class="brand__system">Online Support System</div>
         </div>
-      </header>
+      </div>
 
-      <!-- Divider -->
-      <div class="card__divider" aria-hidden="true"></div>
+      <div class="card__divider"></div>
 
-      <!-- Page Heading -->
+      <!-- Card Title -->
       <div class="card__heading">
-        <h1 class="heading-main">Online Support<br><span class="heading-accent">OS Identity Portal</span></h1>
+        <h1 class="heading-main">Online Support<br><span class="heading-accent">Identity Portal</span></h1>
         <p class="heading-sub">Enter your Student ID to verify your support record</p>
       </div>
 
-      <!-- ── STEP 1: LOGIN ── -->
-      <section class="step-panel" id="stepLogin" aria-label="Identity verification form">
-
+      <!-- ===== STEP 1: LOGIN FORM (Student ID only) ===== -->
+      <div class="step-panel" id="stepLogin">
         <div class="field-group">
-          <label class="field-label" for="studentId">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <label class="field-label">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
             Student ID
           </label>
           <div class="field-wrap">
-            <input
-              type="text"
-              id="studentId"
-              class="field-input"
-              placeholder="e.g. 06-2526-123456"
-              autocomplete="off"
-              maxlength="20"
-              spellcheck="false"
-              inputmode="numeric"
-              aria-required="true"
-              aria-describedby="idError"
-              onkeypress="return event.charCode >= 48 && event.charCode <= 57 || event.charCode == 45"
-              oninput="this.value = this.value.replace(/[^0-9-]/g, '')">
-            <span class="field-icon" id="idStatus" aria-live="polite"></span>
+            <input type="text" id="studentId" class="field-input" placeholder="e.g. 06-2526-123456" autocomplete="off" maxlength="20" spellcheck="false"
+                   onkeypress="return event.charCode >= 48 && event.charCode <= 57 || event.charCode == 45"
+                   oninput="this.value = this.value.replace(/[^0-9-]/g, '')">
+            <span class="field-icon" id="idStatus"></span>
           </div>
-          <span class="field-error" id="idError" role="alert"></span>
+          <span class="field-error" id="idError"></span>
         </div>
-
-        <button class="btn-verify" id="nextBtn" type="button">
+        
+        <button class="btn-verify" id="nextBtn">
           <span class="btn-verify__text">Verify Identity</span>
-          <span class="btn-verify__icon" aria-hidden="true">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M5 12H19M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </span>
+          <svg class="btn-verify__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12H19M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
+        
+        <div class="step-hint">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          <span>Secure verification powered by Supabase</span>
+        </div>
+      </div>
 
-        <p class="step-hint">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          Your data is secured and never stored locally
-        </p>
+      <!-- ===== STEP 2: PROFILE ===== -->
+      <div class="step-panel hidden" id="stepProfile">
 
-      </section>
-
-      <!-- ── STEP 2: PROFILE ── -->
-      <section class="step-panel hidden" id="stepProfile" aria-label="Verified student profile">
-
-        <!-- Verified banner -->
+        <!-- Profile Header -->
         <div class="profile-banner">
           <div class="profile-avatar">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20v-1C4 15.134 7.134 12 11 12h2c3.866 0 7 3.134 7 7v1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <span class="profile-avatar__badge" aria-label="Verified">
-              <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M3.5 8l3 3 5.5-5.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </span>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20v-1C4 15.134 7.134 12 11 12h2c3.866 0 7 3.134 7 7v1"/>
+            </svg>
+            <div class="profile-avatar__badge">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <path d="M4.5 8l2.5 2.5 4.5-4.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
           </div>
           <div class="profile-banner__info">
-            <span class="profile-banner__tag">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/></svg>
-              Identity Verified
-            </span>
-            <p class="profile-banner__name" id="dispName">—</p>
+            <div class="profile-banner__tag">✅ Identity Verified</div>
+            <div class="profile-banner__name" id="dispName">—</div>
           </div>
         </div>
 
-        <!-- Data Table -->
-        <div class="data-table" role="table" aria-label="Student information">
-          <div class="data-table__head" role="row">
-            <span role="columnheader">Field</span>
-            <span role="columnheader">Details</span>
+        <!-- Info Table -->
+        <div class="data-table">
+          <div class="data-table__head">
+            <span>Field</span>
+            <span>Details</span>
           </div>
-          <div class="data-table__body">
-            <div class="data-row" role="row">
-              <span class="data-row__label" role="cell">Full Name</span>
-              <span class="data-row__val data-row__val--bold" id="tblName" role="cell">—</span>
-            </div>
-            <div class="data-row" role="row">
-              <span class="data-row__label" role="cell">Course</span>
-              <span class="data-row__val" id="tblCourse" role="cell">—</span>
-            </div>
-            <div class="data-row" role="row">
-              <span class="data-row__label" role="cell">Year Level</span>
-              <span class="data-row__val" id="tblYear" role="cell">—</span>
-            </div>
-            <div class="data-row" role="row">
-              <span class="data-row__label" role="cell">Section</span>
-              <span class="data-row__val" id="tblSection" role="cell">—</span>
-            </div>
-            <div class="data-row" role="row">
-              <span class="data-row__label" role="cell">Control #</span>
-              <span class="data-row__val data-row__val--mono" id="tblControl" role="cell">—</span>
-            </div>
-            <div class="data-row" role="row">
-              <span class="data-row__label" role="cell">Student ID</span>
-              <span class="data-row__val data-row__val--mono" id="tblStudentId" role="cell">—</span>
-            </div>
-            <div class="data-row" role="row">
-              <span class="data-row__label" role="cell">Hours</span>
-              <span class="data-row__val" id="tblHours" role="cell">—</span>
-            </div>
-            <div class="data-row data-row--last" role="row">
-              <span class="data-row__label" role="cell">Status</span>
-              <span class="data-row__val" id="tblStatus" role="cell">—</span>
-            </div>
+          <div class="data-row">
+            <span class="data-row__label">Full Name</span>
+            <span class="data-row__val data-row__val--bold" id="tblName">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-row__label">Course</span>
+            <span class="data-row__val" id="tblCourse">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-row__label">Year Level</span>
+            <span class="data-row__val" id="tblYear">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-row__label">Section</span>
+            <span class="data-row__val" id="tblSection">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-row__label">Control #</span>
+            <span class="data-row__val data-row__val--mono" id="tblControl">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-row__label">Student ID</span>
+            <span class="data-row__val data-row__val--mono" id="tblStudentId">—</span>
+          </div>
+          <div class="data-row">
+            <span class="data-row__label">Hours Completed</span>
+            <span class="data-row__val" id="tblHours">—</span>
+          </div>
+          <div class="data-row data-row--last">
+            <span class="data-row__label">Status</span>
+            <span class="data-row__val status-active" id="tblStatus">—</span>
           </div>
         </div>
 
-        <button class="btn-reset" id="resetBtn" type="button">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <button class="btn-reset" id="resetBtn">
+          <svg viewBox="0 0 24 24" fill="none" style="width:15px;height:15px">
+            <path d="M1 4v6h6M23 20v-6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
           Verify Another Account
         </button>
 
-      </section>
+      </div><!-- /stepProfile -->
 
     </div><!-- /card -->
-  </main>
+  </div><!-- /portal -->
 
-  <!-- Theme Toggle FAB -->
-  <button class="theme-fab" id="themeToggleBtn" aria-label="Toggle dark mode" title="Toggle dark mode">
+  <!-- Dark Mode Toggle FAB -->
+  <button class="theme-fab" id="themeToggleBtn" aria-label="Toggle dark mode">
     <span class="theme-fab__icon" id="fabIcon">🌙</span>
   </button>
+
+  <!-- Admin Shortcut (hidden by default, appears on hover/focus for accessibility) -->
+  <a href="/admin.html" class="admin-shortcut" id="adminShortcut" style="position:fixed; bottom:1.5rem; left:1.5rem; z-index:999; opacity:0.6; font-size:0.7rem;">🔐 Admin</a>
 
   <script type="module" src="/src/main.ts"></script>
 </body>
