@@ -1,4 +1,4 @@
-// admin.main.ts - FULL VERSION WITH SECURITY & OPTIMIZATIONS
+// admin.main.ts - FULL CORRECTED VERSION
 
 import { supabase } from './services/supabase.service';
 import { AdminStudentController } from './controllers/admin.student.controller';
@@ -169,6 +169,63 @@ function initSecurity(): void {
   document.head.appendChild(metaExpires);
 
   console.log('✅ Security fully initialized');
+}
+
+// ============================================
+// THEME MANAGEMENT - FIXED
+// ============================================
+
+function initTheme(): void {
+  // Check for saved theme preference
+  const savedTheme = localStorage.getItem('theme');
+  
+  // Check system preference
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  // Apply theme
+  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.body.classList.add('dark');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.body.classList.remove('dark');
+  }
+  
+  // Setup theme toggle button
+  const themeBtn = document.getElementById('themeBtn');
+  if (themeBtn) {
+    // Remove existing listeners to prevent duplicates
+    const newThemeBtn = themeBtn.cloneNode(true) as HTMLElement;
+    themeBtn.parentNode?.replaceChild(newThemeBtn, themeBtn);
+    
+    newThemeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleTheme();
+    });
+  }
+}
+
+function toggleTheme(): void {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  
+  if (currentTheme === 'dark') {
+    // Switch to light mode
+    document.documentElement.setAttribute('data-theme', 'light');
+    document.body.classList.remove('dark');
+    localStorage.setItem('theme', 'light');
+    showToast('info', 'Light Mode', 'Switched to light theme');
+  } else {
+    // Switch to dark mode
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.body.classList.add('dark');
+    localStorage.setItem('theme', 'dark');
+    showToast('info', 'Dark Mode', 'Switched to dark theme');
+  }
+  
+  // Refresh charts to match new theme colors
+  setTimeout(() => {
+    initCharts();
+  }, 100);
 }
 
 // ============================================
@@ -437,7 +494,7 @@ async function renderCompletionTableOptimized(searchTerm: string = '', page: num
   const pageStudents = filtered.slice(start, end);
   
   if (pageStudents.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:60px;">No students found</td><tr>`;
+    tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:60px;">No students found</td></tr>`;
     updatePaginationControls(filtered.length, page);
     return;
   }
@@ -448,7 +505,7 @@ async function renderCompletionTableOptimized(searchTerm: string = '', page: num
   
   for (const student of pageStudents) {
     html += `
-      <tr data-id="${student.id}">
+      <tr data-id="${student.id}" class="clickable-row" style="cursor:pointer;">
         <td style="text-align:center; font-weight:600;">${counter++}</td>
         <td><code>${escapeHtml(student.student_id || '')}</code></td>
         <td><code>${escapeHtml(student.control_number || '')}</code></td>
@@ -675,7 +732,7 @@ function resetImportModal(): void {
 }
 
 // ============================================
-// HANDLE FILE UPLOAD - OPTIMIZED
+// HANDLE FILE UPLOAD
 // ============================================
 
 async function handleFileUpload(file: File): Promise<void> {
@@ -1534,6 +1591,45 @@ function initPerformanceOptimizations(): void {
 }
 
 // ============================================
+// CLICKABLE ROW HANDLER - FIX FOR EDIT MODAL
+// ============================================
+
+function setupClickableRowHandler(): void {
+  // Use event delegation for dynamically created rows
+  document.addEventListener('click', async (e) => {
+    const target = e.target as HTMLElement;
+    
+    // Check if click is on edit button - prevent row click
+    const editBtn = target.closest('.edit-btn');
+    if (editBtn) {
+      e.stopPropagation();
+      const id = editBtn.getAttribute('data-id');
+      if (id && studentController) {
+        await studentController.openEditModalWithId(id);
+      }
+      return;
+    }
+    
+    // Check if click is on delete button - handled separately
+    const deleteBtn = target.closest('.delete-btn');
+    if (deleteBtn) {
+      // Let the delete handler in studentController handle it
+      return;
+    }
+    
+    // Handle row click (clickable-row)
+    const row = target.closest('.clickable-row');
+    if (row) {
+      const id = row.getAttribute('data-id');
+      if (id && studentController) {
+        e.stopPropagation();
+        await studentController.openEditModalWithId(id);
+      }
+    }
+  });
+}
+
+// ============================================
 // DASHBOARD INITIALIZATION
 // ============================================
 
@@ -1554,6 +1650,9 @@ function initAdminDashboard(): void {
   
   studentController = new AdminStudentController();
   const uiController = new AdminUIController();
+  
+  // Setup clickable row handler for edit functionality
+  setupClickableRowHandler();
   
   let isDashboardLoaded = false;
   
@@ -1646,6 +1745,7 @@ async function startApp(): Promise<void> {
   
   hideLoadingScreen();
   initSecurity();
+  initTheme();  // <-- ADDED: Initialize theme
   initAdminDashboard();
 }
 

@@ -1,4 +1,4 @@
-// controllers/admin.student.controller.ts - FULL VERSION
+// controllers/admin.student.controller.ts - FULL CORRECTED VERSION
 
 import { StudentService } from '../services/supabase.service';
 import { 
@@ -35,7 +35,8 @@ export class AdminStudentController {
           <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
           <h3>No Students Yet</h3>
           <p>Click "Add Student" to get started</p>
-        </td></tr>
+        </td>
+      </tr>
       `;
       await this.updateStatsDisplay();
       return;
@@ -172,7 +173,7 @@ export class AdminStudentController {
   }
 
   // ============================================
-  // CONTROL NUMBER - NUMBER ONLY
+  // CONTROL NUMBER
   // ============================================
 
   async getNextControlNumber(): Promise<string> {
@@ -191,7 +192,7 @@ export class AdminStudentController {
     }
     
     const nextNum = (maxNumber + 1).toString().padStart(6, '0');
-    return nextNum;
+    return `CN-${nextNum}`;
   }
 
   async previewNextControlNumber(): Promise<void> {
@@ -241,13 +242,12 @@ export class AdminStudentController {
     if (modal) modal.style.display = 'flex';
   }
 
-  // ============================================
-  // PUBLIC METHOD - CAN BE CALLED FROM admin.main.ts
-  // ============================================
-  
   public async openEditModalWithId(id: string): Promise<void> {
     const student = await StudentService.getStudentById(id);
-    if (!student) return;
+    if (!student) {
+      this.showToast('Student not found', 'error');
+      return;
+    }
     
     this.currentEditId = id;
     
@@ -264,18 +264,18 @@ export class AdminStudentController {
     const eHours = document.getElementById('eHours') as HTMLInputElement;
     const eControlNumber = document.getElementById('eControlNumber') as HTMLInputElement;
     
-    if (eStudentId) eStudentId.value = student.student_id;
-    if (eFullName) eFullName.value = student.full_name;
-    if (eCourse) eCourse.value = student.course;
-    if (eYearLevel) eYearLevel.value = student.year_level;
+    if (eStudentId) eStudentId.value = student.student_id || '';
+    if (eFullName) eFullName.value = student.full_name || '';
+    if (eCourse) eCourse.value = student.course || '';
+    if (eYearLevel) eYearLevel.value = student.year_level || 'YEAR 1';
     if (eSection) eSection.value = student.section || '';
-    if (eSupportType) eSupportType.value = student.support_type;
-    if (eRemarks) eRemarks.value = student.remarks;
-    if (eEndorsement) eEndorsement.value = student.endorsement;
-    if (eDataSheet) eDataSheet.value = student.data_sheet;
-    if (eDuties) eDuties.value = student.duties;
+    if (eSupportType) eSupportType.value = student.support_type || 'FRESHMEN OS';
+    if (eRemarks) eRemarks.value = student.remarks || 'PENDING';
+    if (eEndorsement) eEndorsement.value = student.endorsement || 'Endorsement for OJT - HK Duty';
+    if (eDataSheet) eDataSheet.value = student.data_sheet || 'Encoded';
+    if (eDuties) eDuties.value = student.duties || 'Regular Duty Assigned';
     if (eHours) eHours.value = student.hours || '0 hrs';
-    if (eControlNumber) eControlNumber.value = student.control_number;
+    if (eControlNumber) eControlNumber.value = student.control_number || '';
     
     const modalTitle = document.querySelector('#editModalTitle');
     if (modalTitle) modalTitle.innerHTML = `✏️ Edit Student Record`;
@@ -332,6 +332,7 @@ export class AdminStudentController {
     
     this.closeModal();
     await this.refreshAllTables();
+    this.showToast('Student saved successfully!', 'success');
   }
 
   clearModalForm(): void {
@@ -346,6 +347,20 @@ export class AdminStudentController {
     if (eCourse) eCourse.value = '';
     if (eSection) eSection.value = '';
     if (eHours) eHours.value = '';
+    
+    const eYearLevel = document.getElementById('eYearLevel') as HTMLSelectElement;
+    const eSupportType = document.getElementById('eSupportType') as HTMLSelectElement;
+    const eRemarks = document.getElementById('eRemarks') as HTMLSelectElement;
+    const eEndorsement = document.getElementById('eEndorsement') as HTMLSelectElement;
+    const eDataSheet = document.getElementById('eDataSheet') as HTMLSelectElement;
+    const eDuties = document.getElementById('eDuties') as HTMLSelectElement;
+    
+    if (eYearLevel) eYearLevel.value = 'YEAR 1';
+    if (eSupportType) eSupportType.value = 'FRESHMEN OS';
+    if (eRemarks) eRemarks.value = 'PENDING';
+    if (eEndorsement) eEndorsement.value = 'Endorsement for OJT - HK Duty';
+    if (eDataSheet) eDataSheet.value = 'Encoded';
+    if (eDuties) eDuties.value = 'Regular Duty Assigned';
   }
 
   closeModal(): void {
@@ -358,7 +373,7 @@ export class AdminStudentController {
   }
 
   // ============================================
-  // EVENT LISTENERS
+  // EVENT LISTENERS - SIMPLE DIRECT LISTENERS (NO cloneNode)
   // ============================================
 
   setupEventListeners(): void {
@@ -376,6 +391,7 @@ export class AdminStudentController {
       });
     }
     
+    // MODAL BUTTONS - DIRECT LISTENERS
     const saveBtn = document.getElementById('saveEdit');
     if (saveBtn) {
       saveBtn.addEventListener('click', () => this.saveStudent());
@@ -404,6 +420,7 @@ export class AdminStudentController {
       });
     }
     
+    // MODAL BACKDROP CLICK
     const modal = document.getElementById('editModal');
     if (modal) {
       modal.addEventListener('click', (e) => {
@@ -413,6 +430,7 @@ export class AdminStudentController {
       });
     }
     
+    // FILTERS
     const filterRemarks = document.getElementById('filterRemarks') as HTMLSelectElement;
     if (filterRemarks) {
       filterRemarks.addEventListener('change', async () => {
@@ -441,7 +459,7 @@ export class AdminStudentController {
       });
     }
     
-    // Global click handler for delete buttons (edit handled by clickable-row)
+    // DELETE BUTTON HANDLER (global click delegation)
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       
