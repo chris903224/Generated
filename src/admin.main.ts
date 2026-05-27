@@ -1670,66 +1670,7 @@ function initAdminDashboard(): void {
     loadDashboardData();
   }
 }
-// admin.main.ts - ADD THIS FUNCTION
 
-// ============================================
-// THEME MANAGEMENT - ADD THIS
-// ============================================
-
-function initTheme(): void {
-  // Check for saved theme preference
-  const savedTheme = localStorage.getItem('theme');
-  
-  // Check system preference
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  
-  // Apply theme
-  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    document.body.classList.add('dark'); // Add class for compatibility
-  } else {
-    document.documentElement.setAttribute('data-theme', 'light');
-    document.body.classList.remove('dark');
-  }
-  
-  // Setup theme toggle button
-  const themeBtn = document.getElementById('themeBtn');
-  if (themeBtn) {
-    // Remove existing listeners to prevent duplicates
-    const newThemeBtn = themeBtn.cloneNode(true) as HTMLElement;
-    themeBtn.parentNode?.replaceChild(newThemeBtn, themeBtn);
-    
-    newThemeBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      toggleTheme();
-    });
-  }
-}
-
-function toggleTheme(): void {
-  const currentTheme = document.documentElement.getAttribute('data-theme');
-  
-  if (currentTheme === 'dark') {
-    // Switch to light mode
-    document.documentElement.setAttribute('data-theme', 'light');
-    document.body.classList.remove('dark');
-    localStorage.setItem('theme', 'light');
-    showToast('info', 'Light Mode', 'Switched to light theme');
-  } else {
-    // Switch to dark mode
-    document.documentElement.setAttribute('data-theme', 'dark');
-    document.body.classList.add('dark');
-    localStorage.setItem('theme', 'dark');
-    showToast('info', 'Dark Mode', 'Switched to dark theme');
-  }
-  
-  // Optional: Refresh charts to match new theme colors
-  setTimeout(() => {
-    initCharts();
-  }, 100);
-}
-
-// Call initTheme() in startApp() after initSecurity()
 
 // ============================================
 // START APPLICATION
