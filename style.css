@@ -781,3 +781,99 @@ body.black-theme .hours-val { background: rgba(52,211,153,0.12); color: #6ee7b7;
 .dtag-reg { background: rgba(46,125,94,0.1); color: var(--accent); }
 .dtag-adv { background: rgba(74,128,165,0.1); color: #4a80a5; }
 .dtag-none { background: rgba(199,92,92,0.1); color: #c75c5c; }
+/* Add this at the end of your style.css */
+
+/* ============================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================ */
+
+/* Force GPU acceleration */
+.glass-card,
+.profile-header,
+.info-table,
+.modal-box,
+.avatar-circle,
+.logo-ring {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Optimize animations - use transform instead of layout properties */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale3d(0.88, 0.88, 1);
+    opacity: 1;
+  }
+  70% {
+    transform: scale3d(1.22, 1.22, 1);
+    opacity: 0;
+  }
+  100% {
+    transform: scale3d(1.22, 1.22, 1);
+    opacity: 0;
+  }
+}
+
+/* Mobile optimization - disable heavy effects on small screens */
+@media (max-width: 768px) {
+  /* Disable blur effects on mobile */
+  .glass-card,
+  .modal-box,
+  .guideline-item,
+  .profile-header {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* Simplify background orbs */
+  .bg-orb {
+    display: none;
+  }
+  
+  /* Reduce animation duration */
+  .step-panel {
+    animation-duration: 0.2s !important;
+  }
+  
+  /* Disable hover effects that cause repaints */
+  .info-row:hover {
+    background: var(--row-even);
+  }
+  
+  /* Simplify transitions */
+  * {
+    transition-duration: 0.15s !important;
+  }
+}
+
+/* Reduce motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Prevent FPS drops during input */
+input, button {
+  touch-action: manipulation;
+}
+
+/* Optimize scroll performance */
+.portal {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}

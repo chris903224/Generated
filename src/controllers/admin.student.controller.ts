@@ -1,4 +1,4 @@
-// controllers/admin.student.controller.ts
+// controllers/admin.student.controller.ts - FULL VERSION
 
 import { StudentService } from '../services/supabase.service';
 import { 
@@ -18,7 +18,7 @@ export class AdminStudentController {
   }
 
   // ============================================
-  // RENDER METHODS
+  // RENDER METHODS WITH ROW NUMBERING
   // ============================================
 
   async renderCompletionTable(searchTerm: string = ''): Promise<void> {
@@ -31,7 +31,7 @@ export class AdminStudentController {
     
     if (students.length === 0) {
       tbody.innerHTML = `
-        <tr><td colspan="12" style="text-align:center; padding:60px 20px;">
+        <tr><td colspan="13" style="text-align:center; padding:60px 20px;">
           <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
           <h3>No Students Yet</h3>
           <p>Click "Add Student" to get started</p>
@@ -42,9 +42,12 @@ export class AdminStudentController {
     }
     
     let html = '';
+    let counter = 1;
+    
     for (const student of students) {
       html += `
-        <tr data-id="${student.id}">
+        <tr data-id="${student.id}" class="clickable-row" style="cursor:pointer;">
+          <td style="text-align:center; font-weight:600; color:var(--accent);">${counter}</td>
           <td><code>${escapeHtml(student.student_id)}</code></td>
           <td><code>${escapeHtml(student.control_number)}</code></td>
           <td><strong>${escapeHtml(student.full_name)}</strong></td>
@@ -62,6 +65,7 @@ export class AdminStudentController {
           </td>
         </tr>
       `;
+      counter++;
     }
     tbody.innerHTML = html;
     await this.updateStatsDisplay();
@@ -71,7 +75,8 @@ export class AdminStudentController {
     const hkStudents = await StudentService.getHKStudents();
     const filtered = hkStudents.filter(s => 
       s.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-      s.course.toLowerCase().includes(searchTerm.toLowerCase())
+      s.course.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.student_id.toLowerCase().includes(searchTerm.toLowerCase())
     );
     
     const tbody = document.getElementById('hkTbody');
@@ -85,14 +90,17 @@ export class AdminStudentController {
     if (hkOjt) hkOjt.textContent = hkStudents.length.toString();
     
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:40px;">No HK Endorsed Students</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:40px;">No HK Endorsed Students</td></tr>`;
       return;
     }
     
     let html = '';
+    let counter = 1;
+    
     for (const student of filtered) {
       html += `
-        <tr data-id="${student.id}">
+        <tr data-id="${student.id}" class="clickable-row" style="cursor:pointer;">
+          <td style="text-align:center; font-weight:600; color:var(--accent);">${counter}</td>
           <td><code>${escapeHtml(student.student_id)}</code></td>
           <td><code>${escapeHtml(student.control_number)}</code></td>
           <td><strong>${escapeHtml(student.full_name)}</strong></td>
@@ -107,6 +115,7 @@ export class AdminStudentController {
           </td>
         </tr>
       `;
+      counter++;
     }
     tbody.innerHTML = html;
   }
@@ -119,14 +128,17 @@ export class AdminStudentController {
     if (!tbody) return;
     
     if (recent.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px;">No recent records</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px;">No recent records</td></tr>`;
       return;
     }
     
     let html = '';
+    let counter = 1;
+    
     for (const student of recent) {
       html += `
-        <tr data-id="${student.id}">
+        <tr data-id="${student.id}" class="clickable-row" style="cursor:pointer;">
+          <td style="text-align:center; font-weight:600; color:var(--accent);">${counter}</td>
           <td><strong>${escapeHtml(student.full_name)}</strong></td>
           <td>${escapeHtml(student.course)}</td>
           <td>${escapeHtml(student.year_level)}</td>
@@ -136,6 +148,7 @@ export class AdminStudentController {
           <td><span class="hours-badge">${escapeHtml(student.hours || '0 hrs')}</span></td>
         </tr>
       `;
+      counter++;
     }
     tbody.innerHTML = html;
   }
@@ -146,17 +159,39 @@ export class AdminStudentController {
   }
 
   // ============================================
-  // CONTROL NUMBER
+  // REFRESH ALL TABLES
+  // ============================================
+
+  async refreshAllTables(): Promise<void> {
+    const searchInput = (document.getElementById('searchInput') as HTMLInputElement)?.value || '';
+    const hkSearch = (document.getElementById('hkSearch') as HTMLInputElement)?.value || '';
+    await this.renderCompletionTable(searchInput);
+    await this.renderHKTable(hkSearch);
+    await this.renderRecentTable();
+    await this.updateStatsDisplay();
+  }
+
+  // ============================================
+  // CONTROL NUMBER - NUMBER ONLY
   // ============================================
 
   async getNextControlNumber(): Promise<string> {
     const existingStudents = await StudentService.getAllStudents();
     let maxNumber = 0;
+    
     for (const student of existingStudents) {
-      const num = parseInt(student.control_number);
-      if (!isNaN(num) && num > maxNumber) maxNumber = num;
+      let num = student.control_number;
+      if (num && num.startsWith('CN-')) {
+        num = num.replace('CN-', '');
+      }
+      const parsed = parseInt(num);
+      if (!isNaN(parsed) && parsed > maxNumber) {
+        maxNumber = parsed;
+      }
     }
-    return (maxNumber + 1).toString().padStart(6, '0');
+    
+    const nextNum = (maxNumber + 1).toString().padStart(6, '0');
+    return nextNum;
   }
 
   async previewNextControlNumber(): Promise<void> {
@@ -206,11 +241,11 @@ export class AdminStudentController {
     if (modal) modal.style.display = 'flex';
   }
 
-  openEditModal(id: string): Promise<void> {
-    return this.openEditModalWithId(id);
-  }
-
-  private async openEditModalWithId(id: string): Promise<void> {
+  // ============================================
+  // PUBLIC METHOD - CAN BE CALLED FROM admin.main.ts
+  // ============================================
+  
+  public async openEditModalWithId(id: string): Promise<void> {
     const student = await StudentService.getStudentById(id);
     if (!student) return;
     
@@ -265,16 +300,24 @@ export class AdminStudentController {
     const dutiesSelect = document.getElementById('eDuties') as HTMLSelectElement;
     const hoursInput = document.getElementById('eHours') as HTMLInputElement;
     
+    let controlNumber = '';
+    if (!this.currentEditId) {
+      controlNumber = await this.getNextControlNumber();
+    } else {
+      const existing = document.getElementById('eControlNumber') as HTMLInputElement;
+      controlNumber = existing?.value || '';
+    }
+    
     const formData = {
       student_id: studentId,
-      control_number: this.currentEditId ? '' : await this.getNextControlNumber(),
+      control_number: controlNumber,
       full_name: fullName,
       course: courseInput?.value.trim() || 'BSIT',
       year_level: yearLevelSelect?.value || 'YEAR 1',
       section: sectionInput?.value || '',
       support_type: supportTypeSelect?.value || 'FRESHMEN OS',
       remarks: remarksSelect?.value || 'PENDING',
-      endorsement: endorsementSelect?.value || 'Not Continuing OS',
+      endorsement: endorsementSelect?.value || 'Endorsement for OJT - HK Duty',
       data_sheet: dataSheetSelect?.value || 'Encoded',
       duties: dutiesSelect?.value || 'Regular Duty Assigned',
       hours: hoursInput?.value || '0 hrs',
@@ -314,20 +357,11 @@ export class AdminStudentController {
     this.clearModalForm();
   }
 
-  async refreshAllTables(): Promise<void> {
-    const searchInput = (document.getElementById('searchInput') as HTMLInputElement)?.value || '';
-    const hkSearch = (document.getElementById('hkSearch') as HTMLInputElement)?.value || '';
-    await this.renderCompletionTable(searchInput);
-    await this.renderHKTable(hkSearch);
-    await this.renderRecentTable();
-  }
-
   // ============================================
   // EVENT LISTENERS
   // ============================================
 
   setupEventListeners(): void {
-    // Search input
     const searchInput = document.getElementById('searchInput') as HTMLInputElement;
     if (searchInput) {
       searchInput.addEventListener('input', (e) => {
@@ -335,7 +369,6 @@ export class AdminStudentController {
       });
     }
     
-    // HK Search input
     const hkSearch = document.getElementById('hkSearch') as HTMLInputElement;
     if (hkSearch) {
       hkSearch.addEventListener('input', (e) => {
@@ -343,41 +376,34 @@ export class AdminStudentController {
       });
     }
     
-    // Save button
     const saveBtn = document.getElementById('saveEdit');
     if (saveBtn) {
       saveBtn.addEventListener('click', () => this.saveStudent());
     }
     
-    // Cancel button
     const cancelBtn = document.getElementById('cancelEdit');
     if (cancelBtn) {
       cancelBtn.addEventListener('click', () => this.closeModal());
     }
     
-    // X button (close)
     const closeEditBtn = document.getElementById('closeEdit');
     if (closeEditBtn) {
       closeEditBtn.addEventListener('click', () => this.closeModal());
     }
     
-    // Add student button
     const addBtn = document.getElementById('addStudentBtn');
     if (addBtn) {
       addBtn.addEventListener('click', () => this.openAddModal());
     }
     
-    // View All button
     const viewAllBtn = document.getElementById('viewAllBtn');
     if (viewAllBtn) {
       viewAllBtn.addEventListener('click', () => {
-        // Switch to completion page
         const navItem = document.querySelector('.nav-item[data-page="completion"]') as HTMLElement;
         if (navItem) navItem.click();
       });
     }
     
-    // Close modal when clicking on backdrop (gray area)
     const modal = document.getElementById('editModal');
     if (modal) {
       modal.addEventListener('click', (e) => {
@@ -387,18 +413,6 @@ export class AdminStudentController {
       });
     }
     
-    // Close logout modal when clicking on backdrop
-    const logoutModal = document.getElementById('logoutModal');
-    if (logoutModal) {
-      logoutModal.addEventListener('click', (e) => {
-        if (e.target === logoutModal) {
-          const closeBtn = document.getElementById('closeLogout');
-          if (closeBtn) closeBtn.click();
-        }
-      });
-    }
-    
-    // Filter by remarks
     const filterRemarks = document.getElementById('filterRemarks') as HTMLSelectElement;
     if (filterRemarks) {
       filterRemarks.addEventListener('change', async () => {
@@ -413,7 +427,6 @@ export class AdminStudentController {
       });
     }
     
-    // Filter by course
     const filterCourse = document.getElementById('filterCourse') as HTMLSelectElement;
     if (filterCourse) {
       filterCourse.addEventListener('change', async () => {
@@ -428,11 +441,10 @@ export class AdminStudentController {
       });
     }
     
-    // Global click handler for edit/delete buttons
+    // Global click handler for delete buttons (edit handled by clickable-row)
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement;
       
-      // Delete button
       const deleteBtn = target.closest('.delete-btn');
       if (deleteBtn) {
         const id = deleteBtn.getAttribute('data-id');
@@ -441,22 +453,10 @@ export class AdminStudentController {
           e.stopPropagation();
           this.deleteStudent(id, name);
         }
-        return;
-      }
-      
-      // Edit button
-      const editBtn = target.closest('.edit-btn');
-      if (editBtn) {
-        const id = editBtn.getAttribute('data-id');
-        if (id) {
-          e.stopPropagation();
-          this.openEditModalWithId(id);
-        }
       }
     });
   }
 
-  // Helper method for filtered table rendering
   private async renderFilteredTable(students: Student[], searchTerm: string): Promise<void> {
     const tbody = document.getElementById('completionTbody');
     const rowCount = document.getElementById('rowCount');
@@ -471,14 +471,17 @@ export class AdminStudentController {
     if (rowCount) rowCount.textContent = `${filtered.length} entries`;
     
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:40px;">No matching records found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:40px;">No matching records found.</td></tr>`;
       return;
     }
     
     let html = '';
+    let counter = 1;
+    
     for (const student of filtered) {
       html += `
-        <tr data-id="${student.id}">
+        <tr data-id="${student.id}" class="clickable-row" style="cursor:pointer;">
+          <td style="text-align:center; font-weight:600; color:var(--accent);">${counter}</td>
           <td><code>${escapeHtml(student.student_id)}</code></td>
           <td><code>${escapeHtml(student.control_number)}</code></td>
           <td><strong>${escapeHtml(student.full_name)}</strong></td>
@@ -496,8 +499,9 @@ export class AdminStudentController {
           </td>
         </tr>
       `;
+      counter++;
     }
     tbody.innerHTML = html;
     await this.updateStatsDisplay();
   }
-} 
+}

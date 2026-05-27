@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#10b981">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>PHINMA SIS · OS Head Dashboard</title>
   
   <!-- Fonts -->
@@ -13,10 +17,10 @@
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   
-  <!-- Styles: base → admin → mobile overrides -->
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/admin.css">
-  <link rel="stylesheet" href="/mobile.css">
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="mobile.css">
 </head>
 <body>
 
@@ -26,25 +30,20 @@
     <div class="loading-text">Verifying access<span class="loading-dots"></span></div>
   </div>
 
-  <!-- =============================================
-       MOBILE: Sidebar Toggle Button
-       Two SVGs: hamburger (default) + X (when open)
-  ============================================== -->
+  <!-- Mobile Sidebar Toggle Button -->
   <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle navigation">
-    <!-- Hamburger icon -->
     <svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-      <line x1="3" y1="6"  x2="21" y2="6"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
       <line x1="3" y1="12" x2="21" y2="12"/>
       <line x1="3" y1="18" x2="21" y2="18"/>
     </svg>
-    <!-- Close / X icon -->
     <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-      <line x1="18" y1="6"  x2="6"  y2="18"/>
-      <line x1="6"  y1="6"  x2="18" y2="18"/>
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
     </svg>
   </button>
 
-  <!-- Sidebar Overlay (tap to close on mobile) -->
+  <!-- Sidebar Overlay -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <!-- Main Admin Content -->
@@ -59,14 +58,13 @@
     <!-- App Container -->
     <div class="shell" id="appShell">
 
-      <!-- ==================== SIDEBAR ==================== -->
+      <!-- SIDEBAR -->
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-inner">
           
-          <!-- Logo Section -->
           <div class="sidebar-logo">
             <div class="logo-mark">
-              <img src="/sjc.jpg" alt="SJC Logo" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <img src="sjc.jpg" alt="SJC Logo" class="logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
               <div class="logo-fallback" style="display: none;">OS</div>
             </div>
             <div class="logo-text">
@@ -77,7 +75,6 @@
 
           <div class="nav-divider"></div>
 
-          <!-- Navigation Links -->
           <nav class="nav-links">
             <a href="#" class="nav-item active" data-page="dashboard">
               <div class="nav-icon-wrap">
@@ -133,7 +130,6 @@
           <div class="nav-spacer"></div>
           <div class="nav-divider"></div>
 
-          <!-- Bottom Actions -->
           <div class="nav-bottom">
             <button class="nav-item theme-btn" id="themeBtn">
               <div class="nav-icon-wrap">
@@ -171,7 +167,7 @@
         </div>
       </aside>
 
-      <!-- ==================== MAIN CONTENT ==================== -->
+      <!-- MAIN CONTENT -->
       <div class="main-area">
 
         <!-- Top Bar -->
@@ -200,10 +196,9 @@
         <!-- Page Content -->
         <main class="content" id="mainContent">
 
-          <!-- ==================== DASHBOARD PAGE ==================== -->
+          <!-- DASHBOARD PAGE -->
           <section id="dashboardPage" class="page active">
             
-            <!-- Stats Cards -->
             <div class="stats-grid">
               <div class="stat-card glass">
                 <div class="stat-header">
@@ -292,7 +287,6 @@
               </div>
             </div>
 
-            <!-- Charts Row 1 -->
             <div class="charts-row-3">
               <div class="chart-card glass">
                 <div class="chart-card-head">
@@ -338,7 +332,6 @@
               </div>
             </div>
 
-            <!-- Charts Row 2 -->
             <div class="charts-row-2">
               <div class="chart-card glass">
                 <div class="chart-card-head">
@@ -366,7 +359,6 @@
               </div>
             </div>
 
-            <!-- Full Width Charts -->
             <div class="chart-card glass chart-full">
               <div class="chart-card-head">
                 <div>
@@ -392,7 +384,6 @@
               </div>
             </div>
 
-            <!-- Recent Records -->
             <div class="table-card glass">
               <div class="table-card-head">
                 <div>
@@ -405,12 +396,14 @@
                 <table class="data-table">
                   <thead>
                     <tr>
+                      <th style="width:40px;">#</th>
                       <th>Name</th>
                       <th>Course</th>
                       <th>Year</th>
                       <th>Status</th>
                       <th>Duties</th>
                       <th>Endorsement</th>
+                      <th>Hours</th>
                     </tr>
                   </thead>
                   <tbody id="recentTbody"></tbody>
@@ -419,7 +412,7 @@
             </div>
           </section>
 
-          <!-- ==================== COMPLETION PAGE ==================== -->
+          <!-- COMPLETION PAGE -->
           <section id="completionPage" class="page">
             <div class="page-panel glass">
               <div class="panel-head">
@@ -434,6 +427,36 @@
                     </svg>
                     Add Student
                   </button>
+                  
+                  <button class="btn-outline" id="exportExcelBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="12" y1="18" x2="12" y2="12"/>
+                      <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    Export to Excel
+                  </button>
+                  
+                  <button class="btn-outline" id="importExcelBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="12" y1="18" x2="12" y2="12"/>
+                      <line x1="9" y1="15" x2="15" y2="15"/>
+                    </svg>
+                    Import Excel
+                  </button>
+                  
+                  <button class="btn-danger" id="deleteAllBtn" style="background:#dc2626;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      <line x1="10" y1="11" x2="10" y2="17"/>
+                      <line x1="14" y1="11" x2="14" y2="17"/>
+                    </svg>
+                    Delete All
+                  </button>
+                  
                   <div class="search-field">
                     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <circle cx="11" cy="11" r="8"/>
@@ -474,6 +497,7 @@
                 <table class="completion-table">
                   <thead>
                     <tr>
+                      <th style="width:40px;">#</th>
                       <th>Student ID</th>
                       <th>Control Number</th>
                       <th>Complete Name</th>
@@ -485,6 +509,7 @@
                       <th>Data Sheet</th>
                       <th>Duties</th>
                       <th>Hours</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="completionTbody"></tbody>
@@ -505,11 +530,13 @@
                     <span class="leg-dot" style="background:#9ca3af"></span>No Longer w/ OS
                   </span>
                 </div>
+                <!-- Pagination Controls Container -->
+                <div id="paginationControls" class="pagination-controls"></div>
               </div>
             </div>
           </section>
 
-          <!-- ==================== HK DATABASE PAGE ==================== -->
+          <!-- HK DATABASE PAGE -->
           <section id="hkDatabasePage" class="page">
             <div class="hk-stats-row">
               <div class="hk-chip glass">🗄️ &nbsp;<strong id="hkTot">0</strong>&nbsp; total HK entries</div>
@@ -536,6 +563,7 @@
                   <table class="completion-table">
                     <thead>
                       <tr>
+                        <th style="width:40px;">#</th>
                         <th>Student ID</th>
                         <th>Control Number</th>
                         <th>Complete Name</th>
@@ -544,7 +572,7 @@
                         <th>Endorsement</th>
                         <th>Duties</th>
                         <th>Hours</th>
-                        <th>Action</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody id="hkTbody"></tbody>
@@ -578,7 +606,7 @@
             </div>
           </section>
 
-          <!-- ==================== ANALYTICS PAGE ==================== -->
+          <!-- ANALYTICS PAGE -->
           <section id="analyticsPage" class="page">
             <div class="empty-state glass">
               <div class="empty-icon">📊</div>
@@ -591,9 +619,7 @@
       </div>
     </div>
 
-    <!-- ==================== MODALS ==================== -->
-
-    <!-- Edit/Add Student Modal -->
+    <!-- EDIT/ADD STUDENT MODAL -->
     <div class="modal-backdrop" id="editModal" style="display:none">
       <div class="modal">
         <div class="modal-head">
@@ -606,11 +632,10 @@
           <button class="modal-close" id="closeEdit">✕</button>
         </div>
         <div class="modal-body">
-          <!-- Row 1: Student ID & Control Number -->
           <div class="form-row">
             <div class="form-field">
               <label for="eStudentId">Student ID *</label>
-              <input type="text" id="eStudentId" class="form-input" placeholder="e.g. 2025-12345 or 06-2526-123456">
+              <input type="text" id="eStudentId" class="form-input" placeholder="e.g. 2025-12345">
             </div>
             <div class="form-field">
               <label for="eControlNumber">Control Number (Auto)</label>
@@ -618,7 +643,6 @@
             </div>
           </div>
           
-          <!-- Row 2: Name & Course (Dropdown) -->
           <div class="form-row">
             <div class="form-field">
               <label for="eFullName">Complete Name *</label>
@@ -659,7 +683,6 @@
             </div>
           </div>
           
-          <!-- Row 3: Year Level & Section -->
           <div class="form-row">
             <div class="form-field">
               <label for="eYearLevel">Year Level</label>
@@ -676,7 +699,6 @@
             </div>
           </div>
           
-          <!-- Row 4: Support Type & Remarks -->
           <div class="form-row">
             <div class="form-field">
               <label for="eSupportType">Support Type</label>
@@ -698,7 +720,6 @@
             </div>
           </div>
           
-          <!-- Row 5: Endorsement & Data Sheet -->
           <div class="form-row">
             <div class="form-field">
               <label for="eEndorsement">Endorsement</label>
@@ -718,7 +739,6 @@
             </div>
           </div>
           
-          <!-- Row 6: Hours Completed -->
           <div class="form-row">
             <div class="form-field">
               <label for="eHours">Hours Completed</label>
@@ -726,7 +746,6 @@
             </div>
           </div>
           
-          <!-- Row 7: Duties (Full Width) -->
           <div class="form-field full-width">
             <label for="eDuties">Duties SY 26-27</label>
             <select id="eDuties" class="form-select">
@@ -749,7 +768,7 @@
       </div>
     </div>
 
-    <!-- Logout Confirmation Modal -->
+    <!-- LOGOUT CONFIRMATION MODAL -->
     <div class="modal-backdrop" id="logoutModal" style="display:none">
       <div class="modal modal-sm">
         <div class="modal-head">
@@ -766,12 +785,164 @@
       </div>
     </div>
 
+    <!-- DELETE ALL CONFIRMATION MODAL -->
+    <div class="modal-backdrop" id="deleteAllModal" style="display:none">
+      <div class="modal modal-sm">
+        <div class="modal-head">
+          <div class="modal-title" style="color:#dc2626;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            Delete All Students
+          </div>
+          <button class="modal-close" id="closeDeleteModal">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="margin-bottom: 16px;"><strong>⚠️ WARNING: This action cannot be undone!</strong></p>
+          <p>Are you sure you want to delete <strong id="deleteCount">ALL</strong> students?</p>
+          <p style="margin-top: 16px; font-size: 0.8rem; color: #ef4444;">This will permanently remove all student records from the database.</p>
+          
+          <div style="margin-top: 20px;">
+            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="confirmDeleteCheckbox">
+              <span style="font-size: 0.8rem;">I understand that this action is irreversible</span>
+            </label>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn-ghost" id="cancelDeleteBtn">Cancel</button>
+          <button class="btn-danger" id="confirmDeleteAllBtn" disabled style="background:#dc2626;">Delete All Students</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXCEL IMPORT MODAL -->
+    <div class="modal-backdrop" id="importModal" style="display:none">
+      <div class="modal modal-lg">
+        <div class="modal-head">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+            Import Students
+          </div>
+          <button class="modal-close" id="closeImportModal">✕</button>
+        </div>
+        
+        <div class="import-tabs" style="padding: 0 20px; padding-top: 16px;">
+          <button class="import-tab active" id="fileImportTab">📁 Upload File</button>
+          <button class="import-tab" id="urlImportTab">🔗 Import from URL</button>
+        </div>
+        
+        <div class="modal-body">
+          
+          <div id="fileImportSection">
+            <div id="importStepUpload" class="import-step active">
+              <div class="import-header">
+                <h3>Upload Excel File</h3>
+                <p>Select an Excel file containing student records</p>
+              </div>
+              
+              <div class="drop-zone" id="dropZone">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="12" y1="18" x2="12" y2="12"/>
+                  <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+                <p>Drag & drop Excel file here or click to browse</p>
+                <span class="file-hint">Supports .xlsx, .xls files</span>
+                <input type="file" id="excelFileInput" accept=".xlsx,.xls" style="display:none">
+              </div>
+              
+              <button class="btn-outline" id="downloadTemplateBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download Template
+              </button>
+            </div>
+          </div>
+          
+          <div id="urlImportSection" style="display:none">
+            <div class="import-header">
+              <h3>Import from URL Link</h3>
+              <p>Paste a link to an Excel file (Google Drive, OneDrive, or direct URL)</p>
+            </div>
+            
+            <div class="url-input-group">
+              <input type="text" id="excelUrlInput" class="form-input" placeholder="https://docs.google.com/spreadsheets/d/.../edit">
+              <button class="btn-primary" id="fetchUrlBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                Fetch & Import
+              </button>
+            </div>
+            
+            <div class="url-help">
+              <p>📌 Supported links:</p>
+              <ul>
+                <li><strong>Google Sheet:</strong> <code>https://docs.google.com/spreadsheets/d/FILE_ID/edit</code></li>
+                <li><strong>Google Drive:</strong> <code>https://drive.google.com/file/d/FILE_ID/view</code></li>
+                <li><strong>OneDrive:</strong> <code>https://1drv.ms/x/...</code></li>
+                <li><strong>Direct URL:</strong> <code>https://example.com/file.xlsx</code></li>
+              </ul>
+              <p class="url-note">⚠️ Make sure the file is shared with "Anyone with the link"</p>
+            </div>
+          </div>
+          
+          <div id="importStepMap" class="import-step" style="display:none">
+            <div class="import-header">
+              <h3>Map Excel Columns</h3>
+              <p>Match your Excel columns with database fields</p>
+            </div>
+            <div id="mappingContainer" class="mapping-container"></div>
+            <div class="import-actions">
+              <button class="btn-ghost" id="backToUploadBtn">Back</button>
+              <button class="btn-primary" id="previewImportBtn">Preview Import</button>
+            </div>
+          </div>
+          
+          <div id="importStepPreview" class="import-step" style="display:none">
+            <div class="import-header">
+              <h3>Preview Import Data</h3>
+              <p>Review the data before importing</p>
+            </div>
+            <div id="previewContainer" class="preview-container"></div>
+            <div class="import-actions">
+              <button class="btn-ghost" id="backToMapBtn">Back</button>
+              <button class="btn-primary" id="confirmImportBtn">Import Students</button>
+            </div>
+          </div>
+          
+          <div id="importStepResult" class="import-step" style="display:none">
+            <div class="import-header">
+              <h3>Import Complete</h3>
+            </div>
+            <div id="resultContainer"></div>
+            <div class="import-actions">
+              <button class="btn-primary" id="closeImportResultBtn">Close</button>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Mobile Controller (sidebar toggle) -->
-  <script type="module" src="/src/controllers/mobile.controller.ts"></script>
-
-  <!-- Main Admin Script (unchanged) -->
-  <script type="module" src="/src/admin.main.ts"></script>
+  <!-- Scripts -->
+  <script type="module" src="src/controllers/mobile.controller.ts"></script>
+  <script type="module" src="src/admin.main.ts"></script>
 </body>
 </html>

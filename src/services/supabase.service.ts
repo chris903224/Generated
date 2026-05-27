@@ -1,4 +1,4 @@
-// services/supabase.service.ts
+// services/supabase.service.ts - FULL VERSION
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -17,6 +17,12 @@ if (!supabaseAnonKey) {
 }
 
 export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+
+// ============================================
+// APP VERSION
+// ============================================
+
+const APP_VERSION = "v3.0.0";
 
 // ============================================
 // TYPES / INTERFACES
@@ -118,19 +124,19 @@ const MagicLinkManager = {
 };
 
 // ============================================
-// HELPER FUNCTIONS
+// HELPER FUNCTIONS - FIXED FOR PORT 3000
 // ============================================
 
-const getRedirectUrl = (token: string): string => {
-  const isProduction = window.location.hostname !== 'localhost' && 
-                       window.location.hostname !== '127.0.0.1';
+const getRedirectUrl = (): string => {
+  const isLocal = window.location.hostname === 'localhost' || 
+                  window.location.hostname === '127.0.0.1';
   
-  if (isProduction) {
-    // Force production URL
-    return `https://generatedcontrolnumbers.vercel.app/admin-callback.html?token=${token}`;
+  if (isLocal) {
+    // Local development - use current port (3000)
+    return `${window.location.origin}/admin-callback.html`;
   } else {
-    // Local development
-    return `${window.location.origin}/admin-callback.html?token=${token}`;
+    // Production - use Vercel route
+    return `${window.location.origin}/admin-callback`;
   }
 };
 
@@ -531,10 +537,12 @@ export const AdminAuthService = {
       const token = MagicLinkManager.generateToken();
       
       // Get the correct redirect URL based on environment
-      const redirectUrl = getRedirectUrl(token);
+      const redirectUrl = getRedirectUrl();
       
-      console.log('Sending magic link to:', email);
-      console.log('Redirect URL:', redirectUrl);
+      console.log('📧 Sending magic link to:', email);
+      console.log('🔗 Redirect URL:', redirectUrl);
+      console.log('📍 Current origin:', window.location.origin);
+      console.log('🔐 Token:', token);
       
       // Send magic link with forced redirect URL
       const { error } = await supabase.auth.signInWithOtp({
@@ -575,7 +583,8 @@ export const AdminAuthService = {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
       
-      console.log('Handling callback with token:', token);
+      console.log('🔄 Handling callback with token:', token);
+      console.log('📍 Callback URL:', window.location.href);
       
       // Check if link is expired
       if (MagicLinkManager.isLinkExpired()) {
@@ -606,13 +615,22 @@ export const AdminAuthService = {
         return { success: false, message: 'Failed to authenticate. Please try again.' };
       }
       
-      // Store admin session info
-      localStorage.setItem('admin_logged_in', 'true');
-      localStorage.setItem('admin_email', session.user.email || '');
-      localStorage.setItem('admin_user_id', session.user.id);
-      localStorage.setItem('admin_login_time', new Date().toISOString());
+      // Store admin session info in sessionStorage
+      sessionStorage.setItem('admin_logged_in', 'true');
+      sessionStorage.setItem('admin_email', session.user.email || '');
+      sessionStorage.setItem('admin_user_id', session.user.id);
+      sessionStorage.setItem('admin_login_time', Date.now().toString());
+      sessionStorage.setItem('app_version', APP_VERSION);
       
-      console.log('Admin logged in:', session.user.email);
+      // Extract name from email
+      const emailName = session.user.email?.split('@')[0] || 'Admin';
+      const formattedName = emailName.split('.')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+      sessionStorage.setItem('admin_name', formattedName);
+      
+      console.log('✅ Admin logged in:', session.user.email);
+      console.log('👤 Admin name:', formattedName);
       
       return { success: true, message: '✅ Successfully logged in!' };
     } catch (error: any) {
@@ -626,7 +644,7 @@ export const AdminAuthService = {
    */
   async isAuthenticated(): Promise<boolean> {
     const { data: { session } } = await supabase.auth.getSession();
-    const adminLoggedIn = localStorage.getItem('admin_logged_in') === 'true';
+    const adminLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true';
     return !!(session && adminLoggedIn);
   },
 
@@ -642,7 +660,7 @@ export const AdminAuthService = {
    * Get admin email
    */
   getAdminEmail(): string | null {
-    return localStorage.getItem('admin_email');
+    return sessionStorage.getItem('admin_email');
   },
 
   /**
@@ -650,10 +668,12 @@ export const AdminAuthService = {
    */
   async logout(): Promise<void> {
     await supabase.auth.signOut();
-    localStorage.removeItem('admin_logged_in');
-    localStorage.removeItem('admin_email');
-    localStorage.removeItem('admin_user_id');
-    localStorage.removeItem('admin_login_time');
+    sessionStorage.removeItem('admin_logged_in');
+    sessionStorage.removeItem('admin_email');
+    sessionStorage.removeItem('admin_user_id');
+    sessionStorage.removeItem('admin_login_time');
+    sessionStorage.removeItem('admin_name');
+    sessionStorage.removeItem('login_method');
     localStorage.removeItem('used_magic_links');
     localStorage.removeItem('magic_link_expires_at');
     window.location.href = '/admin-login.html';

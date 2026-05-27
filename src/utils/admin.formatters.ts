@@ -1,4 +1,4 @@
-// utils/admin.formatters.ts
+// utils/admin.formatters.ts - FULL VERSION (NO CN- PREFIX)
 
 // ============================================
 // HTML ESCAPE
@@ -96,7 +96,7 @@ export function getYearLevelForSelect(year: string): string {
 }
 
 // ============================================
-// STATS UPDATE - CORRECTED FOR admin.html
+// STATS UPDATE
 // ============================================
 
 export function updateStats(
@@ -107,7 +107,6 @@ export function updateStats(
 ): void {
   const notCompleted = total - completed - pending;
   
-  // Update stat numbers - using correct IDs from admin.html
   const totalEl = document.getElementById('totalStudents');
   const completedEl = document.getElementById('completedCount');
   const pendingEl = document.getElementById('pendingCount');
@@ -120,7 +119,6 @@ export function updateStats(
   if (notCompletedEl) notCompletedEl.textContent = notCompleted.toString();
   if (hkEl) hkEl.textContent = hk.toString();
   
-  // Update percentages
   const completedPct = total > 0 ? Math.round((completed / total) * 100) : 0;
   const pendingPct = total > 0 ? Math.round((pending / total) * 100) : 0;
   const notCompletedPct = total > 0 ? Math.round((notCompleted / total) * 100) : 0;
@@ -134,7 +132,6 @@ export function updateStats(
   if (pendingPctEl) pendingPctEl.textContent = `${pendingPct}%`;
   if (notCompletedPctEl) notCompletedPctEl.innerHTML = `${notCompletedPct}% <span class="trend-arrow down">↓</span>`;
   
-  // Update progress bars
   const completedBar = document.getElementById('completedBar');
   const pendingBar = document.getElementById('pendingBar');
   const notCompletedBar = document.getElementById('notCompletedBar');
@@ -145,19 +142,15 @@ export function updateStats(
   if (notCompletedBar) notCompletedBar.style.width = `${notCompletedPct}%`;
   if (hkBar && total > 0) hkBar.style.width = `${hkPct}%`;
   
-  // Update live badge
   const liveBadge = document.getElementById('liveBadgeText');
   if (liveBadge) liveBadge.textContent = `${total} Students`;
   
-  // Update completion percentage chip
   const compPct = document.getElementById('compPct');
   if (compPct) compPct.textContent = `${completedPct}% Done`;
   
-  // Update donut center
   const donutNum = document.getElementById('donutNum');
   if (donutNum) donutNum.textContent = total.toString();
   
-  // Update HK stats
   const hkTot = document.getElementById('hkTot');
   const hkOjt = document.getElementById('hkOjt');
   if (hkTot) hkTot.textContent = hk.toString();
@@ -185,7 +178,7 @@ export function generateCompletionRow(student: any): string {
       <td>
         <button class="action-btn edit-btn" data-id="${student.id}" title="Edit">✏️ Edit</button>
         <button class="action-btn delete-btn" data-id="${student.id}" data-name="${escapeHtml(student.full_name || student.name)}" title="Delete">🗑️ Delete</button>
-      </td>
+       </td>
     </tr>
   `;
 }
@@ -204,7 +197,7 @@ export function generateHKRow(student: any): string {
       <td>
         <button class="action-btn edit-btn" data-id="${student.id}">✏️ Edit</button>
         <button class="action-btn delete-btn" data-id="${student.id}" data-name="${escapeHtml(student.full_name)}">🗑️ Delete</button>
-      </td>
+       </td>
     </tr>
   `;
 }
@@ -248,7 +241,7 @@ export function validateStudentForm(formData: {
 }
 
 // ============================================
-// GENERATE UNIQUE ID
+// GENERATE UNIQUE ID & CONTROL NUMBER (NO CN- PREFIX)
 // ============================================
 
 export function generateUniqueId(prefix: string = 'STU'): string {
@@ -257,10 +250,10 @@ export function generateUniqueId(prefix: string = 'STU'): string {
   return `${prefix}-${timestamp}-${random}`;
 }
 
+// FIXED: No CN- prefix, number only
 export function generateControlNumber(): string {
-  const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `CN-${year}-${random}`;
+  const random = Math.floor(Math.random() * 900000) + 100000;
+  return random.toString(); // Returns 6-digit number only, e.g., "883101"
 }
 
 // ============================================

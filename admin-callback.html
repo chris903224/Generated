@@ -29,7 +29,7 @@
       width: 50px;
       height: 50px;
       border: 4px solid #e2e8f0;
-      border-top-color: #667eea;
+      border-top-color: #10b981;
       border-radius: 50%;
       animation: spin 1s linear infinite;
       margin: 0 auto 20px;
@@ -39,14 +39,13 @@
     }
     .success { color: #10b981; }
     .error { color: #ef4444; }
-    .info { color: #3b82f6; }
     h3 { margin: 0 0 10px; }
     p { color: #64748b; margin: 0; }
     .btn {
       display: inline-block;
       margin-top: 20px;
       padding: 10px 24px;
-      background: #667eea;
+      background: #10b981;
       color: white;
       text-decoration: none;
       border-radius: 12px;
@@ -64,8 +63,9 @@
   </div>
 
   <script type="module">
-    // ✅ TAMA: .ts extension
-    import { AdminAuthService } from '/src/services/supabase.service.ts';
+    import { supabase } from './src/services/supabase.service.ts';
+
+    const APP_VERSION = "v3.0.0";
 
     async function handleCallback() {
       const titleEl = document.getElementById('title');
@@ -73,42 +73,106 @@
       const spinner = document.getElementById('spinner');
       
       try {
-        const result = await AdminAuthService.handleCallback();
+        console.log('🔐 Callback URL:', window.location.href);
+        console.log('🔐 Callback Origin:', window.location.origin);
         
-        if (result.success) {
-          titleEl.innerHTML = '✅ ' + result.message;
-          titleEl.className = 'success';
-          messageEl.innerHTML = 'Redirecting you to the admin dashboard...';
-          spinner.style.display = 'none';
+        // Check URL hash for tokens (Supabase uses hash)
+        const hash = window.location.hash;
+        console.log('🔐 Hash:', hash);
+        
+        if (hash && hash.includes('access_token')) {
+          // Extract tokens from hash
+          const hashParams = new URLSearchParams(hash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
           
-          setTimeout(() => {
-            window.location.href = '/admin';
-          }, 2000);
+          if (accessToken && refreshToken) {
+            console.log('✅ Tokens found in hash');
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken
+            });
+            
+            if (error) {
+              console.error('Session error:', error);
+              showError(titleEl, messageEl, spinner, error.message);
+              return;
+            }
+            
+            if (data.session) {
+              await handleSuccessfulLogin(data.session, titleEl, messageEl, spinner);
+              return;
+          }
+          }
+        }
+        
+        // Try to get session normally
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session error:', error);
+          showError(titleEl, messageEl, spinner, error.message);
+          return;
+        }
+        
+        if (session) {
+          await handleSuccessfulLogin(session, titleEl, messageEl, spinner);
         } else {
-          titleEl.innerHTML = '❌ Authentication Failed';
-          titleEl.className = 'error';
-          messageEl.innerHTML = result.message;
-          spinner.style.display = 'none';
+          // Check URL parameters
+          const urlParams = new URLSearchParams(window.location.search);
+          const errorDesc = urlParams.get('error_description');
           
-          const btn = document.createElement('a');
-          btn.href = '/admin-login';
-          btn.className = 'btn';
-          btn.innerHTML = 'Back to Login';
-          document.querySelector('.card').appendChild(btn);
+          if (errorDesc) {
+            showError(titleEl, messageEl, spinner, decodeURIComponent(errorDesc));
+          } else {
+            showError(titleEl, messageEl, spinner, 'No session found. Please request a new magic link.');
+          }
         }
       } catch (error) {
         console.error('Callback error:', error);
-        titleEl.innerHTML = '❌ Something Went Wrong';
-        titleEl.className = 'error';
-        messageEl.innerHTML = 'An unexpected error occurred. Please try again.';
-        spinner.style.display = 'none';
-        
-        const btn = document.createElement('a');
-        btn.href = '/admin-login';
-        btn.className = 'btn';
-        btn.innerHTML = 'Back to Login';
-        document.querySelector('.card').appendChild(btn);
+        showError(titleEl, messageEl, spinner, 'An unexpected error occurred.');
       }
+    }
+    
+    function showError(titleEl, messageEl, spinner, errorMsg) {
+      titleEl.innerHTML = '❌ Authentication Failed';
+      titleEl.className = 'error';
+      messageEl.innerHTML = errorMsg;
+      spinner.style.display = 'none';
+      
+      const btn = document.createElement('a');
+      btn.href = '/admin-login.html';
+      btn.className = 'btn';
+      btn.innerHTML = 'Back to Login';
+      document.querySelector('.card').appendChild(btn);
+    }
+    
+    async function handleSuccessfulLogin(session, titleEl, messageEl, spinner) {
+      console.log('✅ Session found:', session.user.email);
+      
+      // Store session in sessionStorage
+      sessionStorage.setItem('admin_logged_in', 'true');
+      sessionStorage.setItem('admin_email', session.user.email || '');
+      sessionStorage.setItem('login_method', 'magiclink');
+      sessionStorage.setItem('admin_login_time', Date.now().toString());
+      sessionStorage.setItem('app_version', APP_VERSION);
+      
+      // Extract name from email
+      const emailName = session.user.email?.split('@')[0] || 'Admin';
+      const formattedName = emailName.split('.')
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+      sessionStorage.setItem('admin_name', formattedName);
+      
+      titleEl.innerHTML = '✅ Authentication Successful!';
+      titleEl.className = 'success';
+      messageEl.innerHTML = `Welcome, ${formattedName}! Redirecting to dashboard...`;
+      spinner.style.display = 'none';
+      
+      // Redirect to admin dashboard
+      setTimeout(() => {
+        window.location.href = '/admin.html';
+      }, 1500);
     }
 
     handleCallback();
