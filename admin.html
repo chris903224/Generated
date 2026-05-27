@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
   <meta name="theme-color" content="#10b981">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -131,25 +131,17 @@
           <div class="nav-divider"></div>
 
           <div class="nav-bottom">
-            <button class="nav-item theme-btn" id="themeBtn">
+            <!-- COLOR THEME PICKER BUTTON -->
+            <button class="nav-item theme-picker-btn" id="themePickerBtn">
               <div class="nav-icon-wrap">
-                <svg class="nav-icon icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"/>
-                </svg>
-                <svg class="nav-icon icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="5"/>
-                  <line x1="12" y1="1" x2="12" y2="3"/>
-                  <line x1="12" y1="21" x2="12" y2="23"/>
-                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                  <line x1="1" y1="12" x2="3" y2="12"/>
-                  <line x1="21" y1="12" x2="23" y2="12"/>
-                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.07.08A8 8 0 0 0 12 21a8 8 0 0 0 6.33-3.07l.07-.08z"/>
+                  <path d="M12 3a8 8 0 0 0-6.33 3.07l-.07.08a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1h12.44a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.07-.08A8 8 0 0 0 12 3z"/>
                 </svg>
               </div>
-              <span class="nav-label">Dark Mode</span>
-              <div class="nav-tooltip">Toggle Theme</div>
+              <span class="nav-label">Theme Colors</span>
+              <div class="nav-tooltip">Choose Theme Color</div>
             </button>
 
             <a href="#" class="nav-item nav-logout" id="logoutBtn">
@@ -530,7 +522,6 @@
                     <span class="leg-dot" style="background:#9ca3af"></span>No Longer w/ OS
                   </span>
                 </div>
-                <!-- Pagination Controls Container -->
                 <div id="paginationControls" class="pagination-controls"></div>
               </div>
             </div>
@@ -616,6 +607,63 @@
           </section>
 
         </main>
+      </div>
+    </div>
+
+    <!-- COLOR THEME PICKER MODAL -->
+    <div class="modal-backdrop" id="themePickerModal" style="display:none">
+      <div class="modal modal-sm">
+        <div class="modal-head">
+          <div class="modal-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.07.08A8 8 0 0 0 12 21a8 8 0 0 0 6.33-3.07l.07-.08z"/>
+              <path d="M12 3a8 8 0 0 0-6.33 3.07l-.07.08a1.65 1.65 0 0 0-.33 1.82 1.65 1.65 0 0 0 1.51 1h12.44a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.07-.08A8 8 0 0 0 12 3z"/>
+            </svg>
+            Choose Theme Color
+          </div>
+          <button class="modal-close" id="closeThemePicker">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="color-theme-grid">
+            <button class="color-theme-option" data-color="green">
+              <span class="color-check">✓</span>
+              <span class="color-label">🌿 Green Glass</span>
+            </button>
+            <button class="color-theme-option" data-color="cream">
+              <span class="color-check">✓</span>
+              <span class="color-label">🧴 Cream Glass</span>
+            </button>
+            <button class="color-theme-option" data-color="white">
+              <span class="color-check">✓</span>
+              <span class="color-label">⚪ White Glass</span>
+            </button>
+            <button class="color-theme-option" data-color="yellow">
+              <span class="color-check">✓</span>
+              <span class="color-label">💛 Yellow Glass</span>
+            </button>
+            <button class="color-theme-option" data-color="orange">
+              <span class="color-check">✓</span>
+              <span class="color-label">🍊 Orange Glass</span>
+            </button>
+            <button class="color-theme-option" data-color="gray">
+              <span class="color-check">✓</span>
+              <span class="color-label">🩶 Gray Glass</span>
+            </button>
+            <button class="color-theme-option" data-color="lightblack">
+              <span class="color-check">✓</span>
+              <span class="color-label">🌑 Light Black Glass</span>
+            </button>
+            <button class="color-theme-option" data-color="dark">
+              <span class="color-check">✓</span>
+              <span class="color-label">🌙 Dark Glass</span>
+            </button>
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn-ghost" id="cancelThemePicker">Cancel</button>
+          <button class="btn-primary" id="applyThemeBtn">Apply Theme</button>
+        </div>
       </div>
     </div>
 

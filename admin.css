@@ -3002,3 +3002,562 @@ body.dark .completion-table tbody tr:hover td {
     justify-content: center;
   }
 }
+/* ============================================
+   EMERGENCY TOAST NOTIFICATION FIX
+   Force position to top-right and make X clickable
+   ============================================ */
+
+.toast-container {
+  position: fixed !important;
+  top: 20px !important;
+  right: 20px !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: 999999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  max-width: 350px !important;
+  pointer-events: none !important;
+}
+
+.toast {
+  pointer-events: auto !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  padding: 14px 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 280px !important;
+  max-width: 350px !important;
+  border-left: 4px solid #10b981 !important;
+  position: relative !important;
+}
+
+.toast-success {
+  border-left-color: #10b981 !important;
+}
+
+.toast-error {
+  border-left-color: #ef4444 !important;
+}
+
+.toast-info {
+  border-left-color: #3b82f6 !important;
+}
+
+.toast-icon {
+  flex-shrink: 0 !important;
+}
+
+.toast-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.toast-body {
+  flex: 1 !important;
+}
+
+.toast-title {
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  margin: 0 !important;
+  color: #1e293b !important;
+}
+
+.toast-desc {
+  font-size: 0.7rem !important;
+  margin: 2px 0 0 !important;
+  color: #475569 !important;
+}
+
+.toast-close {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 6px !important;
+  border-radius: 50% !important;
+  width: 28px !important;
+  height: 28px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  transition: all 0.2s ease !important;
+}
+
+.toast-close:hover {
+  background: rgba(0, 0, 0, 0.15) !important;
+  transform: scale(1.05) !important;
+}
+
+.toast-close svg {
+  width: 14px !important;
+  height: 14px !important;
+  pointer-events: none !important;
+}
+
+.toast-exit {
+  animation: slideOutRight 0.3s ease forwards !important;
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Dark mode toast */
+[data-theme="dark"] .toast {
+  background: rgba(30, 41, 59, 0.95) !important;
+}
+
+[data-theme="dark"] .toast-title {
+  color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .toast-desc {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .toast-close {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .toast-close:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #f1f5f9 !important;
+}
+/* ============================================
+   THEMES.CSS - Color Themes with Glassmorphism
+   Green, Cream, White, Yellow, Orange, Gray, Dark
+   ============================================ */
+
+/* Base Theme Variables - Default (Green) */
+:root {
+  --bg: linear-gradient(145deg, #d4edda 0%, #c3e6cb 40%, #b2dfdb 100%);
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-deep: rgba(240, 255, 248, 0.75);
+  --glass-modal: rgba(248, 255, 252, 0.96);
+  --glass-nav: rgba(228, 252, 238, 0.82);
+  --g-border: rgba(52, 211, 153, 0.22);
+  --g-border-s: rgba(16, 185, 129, 0.42);
+  --txt-h: #022c22;
+  --txt-b: #065f46;
+  --txt-m: #047857;
+  --accent: #059669;
+  --accent-alt: #34d399;
+  --accent-glow: rgba(16, 185, 129, 0.22);
+  --accent-subtle: rgba(16, 185, 129, 0.10);
+}
+
+/* ============================================
+   THEME 1: GREEN GLASS (Default Active)
+   ============================================ */
+body.color-theme-green {
+  --bg: linear-gradient(145deg, #d4edda 0%, #c3e6cb 40%, #b2dfdb 100%);
+  --glass: rgba(255, 255, 255, 0.58);
+  --glass-deep: rgba(240, 255, 248, 0.75);
+  --glass-modal: rgba(248, 255, 252, 0.96);
+  --glass-nav: rgba(228, 252, 238, 0.82);
+  --g-border: rgba(52, 211, 153, 0.22);
+  --g-border-s: rgba(16, 185, 129, 0.42);
+  --txt-h: #022c22;
+  --txt-b: #065f46;
+  --txt-m: #047857;
+  --accent: #059669;
+  --accent-alt: #34d399;
+  --accent-glow: rgba(16, 185, 129, 0.22);
+  --accent-subtle: rgba(16, 185, 129, 0.10);
+}
+
+/* ============================================
+   THEME 2: CREAM GLASS
+   ============================================ */
+body.color-theme-cream {
+  --bg: linear-gradient(145deg, #FFF8E7 0%, #FFF5E0 40%, #FFEFD5 100%);
+  --glass: rgba(255, 248, 225, 0.65);
+  --glass-deep: rgba(255, 245, 220, 0.80);
+  --glass-modal: rgba(255, 248, 235, 0.95);
+  --glass-nav: rgba(255, 245, 225, 0.85);
+  --g-border: rgba(210, 180, 140, 0.25);
+  --g-border-s: rgba(160, 130, 90, 0.35);
+  --txt-h: #3d2b1f;
+  --txt-b: #5c3d2e;
+  --txt-m: #8b5a2b;
+  --accent: #c4a265;
+  --accent-alt: #d4b47a;
+  --accent-glow: rgba(196, 162, 101, 0.22);
+  --accent-subtle: rgba(196, 162, 101, 0.10);
+}
+
+/* ============================================
+   THEME 3: WHITE GLASS
+   ============================================ */
+body.color-theme-white {
+  --bg: linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 40%, #F1F5F9 100%);
+  --glass: rgba(255, 255, 255, 0.70);
+  --glass-deep: rgba(255, 255, 255, 0.85);
+  --glass-modal: rgba(255, 255, 255, 0.98);
+  --glass-nav: rgba(255, 255, 255, 0.90);
+  --g-border: rgba(203, 213, 225, 0.35);
+  --g-border-s: rgba(148, 163, 184, 0.45);
+  --txt-h: #0f172a;
+  --txt-b: #1e293b;
+  --txt-m: #475569;
+  --accent: #3b82f6;
+  --accent-alt: #60a5fa;
+  --accent-glow: rgba(59, 130, 246, 0.22);
+  --accent-subtle: rgba(59, 130, 246, 0.10);
+}
+
+/* ============================================
+   THEME 4: YELLOW GLASS
+   ============================================ */
+body.color-theme-yellow {
+  --bg: linear-gradient(145deg, #FEF9C3 0%, #FEF08A 40%, #FDE047 100%);
+  --glass: rgba(254, 249, 195, 0.65);
+  --glass-deep: rgba(254, 240, 138, 0.80);
+  --glass-modal: rgba(254, 249, 195, 0.95);
+  --glass-nav: rgba(254, 240, 138, 0.85);
+  --g-border: rgba(212, 180, 50, 0.30);
+  --g-border-s: rgba(180, 150, 30, 0.40);
+  --txt-h: #422800;
+  --txt-b: #713f12;
+  --txt-m: #a16207;
+  --accent: #eab308;
+  --accent-alt: #facc15;
+  --accent-glow: rgba(234, 179, 8, 0.22);
+  --accent-subtle: rgba(234, 179, 8, 0.10);
+}
+
+/* ============================================
+   THEME 5: ORANGE GLASS
+   ============================================ */
+body.color-theme-orange {
+  --bg: linear-gradient(145deg, #FFEDD5 0%, #FED7AA 40%, #FDBA74 100%);
+  --glass: rgba(255, 237, 213, 0.65);
+  --glass-deep: rgba(254, 215, 170, 0.80);
+  --glass-modal: rgba(255, 237, 213, 0.95);
+  --glass-nav: rgba(254, 215, 170, 0.85);
+  --g-border: rgba(200, 120, 50, 0.30);
+  --g-border-s: rgba(180, 100, 30, 0.40);
+  --txt-h: #431407;
+  --txt-b: #7c2d12;
+  --txt-m: #b45309;
+  --accent: #f97316;
+  --accent-alt: #fb923c;
+  --accent-glow: rgba(249, 115, 22, 0.22);
+  --accent-subtle: rgba(249, 115, 22, 0.10);
+}
+
+/* ============================================
+   THEME 6: GRAY GLASS
+   ============================================ */
+body.color-theme-gray {
+  --bg: linear-gradient(145deg, #E5E7EB 0%, #D1D5DB 40%, #9CA3AF 100%);
+  --glass: rgba(229, 231, 235, 0.70);
+  --glass-deep: rgba(209, 213, 219, 0.85);
+  --glass-modal: rgba(243, 244, 246, 0.96);
+  --glass-nav: rgba(229, 231, 235, 0.90);
+  --g-border: rgba(107, 114, 128, 0.30);
+  --g-border-s: rgba(75, 85, 99, 0.40);
+  --txt-h: #111827;
+  --txt-b: #1f2937;
+  --txt-m: #4b5563;
+  --accent: #6b7280;
+  --accent-alt: #9ca3af;
+  --accent-glow: rgba(107, 114, 128, 0.22);
+  --accent-subtle: rgba(107, 114, 128, 0.10);
+}
+
+/* ============================================
+   THEME 7: DARK GLASS
+   ============================================ */
+body.color-theme-dark {
+  --bg: linear-gradient(145deg, #080808 0%, #0d0d0d 50%, #111111 100%);
+  --glass: rgba(16, 16, 16, 0.80);
+  --glass-deep: rgba(12, 12, 12, 0.90);
+  --glass-modal: rgba(18, 18, 18, 0.97);
+  --glass-nav: rgba(10, 10, 10, 0.94);
+  --g-border: rgba(52, 211, 153, 0.12);
+  --g-border-s: rgba(52, 211, 153, 0.26);
+  --txt-h: #ecfdf5;
+  --txt-b: #a7f3d0;
+  --txt-m: #6ee7b7;
+  --accent: #34d399;
+  --accent-alt: #10b981;
+  --accent-glow: rgba(52, 211, 153, 0.20);
+  --accent-subtle: rgba(52, 211, 153, 0.08);
+}
+
+/* ============================================
+   THEME 8: LIGHT BLACK GLASS
+   ============================================ */
+body.color-theme-lightblack {
+  --bg: linear-gradient(145deg, #1a1a1a 0%, #2d2d2d 40%, #3a3a3a 100%);
+  --glass: rgba(30, 30, 30, 0.75);
+  --glass-deep: rgba(40, 40, 40, 0.85);
+  --glass-modal: rgba(35, 35, 35, 0.95);
+  --glass-nav: rgba(30, 30, 30, 0.88);
+  --g-border: rgba(100, 100, 100, 0.25);
+  --g-border-s: rgba(120, 120, 120, 0.35);
+  --txt-h: #f5f5f5;
+  --txt-b: #e0e0e0;
+  --txt-m: #a0a0a0;
+  --accent: #8b8b8b;
+  --accent-alt: #a0a0a0;
+  --accent-glow: rgba(139, 139, 139, 0.20);
+  --accent-subtle: rgba(139, 139, 139, 0.08);
+}
+
+/* ============================================
+   GLASS BACKGROUND EFFECTS
+   ============================================ */
+
+/* Force glass background on all theme */
+body {
+  background: var(--bg);
+  transition: background 0.3s ease;
+}
+
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--g-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.glass-deep {
+  background: var(--glass-deep);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--g-border);
+}
+
+.stat-card, .chart-card, .table-card, .page-panel {
+  background: var(--glass) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--g-border);
+}
+
+/* Text colors */
+.stat-number, .chart-title, .panel-title, .page-title {
+  color: var(--txt-h);
+}
+
+.stat-label, .chart-sub, .panel-sub, .page-subtitle {
+  color: var(--txt-m);
+}
+
+/* Badge colors based on theme */
+.badge-ok, .status-active, .etag-os, .dtag-reg {
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-color: var(--g-border-s);
+}
+
+/* Button colors */
+.btn-primary {
+  background: var(--accent);
+}
+
+.btn-primary:hover {
+  background: var(--accent-alt);
+}
+
+/* Accent borders and highlights */
+.nav-item.active {
+  background: var(--accent);
+  box-shadow: 0 4px 18px var(--accent-glow);
+}
+
+.completion-table thead th {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+/* ============================================
+   COLOR THEME PICKER - ENHANCED STYLES
+   Para maging colorful ang mga options
+   ============================================ */
+
+/* Color Theme Grid Layout */
+.color-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+}
+
+/* Color Theme Option Buttons */
+.color-theme-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1e293b;
+  background: var(--option-bg, #f1f5f9);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Individual Theme Colors */
+.color-theme-option[data-color="green"] {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.color-theme-option[data-color="cream"] {
+  background: linear-gradient(135deg, #FFFDD0 0%, #F5E6B8 100%);
+  color: #5c3d2e;
+  box-shadow: 0 2px 8px rgba(245, 230, 184, 0.3);
+}
+
+.color-theme-option[data-color="white"] {
+  background: linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%);
+  color: #1e293b;
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+  border: 1px solid #e2e8f0;
+}
+
+.color-theme-option[data-color="yellow"] {
+  background: linear-gradient(135deg, #FEF08A 0%, #FDE047 100%);
+  color: #422800;
+  box-shadow: 0 2px 8px rgba(254, 240, 138, 0.3);
+}
+
+.color-theme-option[data-color="orange"] {
+  background: linear-gradient(135deg, #FED7AA 0%, #FDBA74 100%);
+  color: #431407;
+  box-shadow: 0 2px 8px rgba(254, 215, 170, 0.3);
+}
+
+.color-theme-option[data-color="gray"] {
+  background: linear-gradient(135deg, #D1D5DB 0%, #9CA3AF 100%);
+  color: #111827;
+  box-shadow: 0 2px 8px rgba(156, 163, 175, 0.3);
+}
+
+.color-theme-option[data-color="lightblack"] {
+  background: linear-gradient(135deg, #3a3a3a 0%, #1a1a1a 100%);
+  color: #f5f5f5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.color-theme-option[data-color="dark"] {
+  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  color: #ecfdf5;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.3);
+}
+
+/* Active State - Selected Theme */
+.color-theme-option.active {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3), 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+/* Checkmark Icon */
+.color-theme-option .color-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: #10b981;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: bold;
+  opacity: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.color-theme-option.active .color-check {
+  opacity: 1;
+}
+
+/* Color Label */
+.color-theme-option .color-label {
+  flex: 1;
+  text-align: left;
+  margin-left: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Hover Effect */
+.color-theme-option:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark Mode Adjustments */
+[data-theme="dark"] .color-theme-option {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .color-theme-option.active {
+  border-color: #34d399;
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.3);
+}
+
+[data-theme="dark"] .color-theme-option .color-check {
+  background: #1e293b;
+  color: #34d399;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .color-theme-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  
+  .color-theme-option {
+    padding: 10px 14px;
+    font-size: 0.8rem;
+  }
+  
+  .color-theme-option .color-check {
+    width: 20px;
+    height: 20px;
+    font-size: 11px;
+  }
+}
+
+/* Animation for selection */
+@keyframes themeSelect {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.color-theme-option.active {
+  animation: themeSelect 0.3s ease;
+}
