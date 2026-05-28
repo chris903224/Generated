@@ -1,11 +1,10 @@
-// src/admin-login.ts - UPDATED WITH SESSIONSTORAGE
+// src/admin-login.ts - POLISHED VERSION
+import { supabase } from './services/supabase.service';
+import { AdminService } from './services/admin.service';
 
-import { supabase, AdminAuthService } from './services/supabase.service';
+const APP_VERSION = "v3.0.0";
 
-// App version - MUST MATCH admin.main.ts
-const APP_VERSION = "v2.1.4";
-
-// ── DOM Elements ──────────────────────────────────────────────
+// DOM Elements
 const usernameInput = document.getElementById('adminUsername') as HTMLInputElement;
 const passwordInput = document.getElementById('adminPassword') as HTMLInputElement;
 const emailInput = document.getElementById('adminEmail') as HTMLInputElement;
@@ -18,152 +17,17 @@ const tabBtns = document.querySelectorAll('.tab-btn');
 const credentialsTab = document.getElementById('credentialsTab');
 const magicTab = document.getElementById('magicTab');
 
-// ── 5 ADMIN ACCOUNTS ──────────────────────────────────────────
-const ADMIN_ACCOUNTS = [
-  { username: 'AdminAnthony', password: 'anthony123', name: 'Anthony' },
-  { username: 'AdminRonan', password: 'ronan123', name: 'Ronan' },
-  { username: 'AdminJay', password: 'jay123', name: 'Jay' },
-  { username: 'AdminLeimark', password: 'leimark123', name: 'Leimark' },
-  { username: 'AdminAlain', password: 'alain123', name: 'Alain' }
-];
-
-// ── ONLY ALLOWED EMAILS FOR MAGIC LINK ────────────────────────────────
-const ALLOWED_MAGIC_LINK_EMAILS = [
-  'leda.lutrania.sjc@phinmaed.com',
-  'anma.saguid.sjc@phinmaed.com', 
-  'juba.libao.sjc@phinmaed.com',
-  'chpe.villanueva.sjc@phinmaed.com'
-];
-
-// ── Rate limiting ───────────────────────────────────────────
+// Rate limiting
 let loginAttempts = 0;
 const MAX_ATTEMPTS = 5;
 const ATTEMPTS_KEY = 'login_attempts';
 const ATTEMPTS_TIMESTAMP_KEY = 'login_attempts_timestamp';
-const RESET_TIME = 60 * 60 * 1000; // 1 hour
+const RESET_TIME = 60 * 60 * 1000;
 
-// ── Toast durations ─────────────────────────────────────────
+// Toast durations
 const TOAST_SUCCESS_TTL = 8000;
 const TOAST_ERROR_TTL = 6000;
 const TOAST_INFO_TTL = 6000;
-
-// ============================================
-// PREVENT AUTO-FILL AND SAVED PASSWORDS
-// ============================================
-
-function preventAutoFill(): void {
-  // Clear input values on page load
-  if (usernameInput) usernameInput.value = '';
-  if (passwordInput) passwordInput.value = '';
-  if (emailInput) emailInput.value = '';
-  
-  // Add autocomplete="off" to all inputs
-  if (usernameInput) {
-    usernameInput.setAttribute('autocomplete', 'off');
-    usernameInput.setAttribute('autocomplete', 'new-password');
-  }
-  if (passwordInput) {
-    passwordInput.setAttribute('autocomplete', 'new-password');
-  }
-  if (emailInput) {
-    emailInput.setAttribute('autocomplete', 'off');
-  }
-  
-  // Clear browser's saved form data on page load
-  if (document.forms) {
-    const forms = document.getElementsByTagName('form');
-    for (let i = 0; i < forms.length; i++) {
-      forms[i].reset();
-    }
-  }
-}
-
-// ============================================
-// CLEAR ANY STORED CREDENTIALS
-// ============================================
-
-function clearStoredCredentials(): void {
-  // Clear localStorage
-  localStorage.removeItem('saved_username');
-  localStorage.removeItem('saved_password');
-  localStorage.removeItem('remember_me');
-  localStorage.removeItem('admin_username');
-  
-  // Clear sessionStorage
-  sessionStorage.removeItem('temp_username');
-  sessionStorage.removeItem('temp_password');
-  sessionStorage.removeItem('admin_logged_in');
-  sessionStorage.removeItem('admin_name');
-  sessionStorage.removeItem('login_method');
-  sessionStorage.removeItem('admin_login_time');
-}
-
-// ============================================
-// VERSION CHECK - CLEAR OLD SESSIONS ON DEPLOY
-// ============================================
-
-function checkAndClearOldSession(): void {
-  const storedVersion = sessionStorage.getItem('app_version');
-  if (storedVersion !== APP_VERSION) {
-    // Clear everything except version in sessionStorage
-    const keysToKeep = ['app_version'];
-    const allKeys = Object.keys(sessionStorage);
-    
-    allKeys.forEach(key => {
-      if (!keysToKeep.includes(key)) {
-        sessionStorage.removeItem(key);
-      }
-    });
-    
-    sessionStorage.setItem('app_version', APP_VERSION);
-  }
-  
-  // Also clear localStorage for old data
-  const localVersion = localStorage.getItem('app_version');
-  if (localVersion !== APP_VERSION) {
-    localStorage.clear();
-    localStorage.setItem('app_version', APP_VERSION);
-  }
-}
-
-// ============================================
-// SECURITY MEASURES
-// ============================================
-
-function initSecurity(): void {
-  // Disable Right Click
-  document.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
-    return false;
-  });
-
-  // Disable F12 and other dev tools keys
-  document.addEventListener('keydown', (e) => {
-    const key = e.key;
-    const ctrl = e.ctrlKey;
-    const shift = e.shiftKey;
-    
-    if (key === 'F12' || 
-        (ctrl && shift && key === 'I') ||
-        (ctrl && shift && key === 'J') ||
-        (ctrl && shift && key === 'C') ||
-        (ctrl && shift && key === 'K') ||
-        (ctrl && key === 'u') ||
-        (ctrl && key === 's')) {
-      e.preventDefault();
-      return false;
-    }
-  });
-  
-  // Prevent form submission on enter (we handle manually)
-  const forms = document.querySelectorAll('form');
-  forms.forEach(form => {
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      return false;
-    });
-  });
-}
 
 // ============================================
 // TOAST NOTIFICATION SYSTEM
@@ -241,69 +105,6 @@ function clearToasts(): void {
 }
 
 // ============================================
-// UI INITIALIZATION
-// ============================================
-
-function initTheme(): void {
-  const html = document.documentElement;
-  const stored = localStorage.getItem('portal_theme') || 'dark';
-  html.setAttribute('data-theme', stored);
-  
-  const toggle = document.getElementById('themeToggle');
-  if (toggle) {
-    toggle.addEventListener('click', () => {
-      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      html.setAttribute('data-theme', next);
-      localStorage.setItem('portal_theme', next);
-    });
-  }
-}
-
-function initTabs(): void {
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const tab = btn.getAttribute('data-tab');
-      
-      tabBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      
-      if (tab === 'credentials') {
-        credentialsTab?.classList.add('active');
-        magicTab?.classList.remove('active');
-        // Clear inputs when switching tabs
-        if (usernameInput) usernameInput.value = '';
-        if (passwordInput) passwordInput.value = '';
-      } else {
-        magicTab?.classList.add('active');
-        credentialsTab?.classList.remove('active');
-        // Clear email when switching tabs
-        if (emailInput) emailInput.value = '';
-      }
-      
-      clearToasts();
-    });
-  });
-}
-
-function initPasswordToggle(): void {
-  const pwToggle = document.getElementById('togglePassword');
-  const pwInput = document.getElementById('adminPassword') as HTMLInputElement;
-  
-  if (pwToggle && pwInput) {
-    pwToggle.addEventListener('click', () => {
-      const isText = pwInput.type === 'text';
-      pwInput.type = isText ? 'password' : 'text';
-      
-      const eyeOpen = pwToggle.querySelector('.eye-open') as HTMLElement;
-      const eyeClosed = pwToggle.querySelector('.eye-closed') as HTMLElement;
-      
-      if (eyeOpen) eyeOpen.style.display = isText ? '' : 'none';
-      if (eyeClosed) eyeClosed.style.display = isText ? 'none' : '';
-    });
-  }
-}
-
-// ============================================
 // ATTEMPTS MANAGEMENT
 // ============================================
 
@@ -347,7 +148,9 @@ function setLoading(btn: HTMLButtonElement, loading: boolean): void {
     btn.disabled = true;
   } else {
     btn.classList.remove('loading');
-    btn.disabled = false;
+    if (loginAttempts < MAX_ATTEMPTS) {
+      btn.disabled = false;
+    }
   }
 }
 
@@ -356,18 +159,15 @@ function shakeInput(input: HTMLInputElement): void {
   setTimeout(() => input.classList.remove('shake'), 400);
 }
 
-function isAllowedMagicLinkEmail(email: string): boolean {
-  return ALLOWED_MAGIC_LINK_EMAILS.includes(email.toLowerCase());
-}
-
 // ============================================
-// CREDENTIALS LOGIN - USING SESSIONSTORAGE
+// CREDENTIALS LOGIN
 // ============================================
 
 async function loginWithCredentials(): Promise<void> {
-  // Get fresh values from inputs - never from storage
   const username = usernameInput.value.trim();
   const password = passwordInput.value;
+
+  console.log('🔐 Login attempt:', { username, passwordLength: password?.length });
 
   if (loginAttempts >= MAX_ATTEMPTS) {
     showToast('error', {
@@ -392,57 +192,66 @@ async function loginWithCredentials(): Promise<void> {
   }
 
   setLoading(credentialsBtn, true);
-  await new Promise(resolve => setTimeout(resolve, 500));
 
-  const foundAdmin = ADMIN_ACCOUNTS.find(
-    admin => admin.username === username && admin.password === password
-  );
+  try {
+    const admin = await AdminService.verifyCredentials(username, password);
 
-  if (foundAdmin) {
-    resetAttempts();
-    
-    // Clear ALL existing data from both storages
-    const version = sessionStorage.getItem('app_version');
-    sessionStorage.clear();
-    localStorage.clear();
-    
-    // Store session in sessionStorage (temporary - mawawala pag close ng browser)
-    sessionStorage.setItem('app_version', APP_VERSION);
-    sessionStorage.setItem('admin_logged_in', 'true');
-    sessionStorage.setItem('admin_name', foundAdmin.name);
-    sessionStorage.setItem('login_method', 'credentials');
-    sessionStorage.setItem('admin_login_time', Date.now().toString());
-    
-    // Store version in localStorage for reference only (not session data)
-    localStorage.setItem('app_version', APP_VERSION);
-    
-    // IMPORTANT: NEVER store username or password!
-    
-    // Clear input fields for security
-    usernameInput.value = '';
-    passwordInput.value = '';
-    
-    showToast('success', { 
-      title: `Welcome, ${foundAdmin.name}!`, 
-      description: 'Redirecting to dashboard...' 
-    });
-    
-    setTimeout(() => {
-      window.location.href = '/admin.html';
-    }, 1000);
-  } else {
+    if (admin) {
+      console.log('✅ Login successful for:', admin.name);
+      resetAttempts();
+      
+      sessionStorage.clear();
+      localStorage.clear();
+      
+      sessionStorage.setItem('app_version', APP_VERSION);
+      sessionStorage.setItem('admin_logged_in', 'true');
+      sessionStorage.setItem('admin_name', admin.name);
+      sessionStorage.setItem('admin_username', admin.username || '');
+      sessionStorage.setItem('admin_email', admin.email || '');
+      sessionStorage.setItem('admin_id', admin.id);
+      sessionStorage.setItem('login_method', 'credentials');
+      sessionStorage.setItem('admin_login_time', Date.now().toString());
+      
+      localStorage.setItem('app_version', APP_VERSION);
+      
+      usernameInput.value = '';
+      passwordInput.value = '';
+      
+      showToast('success', { 
+        title: `Welcome, ${admin.name}!`, 
+        description: 'Redirecting to dashboard...' 
+      });
+      
+      setTimeout(() => {
+        window.location.href = '/admin.html';
+      }, 1000);
+    } else {
+      loginAttempts++;
+      saveAttempts();
+      const remaining = MAX_ATTEMPTS - loginAttempts;
+      
+      passwordInput.value = '';
+      passwordInput.focus();
+      
+      shakeInput(usernameInput);
+      showToast('error', {
+        title: 'Invalid credentials',
+        description: 'Username or password is incorrect.',
+        attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
+      });
+      setLoading(credentialsBtn, false);
+    }
+  } catch (error) {
+    console.error('❌ Login error:', error);
     loginAttempts++;
     saveAttempts();
     const remaining = MAX_ATTEMPTS - loginAttempts;
     
-    // Clear password field on failed attempt
     passwordInput.value = '';
-    passwordInput.focus();
     
-    shakeInput(usernameInput);
     showToast('error', {
-      title: 'Invalid credentials',
-      description: 'Username or password is incorrect.',
+      title: 'Login Failed',
+      description: 'An unexpected error occurred. Please try again.',
       attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
     });
     setLoading(credentialsBtn, false);
@@ -450,11 +259,13 @@ async function loginWithCredentials(): Promise<void> {
 }
 
 // ============================================
-// MAGIC LINK LOGIN - USING SESSIONSTORAGE
+// MAGIC LINK LOGIN
 // ============================================
 
 async function sendMagicLink(): Promise<void> {
   const email = emailInput.value.trim();
+
+  console.log('📧 Magic link request for:', email);
 
   if (loginAttempts >= MAX_ATTEMPTS) {
     showToast('error', {
@@ -471,16 +282,6 @@ async function sendMagicLink(): Promise<void> {
     return;
   }
 
-  if (!isAllowedMagicLinkEmail(email)) {
-    shakeInput(emailInput);
-    showToast('error', { 
-      title: 'Access Denied', 
-      description: 'This email address is not authorized for magic link login.' 
-    });
-    emailInput.focus();
-    return;
-  }
-
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     shakeInput(emailInput);
@@ -492,25 +293,47 @@ async function sendMagicLink(): Promise<void> {
   setLoading(magicBtn, true);
 
   try {
-    const result = await AdminAuthService.sendMagicLink(email);
-
-    if (result.success) {
-      resetAttempts();
-      showToast('success', {
-        title: 'Magic link sent!',
-        description: result.message,
+    const admin = await AdminService.verifyMagicLink(email);
+    
+    if (!admin) {
+      loginAttempts++;
+      saveAttempts();
+      const remaining = MAX_ATTEMPTS - loginAttempts;
+      shakeInput(emailInput);
+      showToast('error', {
+        title: 'Access Denied',
+        description: 'This email address is not authorized for magic link login.',
+        attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
       });
-      emailInput.value = '';
-    } else {
+      setLoading(magicBtn, false);
+      return;
+    }
+    
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/admin.html`,
+      }
+    });
+
+    if (error) {
       loginAttempts++;
       saveAttempts();
       const remaining = MAX_ATTEMPTS - loginAttempts;
       shakeInput(emailInput);
       showToast('error', {
         title: 'Failed to send link',
-        description: result.message,
+        description: error.message,
         attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
       });
+    } else {
+      resetAttempts();
+      sessionStorage.setItem('magic_link_email', email);
+      showToast('success', {
+        title: 'Magic link sent!',
+        description: `Check your email at ${email}. The link expires in 24 hours.`,
+      });
+      emailInput.value = '';
     }
   } catch (error) {
     loginAttempts++;
@@ -520,7 +343,7 @@ async function sendMagicLink(): Promise<void> {
     shakeInput(emailInput);
     showToast('error', {
       title: 'Something went wrong',
-      description: 'An unexpected error occurred.',
+      description: 'An unexpected error occurred. Please try again.',
       attempts: remaining > 0 ? `${remaining} attempt${remaining !== 1 ? 's' : ''} remaining` : undefined,
     });
   } finally {
@@ -529,48 +352,156 @@ async function sendMagicLink(): Promise<void> {
 }
 
 // ============================================
-// PREVENT BROWSER FROM SAVING CREDENTIALS
+// UI INITIALIZATION
 // ============================================
 
-function preventBrowserSavePassword(): void {
-  // Add hidden fields to confuse browser's password manager
-  const hiddenUsername = document.createElement('input');
-  hiddenUsername.type = 'text';
-  hiddenUsername.style.display = 'none';
-  hiddenUsername.setAttribute('autocomplete', 'username');
+function initTheme(): void {
+  const html = document.documentElement;
+  const stored = localStorage.getItem('portal_theme') || 'dark';
+  html.setAttribute('data-theme', stored);
   
-  const hiddenPassword = document.createElement('input');
-  hiddenPassword.type = 'password';
-  hiddenPassword.style.display = 'none';
-  hiddenPassword.setAttribute('autocomplete', 'new-password');
-  
-  const credentialsContainer = document.querySelector('.credentials-fields');
-  if (credentialsContainer) {
-    credentialsContainer.prepend(hiddenUsername);
-    credentialsContainer.prepend(hiddenPassword);
+  const toggle = document.getElementById('themeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', () => {
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('portal_theme', next);
+    });
   }
-  
-  // Clear fields on page unload
-  window.addEventListener('beforeunload', () => {
-    if (usernameInput) usernameInput.value = '';
-    if (passwordInput) passwordInput.value = '';
-    if (emailInput) emailInput.value = '';
+}
+
+function initTabs(): void {
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.getAttribute('data-tab');
+      
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      if (tab === 'credentials') {
+        credentialsTab?.classList.add('active');
+        magicTab?.classList.remove('active');
+        if (usernameInput) usernameInput.value = '';
+        if (passwordInput) passwordInput.value = '';
+      } else {
+        magicTab?.classList.add('active');
+        credentialsTab?.classList.remove('active');
+        if (emailInput) emailInput.value = '';
+      }
+      
+      clearToasts();
+    });
   });
 }
 
-// ============================================
-// AUTO-RESET CHECK
-// ============================================
+function initPasswordToggle(): void {
+  const pwToggle = document.getElementById('togglePassword');
+  const pwInput = document.getElementById('adminPassword') as HTMLInputElement;
+  
+  if (pwToggle && pwInput) {
+    pwToggle.addEventListener('click', () => {
+      const isText = pwInput.type === 'text';
+      pwInput.type = isText ? 'password' : 'text';
+      
+      const eyeOpen = pwToggle.querySelector('.eye-open') as HTMLElement;
+      const eyeClosed = pwToggle.querySelector('.eye-closed') as HTMLElement;
+      
+      if (eyeOpen) eyeOpen.style.display = isText ? '' : 'none';
+      if (eyeClosed) eyeClosed.style.display = isText ? 'none' : '';
+    });
+  }
+}
 
-setInterval(() => {
-  const savedTimestamp = localStorage.getItem(ATTEMPTS_TIMESTAMP_KEY);
-  if (savedTimestamp) {
-    const elapsed = Date.now() - parseInt(savedTimestamp);
-    if (elapsed >= RESET_TIME && loginAttempts > 0) {
-      resetAttempts();
+function preventAutoFill(): void {
+  if (usernameInput) usernameInput.value = '';
+  if (passwordInput) passwordInput.value = '';
+  if (emailInput) emailInput.value = '';
+  
+  if (usernameInput) {
+    usernameInput.setAttribute('autocomplete', 'off');
+    usernameInput.setAttribute('autocomplete', 'new-password');
+  }
+  if (passwordInput) {
+    passwordInput.setAttribute('autocomplete', 'new-password');
+  }
+  if (emailInput) {
+    emailInput.setAttribute('autocomplete', 'off');
+  }
+}
+
+function clearStoredCredentials(): void {
+  localStorage.removeItem('saved_username');
+  localStorage.removeItem('saved_password');
+  localStorage.removeItem('remember_me');
+  localStorage.removeItem('admin_username');
+  
+  sessionStorage.removeItem('temp_username');
+  sessionStorage.removeItem('temp_password');
+  sessionStorage.removeItem('admin_logged_in');
+  sessionStorage.removeItem('admin_name');
+  sessionStorage.removeItem('login_method');
+  sessionStorage.removeItem('admin_login_time');
+  sessionStorage.removeItem('admin_id');
+  sessionStorage.removeItem('admin_email');
+  sessionStorage.removeItem('admin_username');
+}
+
+function checkAndClearOldSession(): void {
+  const storedVersion = sessionStorage.getItem('app_version');
+  if (storedVersion !== APP_VERSION) {
+    const keysToKeep = ['app_version'];
+    const allKeys = Object.keys(sessionStorage);
+    
+    allKeys.forEach(key => {
+      if (!keysToKeep.includes(key)) {
+        sessionStorage.removeItem(key);
+      }
+    });
+    
+    sessionStorage.setItem('app_version', APP_VERSION);
+  }
+  
+  const localVersion = localStorage.getItem('app_version');
+  if (localVersion !== APP_VERSION) {
+    localStorage.clear();
+    localStorage.setItem('app_version', APP_VERSION);
+  }
+}
+
+async function checkMagicLinkSession(): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (session) {
+    const email = session.user.email;
+    
+    if (email) {
+      const admin = await AdminService.verifyMagicLink(email);
+      
+      if (admin) {
+        sessionStorage.clear();
+        localStorage.clear();
+        
+        sessionStorage.setItem('app_version', APP_VERSION);
+        sessionStorage.setItem('admin_logged_in', 'true');
+        sessionStorage.setItem('admin_name', admin.name);
+        sessionStorage.setItem('admin_email', admin.email);
+        sessionStorage.setItem('admin_id', admin.id);
+        sessionStorage.setItem('login_method', 'magiclink');
+        sessionStorage.setItem('admin_login_time', Date.now().toString());
+        localStorage.setItem('app_version', APP_VERSION);
+        
+        showToast('success', {
+          title: `Welcome, ${admin.name}!`,
+          description: 'Redirecting to dashboard...'
+        });
+        
+        setTimeout(() => {
+          window.location.href = '/admin.html';
+        }, 1000);
+      }
     }
   }
-}, 60 * 1000);
+}
 
 // ============================================
 // EVENT LISTENERS
@@ -579,19 +510,20 @@ setInterval(() => {
 credentialsBtn.addEventListener('click', loginWithCredentials);
 magicBtn.addEventListener('click', sendMagicLink);
 
-// Prevent Enter key from submitting forms unexpectedly
 usernameInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
     loginWithCredentials();
   }
 });
+
 passwordInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
     loginWithCredentials();
   }
 });
+
 emailInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
     e.preventDefault();
@@ -603,16 +535,14 @@ emailInput.addEventListener('keypress', (e) => {
 // INITIALIZATION
 // ============================================
 
-// Clear any stored credentials first
 clearStoredCredentials();
-
 checkAndClearOldSession();
-initSecurity();
 initTheme();
 initTabs();
 initPasswordToggle();
 preventAutoFill();
-preventBrowserSavePassword();
 loadAttempts();
+checkMagicLinkSession();
 
-console.log('✅ Login page ready - Using sessionStorage for session management');
+console.log('✅ Login page ready');
+console.log('📝 Credentials: AdminJay / jay123');

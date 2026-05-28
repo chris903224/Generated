@@ -1,12 +1,19 @@
-// admin.main.ts - FULL VERSION with Security, Analytics & Profile
+// admin.main.ts - FULL COMPLETE VERSION WITH DATABASE ONLY
+// NO HARDCODED ADMIN DATA - LAHAT GALING SA SUPABASE DATABASE
 
 import { supabase } from './services/supabase.service';
 import { AdminStudentController } from './controllers/admin.student.controller';
 import { AdminUIController } from './controllers/admin.ui.controller';
 import { StudentService } from './services/supabase.service';
 import { ExcelImporter, DB_FIELDS } from './utils/excel-importer';
+import { AdminService } from './services/admin.service';
 
-// Declare Chart from CDN
+declare global {
+  interface Window {
+    switchPage: (page: string, filterRemarks?: string, filterCourse?: string) => void;
+  }
+}
+
 declare const Chart: any;
 
 // Chart instances
@@ -22,28 +29,15 @@ let hkDutyChart: any = null;
 let weeklyChart: any = null;
 let topCoursesChart: any = null;
 
-// App version - increment this when you deploy new code
-const APP_VERSION = "v3.1.0";
+// App version
+const APP_VERSION = "v3.2.0";
 
 // Colors
 const colors = {
-  green: '#10b981',
-  amber: '#fbbf24',
-  rose: '#f43f5e',
-  blue: '#3b82f6',
-  teal: '#14b8a6',
-  purple: '#8b5cf6',
-  emerald: '#34d399',
-  orange: '#f97316',
-  pink: '#ec4899',
-  cyan: '#06b6d4',
-  lime: '#84cc16',
-  violet: '#a855f7',
-  indigo: '#6366f1',
-  red: '#ef4444',
-  yellow: '#eab308',
-  gray: '#6b7280',
-  slate: '#94a3b8'
+  green: '#10b981', amber: '#fbbf24', rose: '#f43f5e', blue: '#3b82f6',
+  teal: '#14b8a6', purple: '#8b5cf6', emerald: '#34d399', orange: '#f97316',
+  pink: '#ec4899', cyan: '#06b6d4', lime: '#84cc16', violet: '#a855f7',
+  indigo: '#6366f1', red: '#ef4444', yellow: '#eab308', gray: '#6b7280', slate: '#94a3b8'
 };
 
 // All 17 Courses
@@ -87,6 +81,7 @@ const STORAGE_KEYS = {
   ADMIN_NAME: 'admin_name',
   ADMIN_USERNAME: 'admin_username',
   ADMIN_EMAIL: 'admin_email',
+  ADMIN_ID: 'admin_id',
   SESSION_ID: 'admin_session_id',
   APP_VERSION: 'admin_app_version'
 };
@@ -102,6 +97,7 @@ function clearSessionData(): void {
   sessionStorage.removeItem(STORAGE_KEYS.ADMIN_NAME);
   sessionStorage.removeItem(STORAGE_KEYS.ADMIN_USERNAME);
   sessionStorage.removeItem(STORAGE_KEYS.ADMIN_EMAIL);
+  sessionStorage.removeItem(STORAGE_KEYS.ADMIN_ID);
   sessionStorage.removeItem(STORAGE_KEYS.SESSION_ID);
 }
 
@@ -169,37 +165,21 @@ function trackUserActivity(): void {
 }
 
 // ============================================
-// PROFILE MODAL FUNCTIONS
+// PROFILE MODAL FUNCTIONS (USING DATABASE)
 // ============================================
 
-// Credentials Users Data (5 admin accounts)
-const CREDENTIALS_USERS = [
-  { name: 'Anthony', username: 'AdminAnthony', role: 'Admin' },
-  { name: 'Ronan', username: 'AdminRonan', role: 'Admin' },
-  { name: 'Jay', username: 'AdminJay', role: 'Admin' },
-  { name: 'Leimark', username: 'AdminLeimark', role: 'Admin' },
-  { name: 'Alain', username: 'AdminAlain', role: 'Admin' }
-];
-
-// Magic Link Users Data (4 PHINMA emails)
-const MAGICLINK_USERS = [
-  { name: 'Leda L. Lutrania', email: 'leda.lutrania.sjc@phinmaed.com', role: 'Admin' },
-  { name: 'Anma S. Saguid', email: 'anma.saguid.sjc@phinmaed.com', role: 'Admin' },
-  { name: 'Juba L. Libao', email: 'juba.libao.sjc@phinmaed.com', role: 'Admin' },
-  { name: 'Chpe P. Villanueva', email: 'chpe.villanueva.sjc@phinmaed.com', role: 'Admin' }
-];
-
-function initProfileModal(): void {
+async function initProfileModal(): Promise<void> {
   const userPill = document.getElementById('userPill');
   const profileModal = document.getElementById('profileModal');
   const closeProfileModal = document.getElementById('closeProfileModal');
   const closeProfileModalBtn = document.getElementById('closeProfileModalBtn');
   const loginMethod = sessionStorage.getItem(STORAGE_KEYS.LOGIN_METHOD);
-  const adminName = sessionStorage.getItem(STORAGE_KEYS.ADMIN_NAME);
-  const adminUsername = sessionStorage.getItem(STORAGE_KEYS.ADMIN_USERNAME);
-  const adminEmail = sessionStorage.getItem(STORAGE_KEYS.ADMIN_EMAIL);
+  const adminId = sessionStorage.getItem(STORAGE_KEYS.ADMIN_ID);
   
-  if (!userPill || !profileModal) return;
+  if (!userPill || !profileModal || !adminId) return;
+  
+  const admin = await AdminService.getAdminById(adminId);
+  if (!admin) return;
   
   const updateProfileDisplay = () => {
     const credentialsDiv = document.getElementById('credentialsProfileInfo');
@@ -214,15 +194,12 @@ function initProfileModal(): void {
         loginBadge.className = 'login-badge credentials';
       }
       
-      const user = CREDENTIALS_USERS.find(u => u.name === adminName);
-      if (user) {
-        const initials = user.name.charAt(0);
-        document.getElementById('credInitials')!.textContent = initials;
-        document.getElementById('credFullName')!.textContent = user.name;
-        document.getElementById('credUsername')!.textContent = user.username;
-        document.getElementById('credRole')!.textContent = user.role;
-        document.getElementById('credLastLogin')!.textContent = new Date().toLocaleString();
-      }
+      const initials = admin.name.charAt(0);
+      document.getElementById('credInitials')!.textContent = initials;
+      document.getElementById('credFullName')!.textContent = admin.name;
+      document.getElementById('credUsername')!.textContent = admin.username || '';
+      document.getElementById('credRole')!.textContent = admin.role;
+      document.getElementById('credLastLogin')!.textContent = admin.last_login ? new Date(admin.last_login).toLocaleString() : 'First login';
     } else {
       if (credentialsDiv) credentialsDiv.style.display = 'none';
       if (magicLinkDiv) magicLinkDiv.style.display = 'block';
@@ -231,15 +208,12 @@ function initProfileModal(): void {
         loginBadge.className = 'login-badge magiclink';
       }
       
-      const user = MAGICLINK_USERS.find(u => u.email === adminEmail);
-      if (user) {
-        const initials = user.name.split(' ').map(n => n[0]).join('');
-        document.getElementById('magicInitials')!.textContent = initials;
-        document.getElementById('magicFullName')!.textContent = user.name;
-        document.getElementById('magicEmail')!.textContent = user.email;
-        document.getElementById('magicRole')!.textContent = user.role;
-        document.getElementById('magicLastLogin')!.textContent = new Date().toLocaleString();
-      }
+      const initials = admin.name.split(' ').map(n => n[0]).join('');
+      document.getElementById('magicInitials')!.textContent = initials;
+      document.getElementById('magicFullName')!.textContent = admin.name;
+      document.getElementById('magicEmail')!.textContent = admin.email;
+      document.getElementById('magicRole')!.textContent = admin.role;
+      document.getElementById('magicLastLogin')!.textContent = admin.last_login ? new Date(admin.last_login).toLocaleString() : 'First login';
     }
   };
   
@@ -278,15 +252,6 @@ function initAnalyticsExportButtons(): void {
   const printAnalyticsBtn = document.getElementById('printAnalyticsBtn');
   if (printAnalyticsBtn) {
     printAnalyticsBtn.addEventListener('click', () => printAnalyticsReport());
-  }
-  
-  const refreshAnalyticsBtn = document.getElementById('refreshAnalyticsBtn');
-  if (refreshAnalyticsBtn) {
-    refreshAnalyticsBtn.addEventListener('click', async () => {
-      showToast('info', 'Refreshing...', 'Updating analytics data');
-      await initAnalyticsPage();
-      showToast('success', 'Refreshed', 'Analytics data updated');
-    });
   }
 }
 
@@ -522,10 +487,48 @@ function dismissToastElement(toast: HTMLElement): void {
 }
 
 // ============================================
-// COLOR THEME PICKER
+// COLOR THEME PICKER WITH DATABASE PERSISTENCE
 // ============================================
 
-function initColorThemePicker(): void {
+function getCurrentAdminId(): string | null {
+  return sessionStorage.getItem(STORAGE_KEYS.ADMIN_ID);
+}
+
+async function saveAdminThemeToDatabase(theme: string): Promise<void> {
+  const adminId = getCurrentAdminId();
+  if (!adminId) {
+    localStorage.setItem('admin_color_theme', theme);
+    return;
+  }
+  
+  try {
+    await AdminService.updateThemePreference(adminId, theme);
+    console.log('✅ Theme saved to database for admin:', adminId);
+  } catch (error) {
+    console.error('Failed to save theme to database:', error);
+    localStorage.setItem('admin_color_theme', theme);
+  }
+}
+
+async function loadAdminThemeFromDatabase(): Promise<string | null> {
+  const adminId = getCurrentAdminId();
+  if (!adminId) {
+    return localStorage.getItem('admin_color_theme');
+  }
+  
+  try {
+    const admin = await AdminService.getAdminById(adminId);
+    if (admin && admin.theme_preference) {
+      return admin.theme_preference;
+    }
+  } catch (error) {
+    console.error('Failed to load theme from database:', error);
+  }
+  
+  return localStorage.getItem('admin_color_theme');
+}
+
+async function initColorThemePicker(): Promise<void> {
   const themePickerBtn = document.getElementById('themePickerBtn');
   const themePickerModal = document.getElementById('themePickerModal');
   const closeThemePicker = document.getElementById('closeThemePicker');
@@ -534,7 +537,8 @@ function initColorThemePicker(): void {
   
   if (!themePickerBtn) return;
   
-  let selectedColor = localStorage.getItem('admin_color_theme') || 'green';
+  const savedTheme = await loadAdminThemeFromDatabase();
+  let selectedColor = savedTheme || 'green';
   applyColorTheme(selectedColor);
   
   themePickerBtn.addEventListener('click', () => {
@@ -567,8 +571,9 @@ function initColorThemePicker(): void {
   });
   
   if (applyThemeBtn) {
-    applyThemeBtn.addEventListener('click', () => {
+    applyThemeBtn.addEventListener('click', async () => {
       applyColorTheme(selectedColor);
+      await saveAdminThemeToDatabase(selectedColor);
       localStorage.setItem('admin_color_theme', selectedColor);
       closeModal();
       showToast('success', 'Theme Applied', `Theme changed to ${selectedColor}`);
@@ -939,7 +944,7 @@ async function loadRecentActivity(students: any[]): Promise<void> {
     .slice(0, 10);
   
   if (recent.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">No recent activity</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px;">No recent activity<\/td><\/tr>`;
     return;
   }
   
@@ -948,11 +953,11 @@ async function loadRecentActivity(students: any[]): Promise<void> {
     const date = new Date(student.updated_at).toLocaleDateString('en-PH');
     html += `
       <tr>
-        <td>${date}</td>
-        <td><strong>${escapeHtml(student.full_name || 'N/A')}</strong></td>
-        <td>${escapeHtml(student.course || 'N/A')}</td>
-        <td>Completed Requirements</td>
-        <td><span class="badge-ok">✓ Completed</span></td>
+        <td>${date}<\/td>
+        <td><strong>${escapeHtml(student.full_name || 'N/A')}<\/strong><\/td>
+        <td>${escapeHtml(student.course || 'N/A')}<\/td>
+        <td>Completed Requirements<\/td>
+        <td><span class="badge-ok">✓ Completed<\/span><\/td>
       </tr>
     `;
   }
@@ -1574,13 +1579,20 @@ function initLogoutHandler(): void {
 }
 
 // ============================================
-// ADMIN DISPLAY
+// ADMIN DISPLAY (FROM DATABASE)
 // ============================================
 
-function getAdminName(): string {
+async function getAdminNameFromDB(): Promise<string> {
+  const adminId = sessionStorage.getItem(STORAGE_KEYS.ADMIN_ID);
+  if (!adminId) return 'Admin User';
+  
+  const admin = await AdminService.getAdminById(adminId);
+  if (admin) return admin.name;
+  
   const loginMethod = sessionStorage.getItem(STORAGE_KEYS.LOGIN_METHOD);
   const adminName = sessionStorage.getItem(STORAGE_KEYS.ADMIN_NAME);
   const adminEmail = sessionStorage.getItem(STORAGE_KEYS.ADMIN_EMAIL);
+  
   if (loginMethod === 'credentials' && adminName) return adminName;
   if (loginMethod === 'magiclink' && adminEmail) {
     return adminEmail.split('@')[0].charAt(0).toUpperCase() + adminEmail.split('@')[0].slice(1);
@@ -1588,15 +1600,12 @@ function getAdminName(): string {
   return 'Admin User';
 }
 
-function getAdminInitials(): string {
-  return getAdminName().charAt(0).toUpperCase();
-}
-
-function updateAdminDisplay(): void {
+async function updateAdminDisplay(): Promise<void> {
   const nameSpan = document.getElementById('adminNameDisplay');
   const initialsSpan = document.getElementById('adminInitials');
-  if (nameSpan) nameSpan.textContent = getAdminName();
-  if (initialsSpan) initialsSpan.textContent = getAdminInitials();
+  const adminName = await getAdminNameFromDB();
+  if (nameSpan) nameSpan.textContent = adminName;
+  if (initialsSpan) initialsSpan.textContent = adminName.charAt(0).toUpperCase();
 }
 
 // ============================================
@@ -1627,27 +1636,788 @@ function setupClickableRowHandler(): void {
 }
 
 // ============================================
+// ADMIN MANAGEMENT - DATABASE DRIVEN
+// ============================================
+
+let credentialsAdminsList: any[] = [];
+let magiclinkAdminsList: any[] = [];
+
+async function loadAdminsFromDatabase(): Promise<void> {
+  try {
+    const allAdmins = await AdminService.getAllAdmins();
+    credentialsAdminsList = allAdmins.filter(a => a.login_method === 'credentials');
+    magiclinkAdminsList = allAdmins.filter(a => a.login_method === 'magiclink');
+    console.log(`✅ Loaded ${credentialsAdminsList.length} credentials admins, ${magiclinkAdminsList.length} magic link admins from database`);
+  } catch (error) {
+    console.error('Failed to load admins from database:', error);
+  }
+}
+
+async function renderAdminManagementPage(): Promise<void> {
+  await loadAdminsFromDatabase();
+  
+  // Update counters at the top
+  const credentialsCount = document.getElementById('credentialsCount');
+  const magiclinkCount = document.getElementById('magiclinkCount');
+  const totalCount = document.getElementById('totalAdminsCount');
+  
+  if (credentialsCount) credentialsCount.textContent = credentialsAdminsList.length.toString();
+  if (magiclinkCount) magiclinkCount.textContent = magiclinkAdminsList.length.toString();
+  if (totalCount) totalCount.textContent = (credentialsAdminsList.length + magiclinkAdminsList.length).toString();
+  
+  const credentialsTbody = document.getElementById('credentialsAdminsTbody');
+  const magicTbody = document.getElementById('magiclinkAdminsTbody');
+  
+  if (credentialsTbody) {
+    let html = '';
+    credentialsAdminsList.forEach((admin, index) => {
+      const statusClass = admin.status === 'Active' ? 'status-active' : 'status-inactive';
+      html += `
+        <tr>
+          <td>${index + 1}</td>
+          <td><strong>${escapeHtml(admin.name)}</strong></td>
+          <td><code>${escapeHtml(admin.username || '')}</code></td>
+          <td>${escapeHtml(admin.role)}</td>
+          <td>
+            <button class="status-toggle-btn" data-id="${admin.id}" data-status="${admin.status}" style="background:none; border:none; cursor:pointer;">
+              <span class="${statusClass}">● ${escapeHtml(admin.status)}</span>
+            </button>
+          </td>
+          <td class="action-buttons">
+            <button class="action-btn-sm edit-admin-btn" data-type="credentials" data-id="${admin.id}" data-name="${escapeHtml(admin.name)}" data-username="${escapeHtml(admin.username || '')}" data-role="${escapeHtml(admin.role)}" data-status="${escapeHtml(admin.status)}">✏️ Edit</button>
+            <button class="action-btn-sm delete-admin-btn" data-type="credentials" data-id="${admin.id}" data-name="${escapeHtml(admin.name)}" style="color:#dc2626;">🗑️ Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+    credentialsTbody.innerHTML = html;
+  }
+  
+  if (magicTbody) {
+    let html = '';
+    magiclinkAdminsList.forEach((admin, index) => {
+      const statusClass = admin.status === 'Active' ? 'status-active' : 'status-inactive';
+      html += `
+        <tr>
+          <td>${index + 1}</td>
+          <td><strong>${escapeHtml(admin.name)}</strong></td>
+          <td><code>${escapeHtml(admin.email)}</code></td>
+          <td>${escapeHtml(admin.role)}</td>
+          <td>
+            <button class="status-toggle-btn" data-id="${admin.id}" data-status="${admin.status}" style="background:none; border:none; cursor:pointer;">
+              <span class="${statusClass}">● ${escapeHtml(admin.status)}</span>
+            </button>
+          </td>
+          <td class="action-buttons">
+            <button class="action-btn-sm edit-admin-btn" data-type="magiclink" data-id="${admin.id}" data-name="${escapeHtml(admin.name)}" data-email="${escapeHtml(admin.email)}" data-role="${escapeHtml(admin.role)}" data-status="${escapeHtml(admin.status)}">✏️ Edit</button>
+            <button class="action-btn-sm delete-admin-btn" data-type="magiclink" data-id="${admin.id}" data-name="${escapeHtml(admin.name)}" style="color:#dc2626;">🗑️ Delete</button>
+          </td>
+        </tr>
+      `;
+    });
+    magicTbody.innerHTML = html;
+  }
+  
+  // Attach event listeners
+  attachAdminActionButtons();
+  attachStatusToggleButtons();
+}
+
+function attachAdminActionButtons(): void {
+  document.querySelectorAll('.edit-admin-btn').forEach(btn => {
+    btn.removeEventListener('click', handleEditAdminClick);
+    btn.addEventListener('click', handleEditAdminClick);
+  });
+  
+  document.querySelectorAll('.delete-admin-btn').forEach(btn => {
+    btn.removeEventListener('click', handleDeleteAdminClick);
+    btn.addEventListener('click', handleDeleteAdminClick);
+  });
+}
+
+function attachStatusToggleButtons(): void {
+  document.querySelectorAll('.status-toggle-btn').forEach(btn => {
+    btn.removeEventListener('click', handleStatusToggle);
+    btn.addEventListener('click', handleStatusToggle);
+  });
+}
+
+async function handleStatusToggle(event: Event): Promise<void> {
+  const btn = event.currentTarget as HTMLElement;
+  const id = btn.getAttribute('data-id')!;
+  const currentStatus = btn.getAttribute('data-status')!;
+  const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+  
+  try {
+    const { error } = await supabase
+      .from('admin_accounts')
+      .update({ status: newStatus })
+      .eq('id', id);
+    
+    if (error) throw error;
+    
+    showToast('success', 'Status Updated', `Admin status changed to ${newStatus}`);
+    await renderAdminManagementPage();
+  } catch (error: any) {
+    showToast('error', 'Update Failed', error.message);
+  }
+}
+
+function handleEditAdminClick(event: Event): void {
+  const btn = event.currentTarget as HTMLElement;
+  const type = btn.getAttribute('data-type') as 'credentials' | 'magiclink';
+  const id = btn.getAttribute('data-id')!;
+  const name = btn.getAttribute('data-name')!;
+  
+  if (type === 'credentials') {
+    const username = btn.getAttribute('data-username')!;
+    const role = btn.getAttribute('data-role')!;
+    const status = btn.getAttribute('data-status')!;
+    showEditAdminModal(type, id, { name, username, role, status });
+  } else {
+    const email = btn.getAttribute('data-email')!;
+    const role = btn.getAttribute('data-role')!;
+    const status = btn.getAttribute('data-status')!;
+    showEditAdminModal(type, id, { name, email, role, status });
+  }
+}
+
+async function handleDeleteAdminClick(event: Event): Promise<void> {
+  const btn = event.currentTarget as HTMLElement;
+  const id = btn.getAttribute('data-id')!;
+  const name = btn.getAttribute('data-name')!;
+  
+  showDeleteConfirmModal(async () => {
+    try {
+      const { error } = await supabase
+        .from('admin_accounts')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      showToast('success', 'Admin Deleted', `${name} removed successfully`);
+      await renderAdminManagementPage();
+    } catch (error: any) {
+      showToast('error', 'Delete Failed', error.message);
+    }
+  }, name);
+}
+
+function showDeleteConfirmModal(onConfirm: () => void, name: string): void {
+  let modal = document.getElementById('deleteAdminConfirmModal');
+  if (!modal) {
+    modal = createDeleteConfirmModal();
+    document.body.appendChild(modal);
+  }
+  
+  const modalElem = modal as HTMLElement;
+  const message = modal.querySelector('#deleteAdminMessage');
+  if (message) message.textContent = `Are you sure you want to delete "${name}"? This action cannot be undone.`;
+  
+  const confirmBtn = modal.querySelector('#confirmDeleteAdminBtn');
+  const checkbox = modal.querySelector('#confirmDeleteAdminCheckbox') as HTMLInputElement;
+  
+  if (checkbox) checkbox.checked = false;
+  if (confirmBtn) (confirmBtn as HTMLButtonElement).disabled = true;
+  
+  const handleConfirm = () => {
+    onConfirm();
+    modalElem.style.display = 'none';
+    cleanup();
+  };
+  
+  const handleCheckbox = () => {
+    if (confirmBtn) (confirmBtn as HTMLButtonElement).disabled = !checkbox.checked;
+  };
+  
+  const cleanup = () => {
+    confirmBtn?.removeEventListener('click', handleConfirm);
+    checkbox?.removeEventListener('change', handleCheckbox);
+    closeBtn?.removeEventListener('click', closeModal);
+    cancelBtn?.removeEventListener('click', closeModal);
+  };
+  
+  const closeModal = () => {
+    modalElem.style.display = 'none';
+    cleanup();
+  };
+  
+  const closeBtn = modal.querySelector('#closeDeleteAdminModal');
+  const cancelBtn = modal.querySelector('#cancelDeleteAdminBtn');
+  
+  confirmBtn?.addEventListener('click', handleConfirm);
+  checkbox?.addEventListener('change', handleCheckbox);
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
+  
+  modalElem.style.display = 'flex';
+}
+
+function createDeleteConfirmModal(): HTMLElement {
+  const modal = document.createElement('div');
+  modal.id = 'deleteAdminConfirmModal';
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal modal-sm">
+      <div class="modal-head">
+        <div class="modal-title" style="color:#dc2626;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          Delete Admin
+        </div>
+        <button class="modal-close" id="closeDeleteAdminModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="deleteAdminMessage">Are you sure you want to delete this admin?</p>
+        <div style="margin-top: 16px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="confirmDeleteAdminCheckbox">
+            <span>I understand that this action is irreversible</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" id="cancelDeleteAdminBtn">Cancel</button>
+        <button class="btn-danger" id="confirmDeleteAdminBtn" disabled style="background:#dc2626;">Delete Admin</button>
+      </div>
+    </div>
+  `;
+  return modal;
+}
+
+function showEditAdminModal(type: 'credentials' | 'magiclink', id: string, adminData: any): void {
+  let modal = document.getElementById('editAdminModal');
+  if (!modal) {
+    modal = createEditAdminModal();
+    document.body.appendChild(modal);
+  }
+  
+  const modalElem = modal as HTMLElement;
+  const title = modal.querySelector('#editAdminModalTitle');
+  if (title) title.textContent = `✏️ Edit ${type === 'credentials' ? 'Credentials' : 'Magic Link'} Admin`;
+  
+  if (type === 'credentials') {
+    const nameInput = modal.querySelector('#editCredName') as HTMLInputElement;
+    const usernameInput = modal.querySelector('#editCredUsername') as HTMLInputElement;
+    const roleSelect = modal.querySelector('#editCredRole') as HTMLSelectElement;
+    const statusSelect = modal.querySelector('#editCredStatus') as HTMLSelectElement;
+    const passwordInput = modal.querySelector('#editCredPassword') as HTMLInputElement;
+    const credForm = modal.querySelector('#editCredentialsForm');
+    const magicForm = modal.querySelector('#editMagiclinkForm');
+    
+    if (credForm) credForm.classList.add('active');
+    if (magicForm) magicForm.classList.remove('active');
+    
+    if (nameInput) nameInput.value = adminData.name;
+    if (usernameInput) usernameInput.value = adminData.username;
+    if (roleSelect) roleSelect.value = adminData.role;
+    if (statusSelect) statusSelect.value = adminData.status;
+    if (passwordInput) passwordInput.value = '';
+    
+    modal.setAttribute('data-edit-type', 'credentials');
+    modal.setAttribute('data-edit-id', id);
+    
+  } else {
+    const nameInput = modal.querySelector('#editMagicName') as HTMLInputElement;
+    const emailInput = modal.querySelector('#editMagicEmail') as HTMLInputElement;
+    const roleSelect = modal.querySelector('#editMagicRole') as HTMLSelectElement;
+    const statusSelect = modal.querySelector('#editMagicStatus') as HTMLSelectElement;
+    const credForm = modal.querySelector('#editCredentialsForm');
+    const magicForm = modal.querySelector('#editMagiclinkForm');
+    
+    if (credForm) credForm.classList.remove('active');
+    if (magicForm) magicForm.classList.add('active');
+    
+    if (nameInput) nameInput.value = adminData.name;
+    if (emailInput) emailInput.value = adminData.email;
+    if (roleSelect) roleSelect.value = adminData.role;
+    if (statusSelect) statusSelect.value = adminData.status;
+    
+    modal.setAttribute('data-edit-type', 'magiclink');
+    modal.setAttribute('data-edit-id', id);
+  }
+  
+  modalElem.style.display = 'flex';
+}
+
+function createEditAdminModal(): HTMLElement {
+  const modal = document.createElement('div');
+  modal.id = 'editAdminModal';
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title" id="editAdminModalTitle">✏️ Edit Admin</div>
+        <button class="modal-close" id="closeEditAdminModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="editCredentialsForm" class="admin-edit-form active">
+          <div class="form-field">
+            <label>Full Name *</label>
+            <input type="text" id="editCredName" class="form-input">
+          </div>
+          <div class="form-field">
+            <label>Username *</label>
+            <input type="text" id="editCredUsername" class="form-input">
+          </div>
+          <div class="form-field">
+            <label>New Password (leave blank to keep current)</label>
+            <input type="password" id="editCredPassword" class="form-input" placeholder="Enter new password">
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Role</label>
+              <select id="editCredRole" class="form-select">
+                <option value="Admin">Admin</option>
+                <option value="Super Admin">Super Admin</option>
+                <option value="Viewer">Viewer</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Status</label>
+              <select id="editCredStatus" class="form-select">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div id="editMagiclinkForm" class="admin-edit-form">
+          <div class="form-field">
+            <label>Full Name *</label>
+            <input type="text" id="editMagicName" class="form-input">
+          </div>
+          <div class="form-field">
+            <label>Email Address *</label>
+            <input type="email" id="editMagicEmail" class="form-input">
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Role</label>
+              <select id="editMagicRole" class="form-select">
+                <option value="Admin">Admin</option>
+                <option value="Super Admin">Super Admin</option>
+                <option value="Viewer">Viewer</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Status</label>
+              <select id="editMagicStatus" class="form-select">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" id="cancelEditAdminBtn">Cancel</button>
+        <button class="btn-primary" id="saveEditAdminBtn">Save Changes</button>
+      </div>
+    </div>
+  `;
+  
+  const closeBtn = modal.querySelector('#closeEditAdminModal');
+  const cancelBtn = modal.querySelector('#cancelEditAdminBtn');
+  const saveBtn = modal.querySelector('#saveEditAdminBtn');
+  
+  const closeModal = () => { (modal as HTMLElement).style.display = 'none'; };
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  
+  saveBtn?.addEventListener('click', async () => {
+    const type = modal.getAttribute('data-edit-type') as 'credentials' | 'magiclink';
+    const id = modal.getAttribute('data-edit-id')!;
+    
+    if (type === 'credentials') {
+      const name = (modal.querySelector('#editCredName') as HTMLInputElement)?.value.trim();
+      const username = (modal.querySelector('#editCredUsername') as HTMLInputElement)?.value.trim();
+      const password = (modal.querySelector('#editCredPassword') as HTMLInputElement)?.value;
+      const role = (modal.querySelector('#editCredRole') as HTMLSelectElement)?.value;
+      const status = (modal.querySelector('#editCredStatus') as HTMLSelectElement)?.value;
+      
+      if (!name || !username) {
+        showToast('error', 'Missing Fields', 'Name and username are required');
+        return;
+      }
+      
+      try {
+        const updateData: any = { name, username, role, status };
+        if (password && password.length >= 6) {
+          updateData.password = password;
+        }
+        await AdminService.updateAdmin(id, updateData);
+        await renderAdminManagementPage();
+        showToast('success', 'Admin Updated', `${name} updated successfully`);
+        closeModal();
+      } catch (error: any) {
+        showToast('error', 'Update Failed', error.message);
+      }
+    } else {
+      const name = (modal.querySelector('#editMagicName') as HTMLInputElement)?.value.trim();
+      const email = (modal.querySelector('#editMagicEmail') as HTMLInputElement)?.value.trim();
+      const role = (modal.querySelector('#editMagicRole') as HTMLSelectElement)?.value;
+      const status = (modal.querySelector('#editMagicStatus') as HTMLSelectElement)?.value;
+      
+      if (!name || !email) {
+        showToast('error', 'Missing Fields', 'Name and email are required');
+        return;
+      }
+      
+      try {
+        await AdminService.updateAdmin(id, { name, email, role, status });
+        await renderAdminManagementPage();
+        showToast('success', 'Admin Updated', `${name} updated successfully`);
+        closeModal();
+      } catch (error: any) {
+        showToast('error', 'Update Failed', error.message);
+      }
+    }
+  });
+  
+  return modal;
+}
+
+// ============================================
+// ADD ADMIN FUNCTIONALITY
+// ============================================
+
+function initAddAdminButton(): void {
+  const addAdminBtn = document.getElementById('addAdminBtn');
+  if (addAdminBtn) {
+    addAdminBtn.addEventListener('click', showAddAdminModal);
+  }
+}
+
+function showAddAdminModal(): void {
+  let modal = document.getElementById('addAdminModal');
+  if (!modal) {
+    modal = createAddAdminModal();
+    document.body.appendChild(modal);
+  }
+  (modal as HTMLElement).style.display = 'flex';
+}
+
+function createAddAdminModal(): HTMLElement {
+  const modal = document.createElement('div');
+  modal.id = 'addAdminModal';
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <div class="modal">
+      <div class="modal-head">
+        <div class="modal-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          Add New Admin
+        </div>
+        <button class="modal-close" id="closeAddAdminModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="admin-type-selector">
+          <button class="admin-type-btn active" data-admin-type="credentials">🔐 Credentials Admin</button>
+          <button class="admin-type-btn" data-admin-type="magiclink">📧 Magic Link Admin</button>
+        </div>
+        
+        <div id="addCredentialsForm" class="admin-add-form active">
+          <div class="form-field">
+            <label>Full Name *</label>
+            <input type="text" id="addCredName" class="form-input" placeholder="e.g. Juan Dela Cruz">
+          </div>
+          <div class="form-field">
+            <label>Username *</label>
+            <input type="text" id="addCredUsername" class="form-input" placeholder="e.g. AdminJuan">
+          </div>
+          <div class="form-field">
+            <label>Email *</label>
+            <input type="email" id="addCredEmail" class="form-input" placeholder="email@example.com">
+          </div>
+          <div class="form-field">
+            <label>Password *</label>
+            <input type="password" id="addCredPassword" class="form-input" placeholder="Enter password">
+          </div>
+          <div class="form-field">
+            <label>Confirm Password *</label>
+            <input type="password" id="addCredConfirmPassword" class="form-input" placeholder="Confirm password">
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Role</label>
+              <select id="addCredRole" class="form-select">
+                <option value="Admin">Admin</option>
+                <option value="Super Admin">Super Admin</option>
+                <option value="Viewer">Viewer</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Status</label>
+              <select id="addCredStatus" class="form-select">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div id="addMagiclinkForm" class="admin-add-form">
+          <div class="form-field">
+            <label>Full Name *</label>
+            <input type="text" id="addMagicName" class="form-input" placeholder="e.g. Juan Dela Cruz">
+          </div>
+          <div class="form-field">
+            <label>Email Address *</label>
+            <input type="email" id="addMagicEmail" class="form-input" placeholder="email@phinmaed.com">
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Role</label>
+              <select id="addMagicRole" class="form-select">
+                <option value="Admin">Admin</option>
+                <option value="Super Admin">Super Admin</option>
+                <option value="Viewer">Viewer</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Status</label>
+              <select id="addMagicStatus" class="form-select">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-ghost" id="cancelAddAdminBtn">Cancel</button>
+        <button class="btn-primary" id="confirmAddAdminBtn">Add Admin</button>
+      </div>
+    </div>
+  `;
+  
+  // Admin type switcher
+  const typeBtns = modal.querySelectorAll('.admin-type-btn');
+  const credForm = modal.querySelector('#addCredentialsForm');
+  const magicForm = modal.querySelector('#addMagiclinkForm');
+  
+  typeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      typeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const type = btn.getAttribute('data-admin-type');
+      if (type === 'credentials') {
+        credForm?.classList.add('active');
+        magicForm?.classList.remove('active');
+      } else {
+        credForm?.classList.remove('active');
+        magicForm?.classList.add('active');
+      }
+    });
+  });
+  
+  // Close modal
+  const closeBtn = modal.querySelector('#closeAddAdminModal');
+  const cancelBtn = modal.querySelector('#cancelAddAdminBtn');
+  const closeModal = () => { (modal as HTMLElement).style.display = 'none'; };
+  closeBtn?.addEventListener('click', closeModal);
+  cancelBtn?.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  
+  // Confirm add
+  const confirmBtn = modal.querySelector('#confirmAddAdminBtn');
+  confirmBtn?.addEventListener('click', async () => {
+    const activeType = modal.querySelector('.admin-type-btn.active')?.getAttribute('data-admin-type');
+    
+    if (activeType === 'credentials') {
+      const name = (modal.querySelector('#addCredName') as HTMLInputElement)?.value.trim();
+      const username = (modal.querySelector('#addCredUsername') as HTMLInputElement)?.value.trim();
+      const email = (modal.querySelector('#addCredEmail') as HTMLInputElement)?.value.trim();
+      const password = (modal.querySelector('#addCredPassword') as HTMLInputElement)?.value;
+      const confirmPassword = (modal.querySelector('#addCredConfirmPassword') as HTMLInputElement)?.value;
+      const role = (modal.querySelector('#addCredRole') as HTMLSelectElement)?.value;
+      const status = (modal.querySelector('#addCredStatus') as HTMLSelectElement)?.value;
+      
+      if (!name || !username || !email || !password) {
+        showToast('error', 'Missing Fields', 'Please fill all required fields');
+        return;
+      }
+      if (password !== confirmPassword) {
+        showToast('error', 'Password Mismatch', 'Passwords do not match');
+        return;
+      }
+      if (password.length < 6) {
+        showToast('error', 'Weak Password', 'Password must be at least 6 characters');
+        return;
+      }
+      
+      try {
+        await AdminService.createCredentialsAdmin({ name, email, username, password, role });
+        await renderAdminManagementPage();
+        showToast('success', 'Admin Added', `${name} added successfully`);
+        closeModal();
+      } catch (error: any) {
+        showToast('error', 'Add Failed', error.message);
+      }
+    } else {
+      const name = (modal.querySelector('#addMagicName') as HTMLInputElement)?.value.trim();
+      const email = (modal.querySelector('#addMagicEmail') as HTMLInputElement)?.value.trim();
+      const role = (modal.querySelector('#addMagicRole') as HTMLSelectElement)?.value;
+      const status = (modal.querySelector('#addMagicStatus') as HTMLSelectElement)?.value;
+      
+      if (!name || !email) {
+        showToast('error', 'Missing Fields', 'Name and email are required');
+        return;
+      }
+      
+      try {
+        await AdminService.createMagicLinkAdmin({ name, email, role });
+        await renderAdminManagementPage();
+        showToast('success', 'Admin Added', `${name} added successfully`);
+        closeModal();
+      } catch (error: any) {
+        showToast('error', 'Add Failed', error.message);
+      }
+    }
+  });
+  
+  return modal;
+}
+
+// ============================================
+// EXPORT ADMINS TO EXCEL
+// ============================================
+
+function initExportAdminsButton(): void {
+  const exportAdminsBtn = document.getElementById('exportAdminsBtn');
+  if (exportAdminsBtn) {
+    exportAdminsBtn.addEventListener('click', exportAdminsToExcel);
+  }
+}
+
+async function exportAdminsToExcel(): Promise<void> {
+  showToast('info', 'Preparing export...', 'Fetching admin data');
+  try {
+    const admins = await AdminService.getAllAdmins();
+    const exportData = admins.map((admin: any) => ({
+      'Name': admin.name,
+      'Username': admin.username || '',
+      'Email': admin.email || '',
+      'Role': admin.role,
+      'Status': admin.status,
+      'Login Method': admin.login_method === 'credentials' ? 'Username & Password' : 'Magic Link',
+      'Theme Preference': admin.theme_preference,
+      'Last Login': admin.last_login ? new Date(admin.last_login).toLocaleString() : 'Never',
+      'Created At': new Date(admin.created_at).toLocaleString()
+    }));
+    
+    ExcelImporter.exportToExcel(exportData, 'admins_export');
+    showToast('success', 'Export Complete', `Exported ${exportData.length} admins`);
+  } catch (error: any) {
+    showToast('error', 'Export Failed', error.message);
+  }
+}
+
+// ============================================
+// ADMIN MANAGEMENT TABS & NAV
+// ============================================
+
+function initAdminManagementTabs(): void {
+  const tabs = document.querySelectorAll('.admin-tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.getAttribute('data-admin-tab');
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      
+      const credentialsPanel = document.getElementById('credentialsAdminsPanel');
+      const magicPanel = document.getElementById('magiclinkAdminsPanel');
+      
+      if (tabName === 'credentials') {
+        if (credentialsPanel) credentialsPanel.classList.add('active');
+        if (magicPanel) magicPanel.classList.remove('active');
+      } else {
+        if (credentialsPanel) credentialsPanel.classList.remove('active');
+        if (magicPanel) magicPanel.classList.add('active');
+      }
+    });
+  });
+}
+
+function initAdminManagementNav(): void {
+  const adminNavBtn = document.getElementById('adminManagementNavBtn');
+  if (adminNavBtn && window.switchPage) {
+    adminNavBtn.addEventListener('click', () => {
+      window.switchPage('adminmanagement');
+    });
+  }
+}
+
+// ============================================
+// INTERACTIVE STATS CARDS
+// ============================================
+
+function initInteractiveStatsCards(): void {
+  const totalCard = document.getElementById('totalStudents')?.closest('.stat-card');
+  if (totalCard && window.switchPage) {
+    totalCard.addEventListener('click', () => window.switchPage('completion'));
+  }
+  
+  const completedCard = document.getElementById('completedCount')?.closest('.stat-card');
+  if (completedCard && window.switchPage) {
+    completedCard.addEventListener('click', () => window.switchPage('completion', 'COMPLETED'));
+  }
+  
+  const pendingCard = document.getElementById('pendingCount')?.closest('.stat-card');
+  if (pendingCard && window.switchPage) {
+    pendingCard.addEventListener('click', () => window.switchPage('completion', 'PENDING'));
+  }
+  
+  const notCompletedCard = document.getElementById('notCompletedCount')?.closest('.stat-card');
+  if (notCompletedCard && window.switchPage) {
+    notCompletedCard.addEventListener('click', () => window.switchPage('completion', 'NOT COMPLETED'));
+  }
+  
+  const hkCard = document.getElementById('hkEndorsedCount')?.closest('.stat-card');
+  if (hkCard && window.switchPage) {
+    hkCard.addEventListener('click', () => window.switchPage('hkdatabase'));
+  }
+}
+
+// ============================================
 // DASHBOARD INITIALIZATION
 // ============================================
 
-function initAdminDashboard(): void {
+let uiController: AdminUIController;
+
+async function initAdminDashboard(): Promise<void> {
   console.log('🚀 Initializing Admin Dashboard...');
   if (!document.querySelector('.nav-item[data-page]')) {
     setTimeout(initAdminDashboard, 50);
     return;
   }
   
-  updateAdminDisplay();
+  await updateAdminDisplay();
+  await initProfileModal();
   initMobileSidebar();
   initLogoutHandler();
   initExcelImport();
   initDeleteAllButton();
-  initColorThemePicker();
-  initProfileModal();
+  await initColorThemePicker();
   initAnalyticsExportButtons();
+  initAddAdminButton();
+  initExportAdminsButton();
   
   studentController = new AdminStudentController();
-  const uiController = new AdminUIController();
+  uiController = new AdminUIController();
   setupClickableRowHandler();
   
   let isDashboardLoaded = false;
@@ -1661,21 +2431,37 @@ function initAdminDashboard(): void {
     }
   }
   
-  function switchPage(page: string): void {
+  // GLOBAL SWITCH PAGE FUNCTION
+  window.switchPage = (page: string, filterRemarks?: string, filterCourse?: string): void => {
+    console.log('🔀 Switching to page:', page, filterRemarks ? `with filter: ${filterRemarks}` : '');
+    
     const titles: Record<string, { title: string; subtitle: string; pageId: string }> = {
       dashboard: { title: 'Dashboard', subtitle: 'Overview', pageId: 'dashboardPage' },
       completion: { title: 'Completion', subtitle: 'Online Support tracker', pageId: 'completionPage' },
       hkdatabase: { title: 'HK Database', subtitle: 'Endorsed students', pageId: 'hkDatabasePage' },
-      analytics: { title: 'Analytics', subtitle: 'Data analysis', pageId: 'analyticsPage' }
+      analytics: { title: 'Analytics', subtitle: 'Data analysis', pageId: 'analyticsPage' },
+      adminmanagement: { title: 'Admin Management', subtitle: 'Manage system administrators', pageId: 'adminManagementPage' }
     };
+    
     const config = titles[page];
     if (config) {
       uiController.showPage(config.pageId);
       uiController.updatePageTitle(config.title, config.subtitle);
       uiController.setActiveNav(page);
+      
       if (page === 'completion') {
         const searchVal = (document.getElementById('searchInput') as HTMLInputElement)?.value || '';
         renderCompletionTableOptimized(searchVal, 1);
+        
+        if (filterRemarks) {
+          setTimeout(() => {
+            const remarksFilter = document.getElementById('filterRemarks') as HTMLSelectElement;
+            if (remarksFilter) {
+              remarksFilter.value = filterRemarks;
+              remarksFilter.dispatchEvent(new Event('change'));
+            }
+          }, 100);
+        }
       } else if (page === 'hkdatabase') {
         studentController?.renderHKTable();
       } else if (page === 'dashboard') {
@@ -1686,20 +2472,29 @@ function initAdminDashboard(): void {
       } else if (page === 'analytics') {
         initAnalyticsPage();
         initAnalyticsExportButtons();
+      } else if (page === 'adminmanagement') {
+        renderAdminManagementPage();
+        initAdminManagementTabs();
       }
     }
-  }
+  };
+  
+  // Initialize Admin Management Navigation
+  initAdminManagementNav();
+  
+  // Initialize Interactive Stats Cards
+  initInteractiveStatsCards();
   
   const navItems = document.querySelectorAll('.nav-item[data-page]');
   navItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
       const page = item.getAttribute('data-page');
-      if (page) switchPage(page);
+      if (page) window.switchPage(page);
     });
   });
   
-  uiController.setupEventListeners(studentController!, switchPage);
+  uiController.setupEventListeners(studentController!, window.switchPage);
   renderCompletionTableOptimized('', 1);
   studentController?.renderHKTable();
   
@@ -1740,7 +2535,7 @@ async function startApp(): Promise<void> {
   initSecurity();
   trackUserActivity();
   resetInactivityTimer();
-  initAdminDashboard();
+  await initAdminDashboard();
 }
 
 startApp();

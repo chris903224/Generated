@@ -19,11 +19,11 @@
   --brand-400:      #25b672;
   --brand-300:      #4daa82;
   --brand-100:      #16a85f;
-  --brand-50:       #fefefe;
+  --brand-50:       #c51919;
   --brand-glow:     rgba(30, 110, 74, 0.28);
 
   /* Glass — Light */
-  --glass-bg:       rgba(255, 255, 255, 0.38);
+  --glass-bg:       rgba(57, 178, 106, 0.548);
   --glass-bg-strong:rgba(255, 255, 255, 0.60);
   --glass-border:   rgba(255, 255, 255, 0.72);
   --glass-border-b: rgba(255, 255, 255, 0.30);
@@ -34,7 +34,7 @@
     0 4px 6px -1px rgba(0, 0, 0, 0.04),
     0 24px 50px -8px rgba(21, 72, 46, 0.16),
     0 0 0 1px rgba(255, 255, 255, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.80),
+    inset 0 1px 0 rgba(21, 255, 193, 0.8),
     inset 0 -1px 0 rgba(255, 255, 255, 0.20);
 
   /* Ink — Light */
@@ -93,10 +93,10 @@ body.white-theme {
     radial-gradient(ellipse 80% 60% at 15% 8%,  rgba(160, 220, 185, 0.55) 0%, transparent 60%),
     radial-gradient(ellipse 70% 55% at 88% 92%,  rgba(110, 195, 150, 0.45) 0%, transparent 58%),
     radial-gradient(ellipse 50% 40% at 55% 40%,  rgba(200, 240, 215, 0.38) 0%, transparent 50%),
-    linear-gradient(160deg, #d6f0e2 0%, #bde5cc 35%, #a4d9b9 65%, #90cda8 100%);
+    linear-gradient(160deg, #b1c2b9 0%, #909893 35%, #a4d9b9 65%, #90cda8 100%);
 }
 
-/* ── Scene layers ── */
+/* ── Scene layers ── */  
 .scene {
   position: fixed;
   inset: 0;

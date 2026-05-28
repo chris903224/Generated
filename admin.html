@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   
-  <title>PHINMA SIS · OS Head Dashboard</title>
+  <title>OS HEAD · OS Head Dashboard</title>
   
   <link rel="icon" type="image/jpeg" href="sjc.jpg">
   <link rel="shortcut icon" type="image/jpeg" href="sjc.jpg">
@@ -63,7 +63,7 @@
               <div class="logo-fallback" style="display: none;">OS</div>
             </div>
             <div class="logo-text">
-              <span class="logo-name">PHINMA SIS</span>
+              <span class="logo-name">OS HEAD</span>
               <span class="logo-role">OS Head Portal</span>
             </div>
           </div>
@@ -106,6 +106,17 @@
               <span class="nav-label">HK Database</span>
               <div class="nav-tooltip">HK Database</div>
             </a>
+
+            <button class="nav-item" id="adminManagementNavBtn" data-page="adminmanagement">
+              <div class="nav-icon-wrap">
+                <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="8" r="4"></circle>
+                  <path d="M4 20v-1C4 15.134 7.134 12 11 12h2c3.866 0 7 3.134 7 7v1"></path>
+                </svg>
+              </div>
+              <span class="nav-label">Admin Management</span>
+              <div class="nav-tooltip">Admin Management</div>
+            </button>
 
             <div class="nav-section-divider"></div>
 
@@ -310,7 +321,7 @@
                   </div>
                 </div>
                 <div class="chart-wrap">
-                  <canvas id="yearChart" height="220"></canvas>
+                  <canvas id="yearChart" height="320"></canvas>
                 </div>
               </div>
             </div>
@@ -328,16 +339,15 @@
                   <canvas id="trendChart" height="160"></canvas>
                 </div>
               </div>
-
-              <div class="chart-card glass">
+              <div class="chart-card glass" style="grid-column: span 1;">
                 <div class="chart-card-head">
                   <div>
                     <div class="chart-title">Endorsement Types</div>
                     <div class="chart-sub">Student routing breakdown</div>
                   </div>
                 </div>
-                <div class="chart-wrap">
-                  <canvas id="endorseChart" height="160"></canvas>
+                <div class="chart-wrap" style="height: 460px; min-height:460px;">
+                  <canvas id="endorseChart" height="360"></canvas>
                 </div>
               </div>
             </div>
@@ -367,7 +377,8 @@
               </div>
             </div>
 
-            <div class="table-card glass">
+            <!-- RECENT RECORDS TABLE -->
+            <div class="table-card glass" style="width: 100%; grid-column: 1 / -1;">
               <div class="table-card-head">
                 <div>
                   <div class="chart-title">Recent Records</div>
@@ -375,24 +386,25 @@
                 </div>
                 <button class="btn-outline" id="viewAllBtn">View All →</button>
               </div>
-              <div class="table-scroll">
-                <table class="data-table">
+              <div class="table-scroll" style="overflow-x: auto; width: 100%;">
+                <table class="data-table" style="width: 100%; min-width: 900px; table-layout: auto; border-collapse: collapse;">
                   <thead>
                     <tr>
-                      <th style="width:40px;">#</th>
-                      <th>Name</th>
-                      <th>Course</th>
-                      <th>Year</th>
-                      <th>Status</th>
-                      <th>Duties</th>
-                      <th>Endorsement</th>
-                      <th>Hours</th>
+                      <th style="width: 50px;">#</th>
+                      <th style="width: 220px;">Name</th>
+                      <th style="width: 100px;">Course</th>
+                      <th style="width: 75px;">Year</th>
+                      <th style="width: 100px;">Status</th>
+                      <th style="width: 120px;">Duties</th>
+                      <th style="width: 140px;">Endorsement</th>
+                      <th style="width: 75px;">Hours</th>
                     </tr>
                   </thead>
                   <tbody id="recentTbody"></tbody>
                 </table>
               </div>
             </div>
+
           </section>
 
           <!-- COMPLETION PAGE -->
@@ -711,22 +723,107 @@
               </div>
             </div>
 
-            <div class="table-card glass" style="margin-top: 20px;">
-              <div class="table-card-head">
-                <div>
-                  <div class="chart-title">👥 Admin Management</div>
-                  <div class="chart-sub">View all registered admin accounts</div>
-                </div>
-                <button class="btn-primary" id="viewAdminAccountsBtn" style="background: #8b5cf6;">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="8" r="4"></circle>
-                    <path d="M4 20v-1C4 15.134 7.134 12 11 12h2c3.866 0 7 3.134 7 7v1"></path>
-                  </svg>
-                  View Admin Accounts
-                </button>
-              </div>
-            </div>
+          </section>
 
+          <!-- ADMIN MANAGEMENT PAGE -->
+          <section id="adminManagementPage" class="page">
+            <div class="page-panel glass">
+              
+              <!-- SUMMARY CARDS - NASA TAAS -->
+              <div class="admin-summary-top">
+                <div class="summary-card">
+                  <div class="summary-icon">🔐</div>
+                  <div class="summary-info">
+                    <span class="summary-count" id="credentialsCount">0</span>
+                    <span class="summary-label">Credentials Admins</span>
+                  </div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-icon">📧</div>
+                  <div class="summary-info">
+                    <span class="summary-count" id="magiclinkCount">0</span>
+                    <span class="summary-label">Magic Link Admins</span>
+                  </div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-icon">👥</div>
+                  <div class="summary-info">
+                    <span class="summary-count" id="totalAdminsCount">0</span>
+                    <span class="summary-label">Total Admins</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel-head">
+                <div>
+                  <h2 class="panel-title">👥 Admin Management</h2>
+                  <div class="panel-sub">Manage system administrators</div>
+                </div>
+                <div class="controls-bar">
+                  <button class="btn-primary" id="addAdminBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 5v14M5 12h14"></path>
+                    </svg>
+                    Add Admin
+                  </button>
+                  <button class="btn-outline" id="exportAdminsBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                      <polyline points="14 2 14 8 20 8"></polyline>
+                      <line x1="12" y1="18" x2="12" y2="12"></line>
+                      <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    Export
+                  </button>
+                </div>
+              </div>
+              
+              <div class="admin-tabs">
+                <button class="admin-tab active" data-admin-tab="credentials">🔐 Credentials <span class="tab-count" id="credentialsTabCount">(0)</span></button>
+                <button class="admin-tab" data-admin-tab="magiclink">📧 Magic Link <span class="tab-count" id="magiclinkTabCount">(0)</span></button>
+              </div>
+              
+              <div id="credentialsAdminsPanel" class="admin-panel active">
+                <div class="admin-table-wrapper">
+                  <table class="admin-accounts-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th style="width: 120px;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="credentialsAdminsTbody">
+                      <tr><td colspan="6" style="text-align:center; padding:40px;">Loading...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+              <div id="magiclinkAdminsPanel" class="admin-panel">
+                <div class="admin-table-wrapper">
+                  <table class="admin-accounts-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th style="width: 120px;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="magiclinkAdminsTbody">
+                      <tr><td colspan="6" style="text-align:center; padding:40px;">Loading...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              
+            </div>
           </section>
 
         </main>
@@ -989,63 +1086,6 @@
           <div id="importStepMap" class="import-step" style="display:none"><div id="mappingContainer" class="mapping-container"></div><div class="import-actions"><button class="btn-ghost" id="backToUploadBtn">Back</button><button class="btn-primary" id="previewImportBtn">Preview Import</button></div></div>
           <div id="importStepPreview" class="import-step" style="display:none"><div id="previewContainer" class="preview-container"></div><div class="import-actions"><button class="btn-ghost" id="backToMapBtn">Back</button><button class="btn-primary" id="confirmImportBtn">Import Students</button></div></div>
           <div id="importStepResult" class="import-step" style="display:none"><div id="resultContainer"></div><div class="import-actions"><button class="btn-primary" id="closeImportResultBtn">Close</button></div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ADMIN ACCOUNTS MODAL -->
-    <div class="modal-backdrop" id="adminAccountsModal" style="display:none">
-      <div class="modal modal-lg">
-        <div class="modal-head">
-          <div class="modal-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="8" r="4"></circle>
-              <path d="M4 20v-1C4 15.134 7.134 12 11 12h2c3.866 0 7 3.134 7 7v1"></path>
-            </svg>
-            Admin Accounts
-          </div>
-          <button class="modal-close" id="closeAdminAccountsModal">✕</button>
-        </div>
-        <div class="modal-body">
-          <div class="admin-tabs">
-            <button class="admin-tab active" data-admin-tab="credentials">🔐 Credentials <span class="tab-count">(5)</span></button>
-            <button class="admin-tab" data-admin-tab="magiclink">📧 Magic Link <span class="tab-count">(4)</span></button>
-          </div>
-          <div id="credentialsAdminsPanel" class="admin-panel active">
-            <div class="admin-table-wrapper">
-              <table class="admin-accounts-table">
-                <thead><tr><th>#</th><th>Name</th><th>Username</th><th>Role</th><th>Status</th></tr></thead>
-                <tbody>
-                  <tr><td>1</td><td><strong>Anthony</strong></td><td><code>AdminAnthony</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
-                  <tr><td>2</td><td><strong>Ronan</strong></td><td><code>AdminRonan</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
-                  <tr><td>3</td><td><strong>Jay</strong></td><td><code>AdminJay</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
-                  <tr><td>4</td><td><strong>Leimark</strong></td><td><code>AdminLeimark</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
-                  <tr><td>5</td><td><strong>Alain</strong></td><td><code>AdminAlain</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div id="magiclinkAdminsPanel" class="admin-panel">
-            <div class="admin-table-wrapper">
-              <table class="admin-accounts-table">
-                <thead><tr><th>#</th><th>Name</th><th>Email Address</th><th>Role</th><th>Status</th></tr></thead>
-                <tbody>
-                  <tr><td>1</td><td><strong>Leda L. Lutrania</strong></td><td><code>leda.lutrania.sjc@phinmaed.com</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
-                  <tr><td>2</td><td><strong>Anma S. Saguid</strong></td><td><code>anma.saguid.sjc@phinmaed.com</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
-                  <tr><td>3</td><td><strong>Juba L. Libao</strong></td><td><code>juba.libao.sjc@phinmaed.com</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
-                  <tr><td>4</td><td><strong>Chpe P. Villanueva</strong></td><td><code>chpe.villanueva.sjc@phinmaed.com</code></td><td>Administrator</td><td><span class="status-active">Active</span></td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="admin-summary">
-            <div class="summary-card"><div class="summary-icon">🔐</div><div class="summary-info"><span class="summary-count">5</span><span class="summary-label">Credentials Admins</span></div></div>
-            <div class="summary-card"><div class="summary-icon">📧</div><div class="summary-info"><span class="summary-count">4</span><span class="summary-label">Magic Link Admins</span></div></div>
-            <div class="summary-card"><div class="summary-icon">👥</div><div class="summary-info"><span class="summary-count">9</span><span class="summary-label">Total Admins</span></div></div>
-          </div>
-        </div>
-        <div class="modal-foot">
-          <button class="btn-ghost" id="closeAdminAccountsModalBtn">Close</button>
         </div>
       </div>
     </div>

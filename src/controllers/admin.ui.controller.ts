@@ -1,4 +1,4 @@
-// controllers/16 admin.ui.controller.ts
+// controllers/admin.ui.controller.ts - FIXED VERSION
 
 import { supabase } from '../services/supabase.service';
 
@@ -70,7 +70,8 @@ export class AdminUIController {
     });
   }
 
-  setupEventListeners(studentController: any, switchPageCallback: (page: string) => void): void {
+  // FIXED: Updated parameter type to match admin.main.ts
+  setupEventListeners(studentController: any, switchPageCallback: (page: string, filterRemarks?: string, filterCourse?: string) => void): void {
     if (this.dom.themeBtn) {
       this.dom.themeBtn.addEventListener('click', () => this.toggleTheme());
     }
