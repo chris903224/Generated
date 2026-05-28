@@ -1,24 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "admin-generated.vercel.app"
-        }
-      ],
+      "source": "/",
       "destination": "/admin.html"
-    },
-    {
-      "source": "/(.*)",
-      "has": [
-        {
-          "type": "host",
-          "value": "os-controlnumber.vercel.app"
-        }
-      ],
-      "destination": "/index.html"
     },
     {
       "source": "/admin-login",
@@ -29,6 +13,5 @@
       "destination": "/admin-callback.html"
     }
   ],
-  "cleanUrls": true,
-  "trailingSlash": false
+  "cleanUrls": true
 }
