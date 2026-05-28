@@ -1,7 +1,14 @@
 {
   "rewrites": [
-    { "source": "/admin-login", "destination": "/admin-login.html" },
-    { "source": "/admin-callback", "destination": "/admin-callback.html" },
-    { "source": "/admin", "destination": "/admin.html" }
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "admin-generated.vercel.app" }],
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "os-generated.vercel.app" }],
+      "destination": "/index.html"
+    }
   ]
 }
