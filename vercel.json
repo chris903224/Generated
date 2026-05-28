@@ -2,13 +2,33 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "admin-generated.vercel.app" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "admin-generated.vercel.app"
+        }
+      ],
       "destination": "/admin.html"
     },
     {
       "source": "/(.*)",
-      "has": [{ "type": "host", "value": "os-generated.vercel.app" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "os-controlnumber.vercel.app"
+        }
+      ],
       "destination": "/index.html"
+    },
+    {
+      "source": "/admin-login",
+      "destination": "/admin-login.html"
+    },
+    {
+      "source": "/admin-callback",
+      "destination": "/admin-callback.html"
     }
-  ]
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
 }
