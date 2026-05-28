@@ -1,17 +1,26 @@
 {
-  "rewrites": [
+  "builds": [
     {
-      "source": "/",
-      "destination": "/admin.html"
+      "src": "admin.html",
+      "use": "@vercel/static"
     },
     {
-      "source": "/admin-login",
-      "destination": "/admin-login.html"
+      "src": "admin-login.html",
+      "use": "@vercel/static"
     },
     {
-      "source": "/admin-callback",
-      "destination": "/admin-callback.html"
+      "src": "src/**",
+      "use": "@vercel/static"
     }
   ],
-  "cleanUrls": true
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/admin.html"
+    },
+    {
+      "src": "/admin-login",
+      "dest": "/admin-login.html"
+    }
+  ]
 }
