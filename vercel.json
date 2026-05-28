@@ -16,6 +16,10 @@
   "routes": [
     {
       "src": "/",
+      "dest": "/admin-login.html"
+    },
+    {
+      "src": "/admin",
       "dest": "/admin.html"
     },
     {
